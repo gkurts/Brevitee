@@ -38,22 +38,28 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetOpenAuth.AspNet">
+    <Reference Include="DotNetOpenAuth.AspNet, Version=4.1.0.0, Culture=neutral, PublicKeyToken=2780ccd10d57b246, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\DotNetOpenAuth.AspNet.4.1.4.12333\lib\net45-full\DotNetOpenAuth.AspNet.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetOpenAuth.Core">
+    <Reference Include="DotNetOpenAuth.Core, Version=4.1.0.0, Culture=neutral, PublicKeyToken=2780ccd10d57b246, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\DotNetOpenAuth.Core.4.1.4.12333\lib\net45-full\DotNetOpenAuth.Core.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetOpenAuth.OAuth">
+    <Reference Include="DotNetOpenAuth.OAuth, Version=4.1.0.0, Culture=neutral, PublicKeyToken=2780ccd10d57b246, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\DotNetOpenAuth.OAuth.Core.4.1.4.12333\lib\net45-full\DotNetOpenAuth.OAuth.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetOpenAuth.OAuth.Consumer">
+    <Reference Include="DotNetOpenAuth.OAuth.Consumer, Version=4.1.0.0, Culture=neutral, PublicKeyToken=2780ccd10d57b246, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\DotNetOpenAuth.OAuth.Consumer.4.1.4.12333\lib\net45-full\DotNetOpenAuth.OAuth.Consumer.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetOpenAuth.OpenId">
+    <Reference Include="DotNetOpenAuth.OpenId, Version=4.1.0.0, Culture=neutral, PublicKeyToken=2780ccd10d57b246, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\DotNetOpenAuth.OpenId.Core.4.1.4.12333\lib\net45-full\DotNetOpenAuth.OpenId.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetOpenAuth.OpenId.RelyingParty">
+    <Reference Include="DotNetOpenAuth.OpenId.RelyingParty, Version=4.1.0.0, Culture=neutral, PublicKeyToken=2780ccd10d57b246, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\DotNetOpenAuth.OpenId.RelyingParty.4.1.4.12333\lib\net45-full\DotNetOpenAuth.OpenId.RelyingParty.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Web.WebPages.OAuth, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -64,10 +70,12 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Net.Http" />
-    <Reference Include="System.Net.Http.Extensions">
+    <Reference Include="System.Net.Http.Extensions, Version=2.2.28.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.Net.Http.2.2.28\lib\net45\System.Net.Http.Extensions.dll</HintPath>
     </Reference>
-    <Reference Include="System.Net.Http.Primitives">
+    <Reference Include="System.Net.Http.Primitives, Version=4.2.28.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.Net.Http.2.2.28\lib\net45\System.Net.Http.Primitives.dll</HintPath>
     </Reference>
     <Reference Include="System.Net.Http.WebRequest" />
@@ -101,13 +109,69 @@
     <Compile Include="DaoIdentity.cs" />
     <Compile Include="DaoPrincipal.cs" />
     <Compile Include="ForgotPasswordResponse.cs" />
-    <Compile Include="Generated\UserAccountsContext.cs" />
     <Compile Include="InvalidTokenException.cs" />
     <Compile Include="IsAuthenticatedResponse.cs" />
     <Compile Include="PasswordResetEmailData.cs" />
     <Compile Include="PasswordResetPageResponse.cs" />
     <Compile Include="PasswordResetResponse.cs" />
     <Compile Include="SignOutResponse.cs" />
+    <Compile Include="UserAccounts_Generated\Account.cs" />
+    <Compile Include="UserAccounts_Generated\AccountCollection.cs" />
+    <Compile Include="UserAccounts_Generated\AccountColumns.cs" />
+    <Compile Include="UserAccounts_Generated\LockOut.cs" />
+    <Compile Include="UserAccounts_Generated\LockOutCollection.cs" />
+    <Compile Include="UserAccounts_Generated\LockOutColumns.cs" />
+    <Compile Include="UserAccounts_Generated\Login.cs" />
+    <Compile Include="UserAccounts_Generated\LoginCollection.cs" />
+    <Compile Include="UserAccounts_Generated\LoginColumns.cs" />
+    <Compile Include="UserAccounts_Generated\Password.cs" />
+    <Compile Include="UserAccounts_Generated\PasswordCollection.cs" />
+    <Compile Include="UserAccounts_Generated\PasswordColumns.cs" />
+    <Compile Include="UserAccounts_Generated\PasswordFailure.cs" />
+    <Compile Include="UserAccounts_Generated\PasswordFailureCollection.cs" />
+    <Compile Include="UserAccounts_Generated\PasswordFailureColumns.cs" />
+    <Compile Include="UserAccounts_Generated\PasswordQuestion.cs" />
+    <Compile Include="UserAccounts_Generated\PasswordQuestionCollection.cs" />
+    <Compile Include="UserAccounts_Generated\PasswordQuestionColumns.cs" />
+    <Compile Include="UserAccounts_Generated\PasswordReset.cs" />
+    <Compile Include="UserAccounts_Generated\PasswordResetCollection.cs" />
+    <Compile Include="UserAccounts_Generated\PasswordResetColumns.cs" />
+    <Compile Include="UserAccounts_Generated\Qi\Account.cs" />
+    <Compile Include="UserAccounts_Generated\Qi\LockOut.cs" />
+    <Compile Include="UserAccounts_Generated\Qi\Login.cs" />
+    <Compile Include="UserAccounts_Generated\Qi\Password.cs" />
+    <Compile Include="UserAccounts_Generated\Qi\PasswordFailure.cs" />
+    <Compile Include="UserAccounts_Generated\Qi\PasswordQuestion.cs" />
+    <Compile Include="UserAccounts_Generated\Qi\PasswordReset.cs" />
+    <Compile Include="UserAccounts_Generated\Qi\Role.cs" />
+    <Compile Include="UserAccounts_Generated\Qi\Session.cs" />
+    <Compile Include="UserAccounts_Generated\Qi\SessionState.cs" />
+    <Compile Include="UserAccounts_Generated\Qi\Setting.cs" />
+    <Compile Include="UserAccounts_Generated\Qi\User.cs" />
+    <Compile Include="UserAccounts_Generated\Qi\UserBehavior.cs" />
+    <Compile Include="UserAccounts_Generated\Qi\UserRole.cs" />
+    <Compile Include="UserAccounts_Generated\Role.cs" />
+    <Compile Include="UserAccounts_Generated\RoleCollection.cs" />
+    <Compile Include="UserAccounts_Generated\RoleColumns.cs" />
+    <Compile Include="UserAccounts_Generated\Session.cs" />
+    <Compile Include="UserAccounts_Generated\SessionCollection.cs" />
+    <Compile Include="UserAccounts_Generated\SessionColumns.cs" />
+    <Compile Include="UserAccounts_Generated\SessionState.cs" />
+    <Compile Include="UserAccounts_Generated\SessionStateCollection.cs" />
+    <Compile Include="UserAccounts_Generated\SessionStateColumns.cs" />
+    <Compile Include="UserAccounts_Generated\Setting.cs" />
+    <Compile Include="UserAccounts_Generated\SettingCollection.cs" />
+    <Compile Include="UserAccounts_Generated\SettingColumns.cs" />
+    <Compile Include="UserAccounts_Generated\User.cs" />
+    <Compile Include="UserAccounts_Generated\UserAccountsContext.cs" />
+    <Compile Include="UserAccounts_Generated\UserBehavior.cs" />
+    <Compile Include="UserAccounts_Generated\UserBehaviorCollection.cs" />
+    <Compile Include="UserAccounts_Generated\UserBehaviorColumns.cs" />
+    <Compile Include="UserAccounts_Generated\UserCollection.cs" />
+    <Compile Include="UserAccounts_Generated\UserColumns.cs" />
+    <Compile Include="UserAccounts_Generated\UserRole.cs" />
+    <Compile Include="UserAccounts_Generated\UserRoleCollection.cs" />
+    <Compile Include="UserAccounts_Generated\UserRoleColumns.cs" />
     <Compile Include="UserManagerConfig.cs" />
     <Compile Include="DaoUserResolver.cs" />
     <Compile Include="LoginResponse.cs" />
@@ -120,7 +184,6 @@
     <Compile Include="Partials\Setting.cs" />
     <Compile Include="Partials\UserRole.cs" />
     <Compile Include="RequestEmailResponse.cs" />
-    <Compile Include="RequestResponse.cs" />
     <Compile Include="SendEmailResponse.cs" />
     <Compile Include="SignUpResponse.cs" />
     <Compile Include="UserManager.cs" />
@@ -128,150 +191,6 @@
     <Compile Include="DaoMembershipUser.cs" />
     <Compile Include="DaoRoleProvider.cs" />
     <Compile Include="EmailAlreadyRegisteredException.cs" />
-    <Compile Include="Generated\Account.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\AccountCollection.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\AccountColumns.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\LockOut.cs" />
-    <Compile Include="Generated\LockOutCollection.cs" />
-    <Compile Include="Generated\LockOutColumns.cs" />
-    <Compile Include="Generated\Login.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\LoginCollection.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\LoginColumns.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\Password.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\PasswordCollection.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\PasswordColumns.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\PasswordFailure.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\PasswordFailureCollection.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\PasswordFailureColumns.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\PasswordQuestion.cs" />
-    <Compile Include="Generated\PasswordQuestionCollection.cs" />
-    <Compile Include="Generated\PasswordQuestionColumns.cs" />
-    <Compile Include="Generated\PasswordReset.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\PasswordResetCollection.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\PasswordResetColumns.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\Qi\Account.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\Qi\LockOut.cs" />
-    <Compile Include="Generated\Qi\Login.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\Qi\Password.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\Qi\PasswordFailure.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\Qi\PasswordQuestion.cs" />
-    <Compile Include="Generated\Qi\PasswordReset.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\Qi\Role.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\Qi\Session.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\Qi\SessionState.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\Qi\Setting.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\Qi\User.cs" />
-    <Compile Include="Generated\Qi\UserBehavior.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\Qi\UserRole.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\Role.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\RoleCollection.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\RoleColumns.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\Session.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\SessionCollection.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\SessionColumns.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\SessionState.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\SessionStateCollection.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\SessionStateColumns.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\Setting.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\SettingCollection.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\SettingColumns.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\User.cs" />
-    <Compile Include="Generated\UserBehavior.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\UserBehaviorCollection.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\UserBehaviorColumns.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\UserCollection.cs" />
-    <Compile Include="Generated\UserColumns.cs" />
-    <Compile Include="Generated\UserRole.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\UserRoleCollection.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\UserRoleColumns.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="OAuthManager.cs" />
     <Compile Include="Partials\Account.cs" />
     <Compile Include="Partials\Login.cs" />

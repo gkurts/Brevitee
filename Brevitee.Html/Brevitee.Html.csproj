@@ -119,6 +119,13 @@
     <EmbeddedResource Include="Js\DataSet.js" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Js\spin.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Brevitee.CommandLine\Brevitee.CommandLine.csproj">
       <Project>{ea9863a9-8e0b-4497-b7fd-abf450a3e468}</Project>
       <Name>Brevitee.CommandLine</Name>
@@ -128,7 +135,7 @@
       <Name>Brevitee.Data</Name>
     </ProjectReference>
     <ProjectReference Include="..\Brevitee.Incubation\Brevitee.Incubation.csproj">
-      <Project>{AA186331-A0D0-4F77-BEA2-E7B7650D3FF5}</Project>
+      <Project>{aa186331-a0d0-4f77-bea2-e7b7650d3ff5}</Project>
       <Name>Brevitee.Incubation</Name>
     </ProjectReference>
     <ProjectReference Include="..\Brevitee.Javascript\Brevitee.Javascript.csproj">
@@ -144,15 +151,9 @@
       <Name>Brevitee.ServiceProxy</Name>
     </ProjectReference>
     <ProjectReference Include="..\Brevitee\Brevitee.csproj">
-      <Project>{8794C09D-D72C-420C-812F-BFDA251B64C9}</Project>
+      <Project>{8794c09d-d72c-420c-812f-bfda251b64c9}</Project>
       <Name>Brevitee</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Js\spin.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

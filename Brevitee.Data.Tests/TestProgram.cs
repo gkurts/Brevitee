@@ -43,8 +43,21 @@ namespace Brevitee.Data.Tests
 
             // the arguments protected member is not available in PreInit() (this method)
             #endregion
-        }
+			AddValidArgument("t", true, "run all tests");
+			DefaultMethod = typeof(TestProgram).GetMethod("Start");
+		}
 
+		public static void Start()
+		{
+			if (Arguments.Contains("t"))
+			{
+				RunAllTests(typeof(TestProgram).Assembly);
+			}
+			else
+			{
+				Interactive();
+			}
+		}
         /*
           * Methods addorned with the ConsoleAction attribute can be run
           * interactively from the command line while methods addorned with
@@ -58,14 +71,7 @@ namespace Brevitee.Data.Tests
           * 
           */
 
-        // To run ConsoleAction methods use the command line argument /i.        
-        [ConsoleAction("This is a main menu option")]
-        public static void ExampleMainMenuOption(string parameter)
-        {
-            OutLine(parameter, ConsoleColor.Green);
-        }
-
-        [UnitTest]
+		[UnitTest]
         public static void DropLeadingNonLettersTest()
         {
             Expect.AreEqual("Monkey", "_88%%$83345Monkey".DropLeadingNonLetters());

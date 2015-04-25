@@ -44,20 +44,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Generated\DirectMessage.cs" />
-    <Compile Include="Generated\DirectMessageCollection.cs" />
-    <Compile Include="Generated\DirectMessageColumns.cs" />
-    <Compile Include="Generated\EmailMessage.cs" />
-    <Compile Include="Generated\EmailMessageCollection.cs" />
-    <Compile Include="Generated\EmailMessageColumns.cs" />
-    <Compile Include="Generated\Message.cs" />
-    <Compile Include="Generated\MessageCollection.cs" />
-    <Compile Include="Generated\MessageColumns.cs" />
-    <Compile Include="Generated\MessagingContext.cs" />
-    <Compile Include="Generated\Qi\DirectMessage.cs" />
-    <Compile Include="Generated\Qi\EmailMessage.cs" />
-    <Compile Include="Generated\Qi\Message.cs" />
     <Compile Include="IEmailComposer.cs" />
+    <Compile Include="messaging_Generated\DirectMessage.cs" />
+    <Compile Include="messaging_Generated\DirectMessageCollection.cs" />
+    <Compile Include="messaging_Generated\DirectMessageColumns.cs" />
+    <Compile Include="messaging_Generated\EmailMessage.cs" />
+    <Compile Include="messaging_Generated\EmailMessageCollection.cs" />
+    <Compile Include="messaging_Generated\EmailMessageColumns.cs" />
+    <Compile Include="messaging_Generated\Message.cs" />
+    <Compile Include="messaging_Generated\MessageCollection.cs" />
+    <Compile Include="messaging_Generated\MessageColumns.cs" />
+    <Compile Include="messaging_Generated\MessagingContext.cs" />
+    <Compile Include="messaging_Generated\Qi\DirectMessage.cs" />
+    <Compile Include="messaging_Generated\Qi\EmailMessage.cs" />
+    <Compile Include="messaging_Generated\Qi\Message.cs" />
     <Compile Include="NamedFormatEmailComposer.cs" />
     <Compile Include="Notify.cs" />
     <Compile Include="Partials\DirectMessage.cs" />
@@ -84,6 +84,9 @@
       <Project>{8794c09d-d72c-420c-812f-bfda251b64c9}</Project>
       <Name>Brevitee</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

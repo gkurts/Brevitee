@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Brevitee
 {
+	[Serializable]
     public class IpcMessageLockInfo
     {
         public IpcMessageLockInfo()

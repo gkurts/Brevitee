@@ -85,7 +85,7 @@ namespace Brevitee.Server
             get { return new string[] { "Port", "MaxThreads", "ReadBufferSize" }; }
         }
 
-        [Verbosity(LogEventType.Information, MessageFormat = "\r\nPort={Port};MaxThreads={MaxThreads};ReadBufferSize={ReadBufferSize}")]
+		[Verbosity(VerbosityLevel.Information, MessageFormat = "\r\nPort={Port};MaxThreads={MaxThreads};ReadBufferSize={ReadBufferSize}")]
         public event EventHandler Started;
 
         protected void OnStarted()
@@ -96,7 +96,7 @@ namespace Brevitee.Server
             }
         }
 
-        [Verbosity(LogEventType.Information, MessageFormat = "\r\nPort={Port};MaxThreads={MaxThreads};ReadBufferSize={ReadBufferSize}")]
+		[Verbosity(VerbosityLevel.Information, MessageFormat = "\r\nPort={Port};MaxThreads={MaxThreads};ReadBufferSize={ReadBufferSize}")]
         public event EventHandler Stopped;
 
         protected void OnStopped()

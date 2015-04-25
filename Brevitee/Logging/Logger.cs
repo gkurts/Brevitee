@@ -112,8 +112,7 @@ namespace Brevitee.Logging
         /// </summary>
         public void BlockUntilEventQueueIsEmpty()
         {
-            //RestartLoggingThread();
-            if(loggingThread.ThreadState == System.Threading.ThreadState.Running)
+            if(loggingThread != null && loggingThread.ThreadState == System.Threading.ThreadState.Running)
             {
                 if (logEventQueue.Count > 0)
                 {
@@ -395,36 +394,10 @@ namespace Brevitee.Logging
 
         protected virtual void HandleStackTrace(Exception ex, StringBuilder message, StringBuilder stack)
         {
-            if (ex != null)
-            {
-                message.AppendFormat("\r\n{0}\r\n", ex.Message);
-                if (ex.StackTrace != null)
-                {
-                    stack.AppendFormat("\r\n{0}\r\n", ex.StackTrace);
-                }
-                else
-                {
-                    stack.AppendFormat("\r\n{0}\r\n", new System.Diagnostics.StackTrace(true).ToString());
-                }
-
-                if (ex.InnerException != null)
-                {
-                    message.AppendFormat("\r\n{0}\r\n", ex.InnerException.Message);
-                    if (ex.InnerException.StackTrace != null)
-                    {
-                        stack.AppendFormat("\r\n{0}\r\n", ex.InnerException.StackTrace);
-                    }
-                    else
-                    {
-                        stack.AppendFormat("\r\n{0}\r\n", new System.Diagnostics.StackTrace(true).ToString());
-                    }
-                }
-            }
-            else
-            {
-                stack.AppendFormat("\r\n{0}\r\n", new System.Diagnostics.StackTrace(true).ToString());
-            }
+			Args.SetMessageAndStackTrace(ex, message, stack);
         }
+
+		
 
         /// <summary>
         /// Returns an id for the specified applicationName and messageSignature.

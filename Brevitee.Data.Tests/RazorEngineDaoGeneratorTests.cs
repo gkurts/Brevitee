@@ -49,17 +49,6 @@ namespace Brevitee.Data.Tests
             Compare(result, compareToFile);
         }
         
-        [UnitTest]
-        public static void TestRazorParserParsePropertyTemplate()
-        {
-            RazorParser<DaoRazorTemplate<Column>> razorParser = new RazorParser<DaoRazorTemplate<Column>>();
-            Column column = new Column("ColumnName", DataTypes.DateTime);
-            string result = razorParser.ExecuteResource("Property.tmpl", new { Model = column });
-            OutLine(result, ConsoleColor.Cyan);
-
-            FileInfo compareToFile = new FileInfo(string.Format(".\\{0}.txt", MethodBase.GetCurrentMethod().Name));
-            Compare(result, compareToFile);
-        }
 
         [UnitTest]
         public static void WriteDaoCollectionPropertyTest()
@@ -131,7 +120,7 @@ namespace Brevitee.Data.Tests
             }
 
             Expect.IsNotNullOrEmpty(compare);
-            Expect.AreEqual(compare, result);
+            Expect.IsTrue(compare.Equals(result));
             OutLine(compare, ConsoleColor.Cyan);
         }
     }

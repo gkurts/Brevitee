@@ -13,8 +13,8 @@ GOTO COPY
 
 :COPY
 MD Brevitee.Javascript\lib\%LIB%
-copy /Y .\BuildOutput\%VER%\Brevitee.Javascript.dll Brevitee.Javascript\lib\%LIB%\Brevitee.Javascript.dll
-copy /Y .\BuildOutput\%VER%\Brevitee.Javascript.xml Brevitee.Javascript\lib\%LIB%\Brevitee.Javascript.xml
+copy /Y .\BuildOutput\Release\%VER%\Brevitee.Javascript.dll Brevitee.Javascript\lib\%LIB%\Brevitee.Javascript.dll
+copy /Y .\BuildOutput\Release\%VER%\Brevitee.Javascript.xml Brevitee.Javascript\lib\%LIB%\Brevitee.Javascript.xml
 GOTO %NEXT%
 
 :END

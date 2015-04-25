@@ -1,0 +1,1 @@
+".\ReportGenerator\ReportGenerator.exe" -reports:.\BuildOutput\Debug\v4.5\CodeCoverage.xml -targetdir:.\CodeCoverageReport

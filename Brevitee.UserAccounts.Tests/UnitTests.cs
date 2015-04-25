@@ -30,12 +30,17 @@ namespace Brevitee.UserAccounts.Tests
             //SqlClientRegistrar.Register<User>();
             Db.TryEnsureSchema<User>();
 
-            DeleteAllAccounts();
-            DeleteAllPasswords();
-            DeleteAllLogins();
-            DeleteAllSessions();
-            DeleteAllUsers();
+			ClearAllUserInfo();			
         }
+
+		private static void ClearAllUserInfo()
+		{
+			DeleteAllAccounts();
+			DeleteAllPasswords();
+			DeleteAllLogins();
+			DeleteAllSessions();
+			DeleteAllUsers();
+		}
 
         private static void DeleteAllUsers()
         {
@@ -97,7 +102,7 @@ namespace Brevitee.UserAccounts.Tests
         public void SignUpShouldSucceed()
         {
             UserManager user = new UserManager();
-            user.HttpContext = A.Fake<IHttpContext>();
+			user.HttpContext = FakeItEasy.A.Fake<IHttpContext>();
 
             SignUpResponse result = user.SignUp("Test@stickerize.me", "Test", "Password".Sha1(), false);
             Expect.IsNotNull(result.Success, "No Success value specified");
@@ -739,6 +744,7 @@ namespace Brevitee.UserAccounts.Tests
         [UnitTest]
         public void ForgotPasswordShouldSucceed()
         {
+			ClearAllUserInfo();
             string userName = MethodBase.GetCurrentMethod().Name;
             string email = "bryan.apellanes@gmail.com";
             SignUp(userName, email);

@@ -8,7 +8,6 @@ using Brevitee.Data;
 using Brevitee.ServiceProxy;
 using Brevitee.Logging;
 using Brevitee.Analytics;
-using Brevitee.Analytics.Data;
 using Brevitee.Stickerize.Business;
 using Brevitee.Stickerize.Business.Data;
 using U = Brevitee.UserAccounts.Data;
@@ -166,18 +165,19 @@ namespace Brevitee.Stickerize.Services
             }
         }
 
-        public UpdateResult<object> Unstickerize(DateTime at, long stickerizable, long stickerizeeId)
-        {
-            try
-            {
-                Stickerization stickerization = Stickerizer.Get(HttpContext).Stickerize(at, stickerizable, stickerizeeId);
-                stickerization.Unstickerize();
-                return new UpdateResult<object>(stickerization.ToJsonSafe());
-            }catch(Exception ex)
-            {
-                return new UpdateResult<object>(ex);
-            }
-        }
+		public UpdateResult<object> Unstickerize(DateTime at, long stickerizable, long stickerizeeId)
+		{
+			try
+			{
+				Stickerization stickerization = Stickerizer.Get(HttpContext).Stickerize(at, stickerizable, stickerizeeId);
+				stickerization.Unstickerize();
+				return new UpdateResult<object>(stickerization.ToJsonSafe());
+			}
+			catch (Exception ex)
+			{
+				return new UpdateResult<object>(ex);
+			}
+		}
 
         public RetrieveResult<object> GetStickerizations(DateTime forDate, long stickerizeeId)
         {

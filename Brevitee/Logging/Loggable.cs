@@ -9,6 +9,7 @@ using Brevitee.Configuration;
 
 namespace Brevitee.Logging
 {
+	[Serializable]
     public abstract class Loggable: ILoggable
     {
         public Loggable()
@@ -35,6 +36,20 @@ namespace Brevitee.Logging
         }
 
         object _subscriberLock = new object();
+
+		/// <summary>
+		/// Subscribe the current Loggables subscribers
+		/// to the specified Loggable
+		/// </summary>
+		/// <param name="loggable"></param>
+		public virtual void Subscribe(Loggable loggable)
+		{
+			this.Subscribers.Each(logger =>
+			{
+				loggable.Subscribe(logger);
+			});
+		}
+
         /// <summary>
         /// Subscribe the specified logger to
         /// all the events of the current type
@@ -46,11 +61,11 @@ namespace Brevitee.Logging
         /// Verbosity attribute
         /// </summary>
         /// <param name="logger"></param>
-        public void Subscribe(ILogger logger)
+        public virtual void Subscribe(ILogger logger)
         {
             lock (_subscriberLock)
             {
-                if (!IsSubscribed(logger))
+                if (logger != null && !IsSubscribed(logger))
                 {
                     _subscribers.Add(logger);
                     Type currentType = this.GetType();
@@ -59,7 +74,7 @@ namespace Brevitee.Logging
                     {
                         VerbosityAttribute verbosity;
                         bool shouldSubscribe = true;
-                        LogEventType logEventType = LogEventType.Information;
+						VerbosityLevel logEventType = VerbosityLevel.Information;
                         if (eventInfo.HasCustomAttributeOfType<VerbosityAttribute>(out verbosity))
                         {
                             shouldSubscribe = (int)verbosity.Value <= (int)LogVerbosity;
@@ -80,7 +95,7 @@ namespace Brevitee.Logging
                                             verbosity.TryGetMessage(a, out message);
                                         }
                                     }
-                                    logger.AddEntry("Event {0} raised on type {1}::{2}", logEventType, eventInfo.Name, currentType.Name, message);
+                                    logger.AddEntry("Event {0} raised on type {1}::{2}", logEventType.ToString(), eventInfo.Name, currentType.Name, message);
                                 }));
                             }
                         }
@@ -99,5 +114,13 @@ namespace Brevitee.Logging
         {
             return _subscribers.Contains(logger);
         }
+
+		protected void FireEvent(EventHandler eventHandler, EventArgs eventArgs)
+		{
+			if (eventHandler != null)
+			{
+				eventHandler(this, eventArgs);
+			}
+		}
     }
 }

@@ -40,10 +40,15 @@ namespace Brevitee.Web
         /// <param name="url"></param>
         /// <param name="headers"></param>
         /// <returns></returns>
-        public static T Get<T>(string url, Dictionary<string, string> headers = null)
+        public static T GetJson<T>(string url, Dictionary<string, string> headers = null)
         {
             return Get(url, JsonParser<T>(), headers);
         }
+
+		public static T GetXml<T>(string url, Dictionary<string, string> headers = null)
+		{
+			return Get(url, XmlParser<T>(), headers);
+		}
 
         public static T Get<T>(string url, Func<string, T> parser, Dictionary<string, string> headers = null)
         {

@@ -10,7 +10,7 @@ namespace Brevitee.Data
     public class SqlStringBuilder: IHasFilters
     {
         StringBuilder _stringBuilder;
-        List<IParameterInfo> parameters;
+        protected List<IParameterInfo> parameters;
         public static implicit operator string(SqlStringBuilder sqlStringBuilder)
         {
             return sqlStringBuilder._stringBuilder.ToString();
@@ -19,12 +19,20 @@ namespace Brevitee.Data
         public SqlStringBuilder()
         {
             Reset();
+			TableNameFormatter = t => string.Format("[{0}]", t);
+			ColumnNameFormatter = c => string.Format("[{0}]", c);
             this.Executed += (s, d) =>
             {
                 s.Reset();
             };
         }
 
+		public SqlStringBuilder(string command)
+			: this()
+		{
+			this._stringBuilder = new StringBuilder(command);
+		}
+		
         public virtual void Reset()
         {
             _stringBuilder = new StringBuilder();
@@ -33,23 +41,20 @@ namespace Brevitee.Data
             NextNumber = 1;
         }
 
-        protected StringBuilder StringBuilder
-        {
-            get
-            {
-                return this._stringBuilder;
-            }
-        }
+		public Func<string, string> TableNameFormatter
+		{
+			get;
+			set;
+		}
+
+		public Func<string, string> ColumnNameFormatter
+		{
+			get;
+			set;
+		}
 
         public event SqlExecuteDelegate Executed;
 
-        private void OnExecuted(Database db)
-        {
-            if (Executed != null)
-            {
-                Executed(this, db);
-            }
-        }
 
         public DataTable GetDataTable(Database db)
         {
@@ -101,24 +106,29 @@ namespace Brevitee.Data
                 OnExecuted(db);
             }
         }
+		public virtual DataSet GetDataSet(Database db, bool releaseConnection = true, DbConnection conn = null, DbTransaction tx = null)
+		{
+			return GetDataSet<object>(db, releaseConnection, conn, tx);
+		}
 
-        public DataSet GetDataSet(Database db, bool releaseConnection = true, DbConnection conn = null, DbTransaction tx = null)
+        public virtual DataSet GetDataSet<T>(Database db, bool releaseConnection = true, DbConnection conn = null, DbTransaction tx = null)
         {
             if (conn == null)
             {
                 conn = db.GetDbConnection();
             }
-            DataSet ds = db.GetDataSetFromSql(this, CommandType.Text, releaseConnection, conn, tx, db.ServiceProvider.Get<IParameterBuilder>().GetParameters(this));
-            OnExecuted(db);
-            return ds;
-        }
-
-        protected StringBuilder Builder
-        {
-            get
-            {
-                return _stringBuilder;
-            }
+			IParameterBuilder parameterBuilder;
+			if(db.ServiceProvider.TryGet<IParameterBuilder>(out parameterBuilder))
+			{
+				DataSet ds = db.GetDataSetFromSql(this, CommandType.Text, releaseConnection, conn, tx, parameterBuilder.GetParameters(this));
+				OnExecuted(db);
+				return ds;
+			}
+			else
+			{
+				Args.Throw<InvalidOperationException>("Unable to get IParameterBuilder for the database with connection string ({0}), should you specify a Database instance of your own instead of depending on the default database initializer?  Be sure to call the appropriate Registrar method first", db.ConnectionString);
+				return null;
+			}
         }
 
         public IEnumerable<IFilterToken> Filters
@@ -155,7 +165,7 @@ namespace Brevitee.Data
 
         public virtual SqlStringBuilder Update(string tableName, params AssignValue[] values)
         {
-            _stringBuilder.AppendFormat("UPDATE [{0}] ", tableName);
+			_stringBuilder.AppendFormat("UPDATE {0} ", TableNameFormatter(tableName));
             SetFormat set = new SetFormat();
             foreach (AssignValue value in values)
             {
@@ -181,7 +191,7 @@ namespace Brevitee.Data
 
         public virtual SqlStringBuilder Insert(string tableName, params AssignValue[] values)
         {
-            _stringBuilder.AppendFormat("INSERT INTO [{0}] ", tableName);
+            _stringBuilder.AppendFormat("INSERT INTO {0} ", TableNameFormatter(tableName));
             InsertFormat insert = new InsertFormat();
             foreach (AssignValue value in values)
             {
@@ -198,7 +208,7 @@ namespace Brevitee.Data
         public virtual SqlStringBuilder Select<T>() where T: Dao, new()
         {
             return Select(Dao.TableName(typeof(T)), 
-                ColumnAttribute.GetColumns(typeof(T)).ToDelimited(c => string.Format("[{0}]", c.Name)));
+                ColumnAttribute.GetColumns(typeof(T)).ToDelimited(c => ColumnNameFormatter(c.Name)));
         }
 
         public virtual SqlStringBuilder Select<T>(params string[] columns)
@@ -208,12 +218,12 @@ namespace Brevitee.Data
             {
                 if (!goodColumns.Contains(column))
                 {
-                    throw new InvalidOperationException(string.Format("Invalid column specified [{0}]", column));
+					throw new InvalidOperationException(string.Format("Invalid column specified {0}", ColumnNameFormatter(column)));
                 }
             }
 
             return Select(Dao.TableName(typeof(T)),
-                columns.ToDelimited(c => string.Format("[{0}]", c)));
+                columns.ToDelimited(c => ColumnNameFormatter(c)));
         }
 
         /// <summary>
@@ -236,7 +246,7 @@ namespace Brevitee.Data
         public virtual SqlStringBuilder SelectTop<T>(int topCount) where T : Dao, new()
         {
             return SelectTop(topCount, Dao.TableName(typeof(T)),
-                ColumnAttribute.GetColumns(typeof(T)).ToDelimited(c=> string.Format("[{0}]", c.Name)));
+				ColumnAttribute.GetColumns(typeof(T)).ToDelimited(c => ColumnNameFormatter(c.Name)));
         }
 
         public virtual SqlStringBuilder Select(string tableName, params string[] columnNames)
@@ -257,7 +267,7 @@ namespace Brevitee.Data
                 top = string.Format(" TOP {0}", topCount);
             }
             string cols = columnNames.ToDelimited(s => string.Format("{0}", s));
-            _stringBuilder.AppendFormat("SELECT {0}{1} FROM [{2}] ", top, cols, tableName);
+            _stringBuilder.AppendFormat("SELECT {0}{1} FROM {2} ", top, cols, TableNameFormatter(tableName));
             return this;
         }
 
@@ -268,14 +278,25 @@ namespace Brevitee.Data
 
         public virtual SqlStringBuilder SelectCount<T>() where T : Dao, new()
         {
-            _stringBuilder.AppendFormat("SELECT COUNT(*) FROM [{0}] ", Dao.TableName(typeof(T)));
-            return this;
+			//_stringBuilder.AppendFormat("SELECT COUNT(*) FROM {0} ", TableNameFormatter(Dao.TableName(typeof(T))));
+            //return this;
+			return SelectCount(Dao.TableName(typeof(T)));
         }
 
+		public virtual SqlStringBuilder Count(string tableName)
+		{
+			return SelectCount(tableName);
+		}
+
+		public virtual SqlStringBuilder SelectCount(string tableName)
+		{
+			_stringBuilder.AppendFormat("SELECT COUNT(*) FROM {0} ", TableNameFormatter(tableName));
+			return this;
+		}
 
         public virtual SqlStringBuilder Delete(string tableName)
         {
-            _stringBuilder.AppendFormat("DELETE FROM [{0}] ", tableName);
+			_stringBuilder.AppendFormat("DELETE FROM {0} ", TableNameFormatter(tableName));
             return this;
         }
 
@@ -292,28 +313,7 @@ namespace Brevitee.Data
             return OrderBy(orderBy.Column.ToString(), orderBy.SortOrder);
         }
 
-        protected SqlStringBuilder OrderBy(string columnName, SortOrder order = SortOrder.Ascending)
-        {
-            _stringBuilder.AppendFormat("ORDER BY [{0}] {1}", columnName, GetSortOrder(order));
-            return this;
-        }
-
-        protected string GetSortOrder(SortOrder order)
-        {
-            switch (order)
-            {
-                case SortOrder.Unspecified:
-                    return "ASC";
-                case SortOrder.Descending:
-                    return "DESC";
-                case SortOrder.Ascending:
-                    return "ASC";
-                default:
-                    return "ASC";
-            }
-        }
-
-        public SqlStringBuilder Where(IQueryFilter filter)
+        public virtual SqlStringBuilder Where(IQueryFilter filter)
         {
             WhereFormat where = new WhereFormat(filter);
             where.StartNumber = NextNumber;
@@ -324,7 +324,7 @@ namespace Brevitee.Data
         }
 
 
-        public SqlStringBuilder Where(AssignValue filter)
+        public virtual SqlStringBuilder Where(AssignValue filter)
         {
             WhereFormat where = new WhereFormat();
             where.StartNumber = NextNumber;
@@ -363,5 +363,67 @@ namespace Brevitee.Data
         {
             return _stringBuilder.ToString();
         }
+		
+		protected internal void OnExecuted(Database db)
+		{
+			if (Executed != null)
+			{
+				Executed(this, db);
+			}
+		}
+		
+		protected virtual SqlStringBuilder OrderBy(string columnName, SortOrder order = SortOrder.Ascending)
+		{
+			_stringBuilder.AppendFormat("ORDER BY {0} {1}", ColumnNameFormatter(columnName), GetSortOrder(order));
+			return this;
+		}
+
+		protected string GetSortOrder(SortOrder order)
+		{
+			switch (order)
+			{
+				case SortOrder.Unspecified:
+					return "ASC";
+				case SortOrder.Descending:
+					return "DESC";
+				case SortOrder.Ascending:
+					return "ASC";
+				default:
+					return "ASC";
+			}
+		}
+
+		/// <summary>
+		/// Contains the Sql statement thus far for this
+		/// SqlStringBuilder, same as StringBuilder
+		/// </summary>
+		protected StringBuilder Builder
+		{
+			get
+			{
+				return _stringBuilder;
+			}
+			set
+			{
+				_stringBuilder = value;
+			}
+		}
+
+		/// <summary>
+		/// Contains the Sql statement thus far for this
+		/// SqlStringBuilder, same as Builder
+		/// </summary>
+		protected StringBuilder StringBuilder
+		{
+			get
+			{
+				return this._stringBuilder;
+			}
+			set
+			{
+				_stringBuilder = value;
+			}
+		}
+
     }
 }

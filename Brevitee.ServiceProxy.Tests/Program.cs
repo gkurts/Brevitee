@@ -64,7 +64,21 @@ namespace Brevitee.ServiceProxy.Tests
 
             // the arguments protected member is not available in PreInit() (this method)
             #endregion
-        }
+			AddValidArgument("t", true, "run all tests");
+			DefaultMethod = typeof(Program).GetMethod("Start");
+		}
+
+		public static void Start()
+		{
+			if (Arguments.Contains("t"))
+			{
+				RunAllTests(typeof(Program).Assembly);
+			}
+			else
+			{
+				Interactive();
+			}
+		}
 
         [UnitTest("Test HeaderCollection")]
         public void TestHeaderCollection()
@@ -194,7 +208,7 @@ namespace Brevitee.ServiceProxy.Tests
         }
 
 
-        [UnitTest(AlwaysAfter="StopServers")]
+        [UnitTest]
         public void GetShouldFireEvents()
         {
             BreviteeServer server;
@@ -228,7 +242,7 @@ namespace Brevitee.ServiceProxy.Tests
             Expect.IsTrue(firedEdEvent.Value, "Got event didn't fire");
         }
 
-        [UnitTest(AlwaysAfter = "StopServers")]
+        [UnitTest]
         public void SecureServiceProxyInvokeShouldFireSessionStarting()
         {
             BreviteeServer server;
@@ -245,7 +259,7 @@ namespace Brevitee.ServiceProxy.Tests
             Expect.IsTrue(sessionStartingCalled.Value, "SessionStarting did not fire");
         }
 
-        [UnitTest(AlwaysAfter="StopServers")]
+        [UnitTest]
         public void SecureServiceProxyInvokeShouldEstablishSessionIfSecureChannelServerRegistered()
         {
             BreviteeServer server;
@@ -264,7 +278,7 @@ namespace Brevitee.ServiceProxy.Tests
             server.Stop();
         }
 
-        [UnitTest(AlwaysAfter = "StopServers")]
+        [UnitTest]
         public void SecureServiceProxyInvokeShouldSucceed()
         {
             BreviteeServer server;
@@ -408,7 +422,7 @@ namespace Brevitee.ServiceProxy.Tests
 
         class TestClass
         {
-            public void Method(object param)
+            public void TestMethod(object param)
             {
 
             }
@@ -433,8 +447,8 @@ namespace Brevitee.ServiceProxy.Tests
         [UnitTest]
         public void UnregisteredClassShoudReturnClassNotRegistered()
         {
-            //ServiceProxySystem.Register<TestClass>();
-            ExecutionRequest er = new ExecutionRequest("TestClass", "TestMethod", "json");
+			ServiceProxySystem.Unregister<TestClass>();
+            ExecutionRequest er = new ExecutionRequest("TestClass", "ShouldWork", "json");
             ValidationResult result = er.Validate();
             Expect.IsFalse(result.Success);
             Expect.IsTrue(result.ValidationFailure.ToList().Contains(ValidationFailures.ClassNotRegistered));
@@ -445,7 +459,7 @@ namespace Brevitee.ServiceProxy.Tests
         public void MethodNotFoundShouldBeReturned()
         {
             ServiceProxySystem.Register<TestClass>();
-            ExecutionRequest er = new ExecutionRequest("TestClass", "TestMethod", "json");
+            ExecutionRequest er = new ExecutionRequest("TestClass", "MissingMethod", "json");
             ValidationResult result = er.Validate();
             Expect.IsFalse(result.Success);
             Expect.IsTrue(result.ValidationFailure.ToList().Contains(ValidationFailures.MethodNotFound));
@@ -456,7 +470,7 @@ namespace Brevitee.ServiceProxy.Tests
         public void ParameterCountMismatchShouldBeReturned()
         {
             ServiceProxySystem.Register<TestClass>();
-            ExecutionRequest er = new ExecutionRequest("TestClass", "Method", "json");
+            ExecutionRequest er = new ExecutionRequest("TestClass", "TestMethod", "json");
             er.Parameters = new object[] { new { }, new { } };
             ValidationResult result = er.Validate();
             Expect.IsFalse(result.Success);
@@ -476,7 +490,7 @@ namespace Brevitee.ServiceProxy.Tests
             OutLineFormat(er.Result.ToString());
         }
 
-        [UnitTest(AlwaysAfter = "StopServers")]
+        [UnitTest]
         public void ShouldHaveEncryptAndApiKeyRequired()
         {
             Type type = typeof(ApiKeyRequiredEcho);
@@ -497,9 +511,10 @@ namespace Brevitee.ServiceProxy.Tests
             }
         }
 
-        [UnitTest(AlwaysAfter = "StopServers")]
+        [UnitTest]
         public void SecureServiceProxyInvokeWithInvalidTokenShouldFail()
         {
+			CleanUp();
             BreviteeServer server;
             SecureChannel.Debug = true;
             SecureServiceProxyClient<ApiKeyRequiredEcho> sspc;
@@ -517,6 +532,7 @@ namespace Brevitee.ServiceProxy.Tests
             string result = sspc.Invoke<string>("Send", new object[] { value });            
 
             Expect.IsTrue(thrown.Value);
+			CleanUp();
         }
 
         [UnitTest]
@@ -531,33 +547,11 @@ namespace Brevitee.ServiceProxy.Tests
             Expect.AreEqual(id, keyInfo.ApplicationClientId);
             Expect.AreEqual(key, keyInfo.ApiKey);
         }
-
-        //[UnitTest(Before = "CleanUp", AlwaysAfter = "StopServers")]
-        //public void ApiKeyResolverShouldSetAndGetSameToke()
-        //{
-        //    string methodName = MethodBase.GetCurrentMethod().Name;
-        //    BreviteeServer server;
-        //    SecureChannel.Debug = true;
-
-        //    string baseAddress;
-        //    CreateServer(out baseAddress, out server);
-        //    Servers.Add(server); // makes sure it gets stopped after test run
-        //    SecureServiceProxyClient<ApiKeyRequiredEcho> sspc = new SecureServiceProxyClient<ApiKeyRequiredEcho>(baseAddress);
-
-        //    ApiKeyResolver keyResolver = new ApiKeyResolver();
-        //    keyResolver.ApplicationNameProvider = new TestApplicationNameProvider(methodName);
-        //    keyResolver.ApiKeyProvider = new StaticApiKeyProvider(methodName, "TheKey");//new LocalApiKeyProvider();
-
-        //    SecureChannel channel = new SecureChannel();
-        //    channel.ApiKeyResolver = keyResolver;
-
-        //    server.AddCommonService<SecureChannel>(channel);
-        //    server.AddCommonService<ApiKeyRequiredEcho>();
-        //}
-
-        [UnitTest(Before="CleanUp", AlwaysAfter = "StopServers")]
+		
+        [UnitTest]
         public void SecureServiceProxyInvokeWithApiKeyShouldSucceed()
         {
+			CleanUp();
             string methodName = MethodBase.GetCurrentMethod().Name;
             BreviteeServer server;
             SecureChannel.Debug = true;
@@ -591,12 +585,14 @@ namespace Brevitee.ServiceProxy.Tests
             
             Expect.IsFalse(thrown.Value, "Exception was thrown");
             Expect.AreEqual(value, result);
+			CleanUp();
         }
 
 
-        [UnitTest(Before = "RegisterDb", AlwaysAfter = "ClearApps")]
+        [UnitTest]
         public void ApiKey_ExecutionRequestShouldValidateApiKey()
         {
+			RegisterDb();
             ServiceProxySystem.Register<ApiKeyRequiredEcho>();
             string methodName = MethodBase.GetCurrentMethod().Name;
             IApplicationNameProvider nameProvider = new TestApplicationNameProvider(methodName);
@@ -615,9 +611,10 @@ namespace Brevitee.ServiceProxy.Tests
             Expect.IsTrue(failures.Contains(ValidationFailures.InvalidApiKeyToken));
         }
 
-        [UnitTest(Before = "Prepare", AlwaysAfter = "ClearApps")]
+        [UnitTest]
         public void ApiKey_ExecutionRequestValidationShouldSucceedIfGoodToken()
         {
+			Prepare();
             ServiceProxySystem.Register<ApiKeyRequiredEcho>();
 
             string methodName = MethodBase.GetCurrentMethod().Name;
@@ -638,9 +635,10 @@ namespace Brevitee.ServiceProxy.Tests
             Expect.IsTrue(result.Success);
         }
 
-        [UnitTest(Before = "RegisterDb", AlwaysAfter = "ClearApps")]
+        [UnitTest]
         public void ApiKey_ExecutionRequestValidationShouldFailIfBadToken()
         {
+			RegisterDb();
             ServiceProxySystem.Register<ApiKeyRequiredEcho>();
 
             string methodName = MethodBase.GetCurrentMethod().Name;
@@ -673,9 +671,10 @@ namespace Brevitee.ServiceProxy.Tests
             _registeredDb = true;
         }
 
-        [UnitTest("Should be able to create Application", Before="RegisterDb")]
+        [UnitTest]
         public void ShouldBeAbleToCreateApplication()
         {
+			RegisterDb();
             Expect.IsTrue(_registeredDb.Value);
             ApplicationCreateResult result = CreateTestApp();
             Expect.AreEqual(ApplicationCreateStatus.Success, result.Status);
@@ -683,9 +682,10 @@ namespace Brevitee.ServiceProxy.Tests
             Expect.IsNullOrEmpty(result.Message);
         }
 
-        [UnitTest(Before="RegisterDb")]
+        [UnitTest]
         public void ShouldReturnNameInUseIfAppNameInUse()
         {
+			RegisterDb();
             ApplicationCreateResult first = CreateTestApp();
             ApplicationCreateResult second = Application.Create(first.Application.Name);
             Expect.AreEqual(ApplicationCreateStatus.NameInUse, second.Status);
@@ -698,9 +698,10 @@ namespace Brevitee.ServiceProxy.Tests
             return result;
         }
 
-        [UnitTest("Application should have key", Before = "RegisterDb")]
+        [UnitTest]
         public void ApplicationShouldHaveKey()
         {
+			RegisterDb();
             Expect.IsTrue(_registeredDb.Value);
             ApplicationCreateResult result = CreateTestApp();
             Expect.IsNotNull(result.Application);

@@ -13,6 +13,7 @@ using Brevitee.ServiceProxy;
 
 namespace Brevitee.Server
 {
+	// TODO: Determine how best to move this class into the Brevitee.Management project
     [Proxy("bam")]
     public class BreviteeApplicationManager: IRequiresHttpContext//: IInitialize<BreviteeApplicationManager>
     {
@@ -37,13 +38,16 @@ namespace Brevitee.Server
             }
             set
             {
-                if (_logger != null)
-                {
-                    _logger.StopLoggingThread();
-                }
+				lock (_loggerLock)
+				{
+					if (_logger != null)
+					{
+						_logger.StopLoggingThread();
+					}
 
-                _logger = value;
-                _logger.RestartLoggingThread();
+					_logger = value;
+					_logger.RestartLoggingThread();
+				}
             }
         }
 
@@ -52,15 +56,22 @@ namespace Brevitee.Server
             get;
             private set;
         }
-
-        public string DustTemplates()
+		
+        public string GetTemplates()
         {
-            string methodName = MethodBase.GetCurrentMethod().Name;
             string appName = AppConf.AppNameFromUri(HttpContext.Request.Url);
-            Dictionary<string, AppContentResponder> appResponders = BreviteeConf.Server.ContentResponder.AppContentResponders;            
+            Dictionary<string, AppContentResponder> appResponders = BreviteeConf.Server.AppContentResponders;            
             AppContentResponder app = appResponders[appName];
-            return Regex.Unescape(app.AppDustRenderer.CompiledDustTemplates);
+            return Regex.Unescape(app.AppDustRenderer.CompiledTemplates);
         }
+
+		//public string GetScripts()
+		//{
+		//	string appName = AppConf.AppNameFromUri(HttpContext.Request.Url);
+		//	Dictionary<string, AppContentResponder> appResponders = BreviteeConf.Server.ContentResponder.AppContentResponders;
+		//	AppContentResponder app = appResponders[appName];
+
+		//}
 
         /// <summary>
         /// Called by client code
@@ -78,7 +89,7 @@ namespace Brevitee.Server
                 return GetErrorWrapper(ex, true, MethodBase.GetCurrentMethod().Name);
             }
         }
-
+		
         protected internal string[] GetPageNamesFromDomAppId(string appId)
         {
             string appName = appId;
@@ -90,7 +101,7 @@ namespace Brevitee.Server
             return GetPageNames(appName);
         }
 
-        protected internal string[] GetPageNames(string appName)
+        protected internal string[] GetPageNames(string appName = "localhost")
         {
             List<string> pageNames = new List<string>();
             DirectoryInfo pagesDir = new DirectoryInfo(BreviteeConf.Fs.GetAbsolutePath(_pagesNamedFormatPath.NamedFormat(new { appName = appName })));

@@ -1,0 +1,63 @@
+{
+  "name": "hugh",
+  "version": "0.0.9",
+  "description": "Many paths front end tester built on protractor",
+  "main": "lib/hugh.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BreviteeApellanes/hugh.git"
+  },
+  "keywords": [
+    "e2e",
+    "protractor",
+    "tester"
+  ],
+  "author": {
+    "name": "Brevitee",
+    "email": "bryan.apellanes@gmail.com"
+  },
+  "license": "GPL",
+  "dependencies": {
+    "astrolabe": "^0.3.6",
+    "chai": "^1.9.1",
+    "chai-as-promised": "^4.1.1",
+    "commander": "2.3.0",
+    "debug": "2.0.0",
+    "diff": "1.0.8",
+    "escape-string-regexp": "1.0.2",
+    "extend": "^2.0.0",
+    "glob": "3.2.3",
+    "lodash": "^3.1.0",
+    "mocha": "~2.2.4",
+    "nodemailer": "^1.3.0",
+    "phantomjs": "^1.9.7-8",
+    "protractor": "^1.6.1",
+    "querystring": "^0.2.0",
+    "request": "2.36.0",
+    "smtp-connection": "^1.1.0",
+    "supports-color": "1.2.0",
+    "urllib-sync": "^1.0.1",
+    "webdrvr": "^2.41.0-0"
+  },
+  "bugs": {
+    "url": "https://github.com/BreviteeApellanes/hugh/issues"
+  },
+  "directories": {
+    "example": "example"
+  },
+  "devDependencies": {
+    "jasmine": "~2.2.1",
+    "nodeunit": "~0.9.1",
+    "mocha": "~2.2.4"
+  },
+  "readme": "# hughjs\r\nMany worlds front-end tester built on protractor\r\n",
+  "readmeFilename": "README.md",
+  "_id": "hugh@0.0.1",
+  "dist": {
+    "shasum": "e9aa6944fa0c7f2b65a38c3b22dcfb0772ad9bc6"
+  },
+  "_from": "."
+}

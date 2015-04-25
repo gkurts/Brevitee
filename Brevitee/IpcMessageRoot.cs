@@ -7,6 +7,7 @@ using System.IO;
 
 namespace Brevitee
 {
+	[Serializable]
     public class IpcMessageRoot
     {
         public IpcMessageRoot(string rootDirectory)

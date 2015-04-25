@@ -9,7 +9,7 @@ namespace Brevitee.Schema.Org
 		public AnatomicalStructure ArterialBranch {get; set;}
 		///<summary>The anatomical or organ system that the artery originates from.</summary>
 		public AnatomicalStructure Source {get; set;}
-		///<summary>The area to which the artery supplies blood to.</summary>
+		///<summary>The area to which the artery supplies blood.</summary>
 		public AnatomicalStructure SupplyTo {get; set;}
 	}
 }

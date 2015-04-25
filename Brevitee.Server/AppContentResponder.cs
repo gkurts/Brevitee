@@ -13,21 +13,26 @@ using Brevitee.Javascript;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
+using Brevitee.Management;
+using Yahoo.Yui.Compressor;
 
 namespace Brevitee.Server
 {
     public class AppContentResponder: ContentResponder
     {
+		public const string CommonFolder = "common";
+
         public AppContentResponder(ContentResponder serverRoot, string appName)
             : base(serverRoot.BreviteeConf)
         {
             this.ContentResponder = serverRoot;
-            this.ContentRoot = serverRoot.Fs;
+            this.ServerRoot = serverRoot.ServerRoot;
             this.AppConf = new AppConf(serverRoot.BreviteeConf, appName);
             this.AppRoot = this.AppConf.AppRoot;
             this.AppDustRenderer = new AppDustRenderer(this);
             this.UseCache = serverRoot.UseCache;
-            this.ContentLocator = ContentLocator.Load(this);
+            this.AppContentLocator = ContentLocator.Load(this);
+			this.CommonContentLocator = ContentLocator.Load(ServerRoot);
 
             this.SetBaseIgnorePrefixes();
         }
@@ -41,12 +46,14 @@ namespace Brevitee.Server
             }
 
             this.ContentResponder = serverRoot;
-            this.ContentRoot = serverRoot.Fs;
+            this.ServerRoot = serverRoot.ServerRoot;
             this.AppConf = conf;
             this.AppRoot = this.AppConf.AppRoot;
             this.AppDustRenderer = new AppDustRenderer(this);
             this.UseCache = serverRoot.UseCache;
-            this.ContentLocator = ContentLocator.Load(this);
+            this.AppContentLocator = ContentLocator.Load(this);
+			Fs commonRoot = new Fs(new DirectoryInfo(Path.Combine(ServerRoot.Root, CommonFolder)));
+			this.CommonContentLocator = ContentLocator.Load(commonRoot);
 
             this.SetBaseIgnorePrefixes();
         }
@@ -61,11 +68,17 @@ namespace Brevitee.Server
             AddIgnorPrefix("post");
         }
 
-        public ContentLocator ContentLocator
+        public ContentLocator AppContentLocator
         {
             get;
             private set;
         }
+
+		public ContentLocator CommonContentLocator
+		{
+			get;
+			private set;
+		}
 
         /// <summary>
         /// Gets the main ContentResponder, which is the content responder
@@ -119,7 +132,7 @@ namespace Brevitee.Server
         /// <summary>
         /// The server content root
         /// </summary>
-        public Fs ContentRoot { get; private set; }
+        public Fs ServerRoot { get; private set; }
 
         /// <summary>
         /// The application content root
@@ -133,28 +146,92 @@ namespace Brevitee.Server
         public override void Initialize()
         {
             OnAppInitializing();
-            string baseDirectory = Path.Combine(BreviteeConf.ContentRoot, "apps", ApplicationName);
-            Assembly currentAssembly = Assembly.GetExecutingAssembly();
-            string[] resourceNames = currentAssembly.GetManifestResourceNames();
-            resourceNames.Each(rn =>
-            {
-                bool isBase = Path.GetExtension(rn).ToLowerInvariant().Equals(".base");
-                if (isBase)
-                {
-                    Stream zipStream = currentAssembly.GetManifestResourceStream(rn);
-                    ZipFile zipFile = ZipFile.Read(zipStream);
-                    zipFile.Each(entry =>
-                    {
-                        entry.Extract(baseDirectory, ExtractExistingFileAction.DoNotOverwrite);
-                    });
-                }
-            });
+			ExtractBaseApp();
+			WriteAppScripts();
 
             AppRoot.WriteFile("appConf.json", AppConf.ToJson(true));
 
             OnAppInitialized();
         }
+		
+		public override bool TryRespond(IHttpContext context)
+		{
+			IRequest request = context.Request;
+			IResponse response = context.Response;
 
+			string path = request.Url.AbsolutePath;
+			string ext = Path.GetExtension(path);
+			string mgmtPrefix = "/bam/apps/{0}"._Format(AppConf.DomApplicationIdFromAppName(ApplicationName));
+			if (path.ToLowerInvariant().StartsWith(mgmtPrefix.ToLowerInvariant()))
+			{
+				path = path.TruncateFront(mgmtPrefix.Length);
+			}
+
+			string[] split = path.DelimitSplit("/");
+			byte[] content = new byte[] { };
+			bool result = false;
+
+			string locatedPath;
+			string[] checkedPaths;
+			if (string.IsNullOrEmpty(ext) && !ShouldIgnore(path) ||
+				(AppRoot.FileExists("~/pages{0}.html"._Format(path))))
+			{
+				CommonTemplateRenderer.SetContentType(response);
+				MemoryStream ms = new MemoryStream();
+				CommonTemplateRenderer.RenderLayout(GetLayoutModelForPath(path), ms);
+				ms.Seek(0, SeekOrigin.Begin);
+				content = ms.GetBuffer();
+				result = true;
+			}
+			else if (AppContentLocator.Locate(path, out locatedPath, out checkedPaths))
+			{
+				if (Cache.ContainsKey(locatedPath) && UseCache)
+				{
+					content = Cache[path];
+					result = true;
+				}
+				else if (MinCache.ContainsKey(locatedPath) && UseCache) // check the min cache
+				{
+					content = MinCache[locatedPath];
+					result = true;
+				}
+				else 
+				{
+					byte[] temp = ReadFile(locatedPath);
+
+					content = temp;
+					result = true;
+				}
+			}
+			else
+			{
+				if (AppConf.LogNotFoundFilesWithTheseExtensions.Contains(ext))
+				{
+					StringBuilder checkedPathString = new StringBuilder();
+					checkedPaths.Each(p =>
+					{
+						checkedPathString.AppendLine(p);
+					});
+
+					Logger.AddEntry(
+						"App[{0}]::Path='{1}'::Not Found\r\nChecked Paths\r\n{2}",
+						LogEventType.Warning,
+						AppConf.Name,
+						path,
+						checkedPathString.ToString()
+					);
+				}
+			}
+
+
+			if (result)
+			{
+				SetContentType(response, path);
+				SendResponse(response, content);
+			}
+			return result;
+		}
+		
         Dictionary<string, LayoutModel> _layoutModelsByPath;
         object _layoutsByPathSync = new object();
         protected internal Dictionary<string, LayoutModel> LayoutModelsByPath
@@ -183,8 +260,9 @@ namespace Brevitee.Server
             }
             else if (AppRoot.FileExists(layoutSegments))
             {
-                LayoutConf layoutConf = AppRoot.ReadAllText(layoutSegments).FromJson<LayoutConf>();
-                layoutConf.AppConf = AppConf;
+				LayoutConf layoutConf = new LayoutConf(AppConf);				
+                LayoutConf fromLayoutFile = AppRoot.ReadAllText(layoutSegments).FromJson<LayoutConf>();
+				layoutConf.CopyProperties(fromLayoutFile);
                 result = layoutConf.CreateLayoutModel(htmlSegments);
                 LayoutModelsByPath[lowered] = result;
             }
@@ -212,83 +290,82 @@ namespace Brevitee.Server
             }
             return result;
         }
-        
-        public override bool TryRespond(IHttpContext context)
-        {
-            IRequest request = context.Request;
-            IResponse response = context.Response;
 
-            string path = request.Url.AbsolutePath;
-            string ext = Path.GetExtension(path);
-            string mgmtPrefix = "/bam/apps/{0}"._Format(AppConf.DomApplicationIdFromAppName(ApplicationName));
-            if (path.ToLowerInvariant().StartsWith(mgmtPrefix.ToLowerInvariant()))
-            {
-                path = path.TruncateFront(mgmtPrefix.Length);
-            }
+		public Includes GetAppIncludes()
+		{
+			return GetAppIncludes(AppConf);
+		}
 
-            string[] split = path.DelimitSplit("/");
-            byte[] content = new byte[] { };
-            bool result = false;
+		private void WriteAppScripts()
+		{
+			HashSet<string> filePaths = new HashSet<string>();
+			// get all js files
+			//		in ~/js folder non-recursively
+			AppRoot.GetFiles("~/js", "*.js").Each(fi => filePaths.Add(fi.FullName));
+			//		in ~/pages folder recursively
+			AppRoot.GetFiles("~/pages", "*.js").Each(fi => filePaths.Add(fi.FullName));
+			//		in ~/viewModels folder recursively
+			AppRoot.GetFiles("~/viewModels", "*.js").Each(fi => filePaths.Add(fi.FullName));
+			//		in ~/<appName>/include.js file
+			//		in ~s/include.js file
+			Includes appIncludes = GetAppIncludes();
+			LocateIncludes(filePaths, appIncludes);
+			Includes commonIncludes = GetCommonIncludes();
+			LocateIncludes(filePaths, commonIncludes);
 
-            string locatedPath;
-            string[] checkedPaths;
-            if (string.IsNullOrEmpty(ext) && !ShouldIgnore(path) ||
-                (AppRoot.FileExists("~/pages{0}.html"._Format(path))))
-            {
-                CommonDustRenderer.SetContentType(response);
-                MemoryStream ms = new MemoryStream();
-                CommonDustRenderer.RenderLayout(GetLayoutModelForPath(path), ms);
-                ms.Seek(0, SeekOrigin.Begin);
-                content = ms.GetBuffer();
-                result = true;
-            }
-            else if (ContentLocator.Locate(path, out locatedPath, out checkedPaths))
-            {
-                if (Cache.ContainsKey(locatedPath) && UseCache)
-                {
-                    content = Cache[path];
-                    result = true;
-                }
-                else if (MinCache.ContainsKey(locatedPath) && UseCache) // check the min cache
-                {
-                    content = MinCache[locatedPath];
-                    result = true;
-                }
-                else if (AppRoot.FileExists(locatedPath))
-                {
-                    byte[] temp = ReadFile(AppRoot, locatedPath);
+			StringBuilder combined = new StringBuilder();
+			foreach(string scriptPath in filePaths)
+			{
+				
+				combined.AppendLine(File.ReadAllText(scriptPath));
+			}
+			JavaScriptCompressor compressor = new JavaScriptCompressor();			
+			AppConf.AppRoot.WriteFile("~/{0}.js"._Format(ApplicationName), combined.ToString());
+			AppConf.AppRoot.WriteFile("~/{0}.min.js"._Format(ApplicationName), compressor.Compress(combined.ToString()));
+		}
 
-                    content = temp;
-                    result = true;
-                }
-            }
-            else
-            {
-                if (AppConf.LogNotFoundFilesWithTheseExtensions.Contains(ext))
-                {
-                    StringBuilder checkedPathString = new StringBuilder();
-                    checkedPaths.Each(p =>
-                    {
-                        checkedPathString.AppendLine(p);
-                    });
+		private void LocateIncludes(HashSet<string> filePaths, Includes includes)
+		{
+			foreach (string script in includes.Scripts)
+			{
+				string scriptPath;
+				string[] checkedPaths;
+				if (AppContentLocator.Locate(script, out scriptPath, out checkedPaths))
+				{
+					filePaths.Add(AppContentLocator.ContentRoot.GetAbsolutePath(scriptPath));
+				}
+				else
+				{
+					if (CommonContentLocator.Locate(script, out scriptPath, out checkedPaths))
+					{
+						filePaths.Add(CommonContentLocator.ContentRoot.GetAbsolutePath(scriptPath));
+					}
+					else
+					{
+						Logger.AddEntry("script specified in app include.js file was not found: {0}\r\nchecked paths:\r\n\t{1}", LogEventType.Warning, script, checkedPaths.ToDelimited(p => p, "\r\n\t"));
+					}
+				}
+			}
+		}
 
-                    Logger.AddEntry(
-                        "App[{0}]::Path='{1}'::Not Found\r\nChecked Paths\r\n{2}", 
-                        LogEventType.Warning, 
-                        AppConf.Name, 
-                        path,
-                        checkedPathString.ToString()
-                    );
-                }
-            }
-
-            
-            if (result)
-            {
-                SetContentType(response, path);
-                SendResponse(response, content);
-            }
-            return result;
-        }
+		private void ExtractBaseApp()
+		{
+			string baseDirectory = Path.Combine(BreviteeConf.ContentRoot, "apps", ApplicationName);
+			Assembly currentAssembly = Assembly.GetExecutingAssembly();
+			string[] resourceNames = currentAssembly.GetManifestResourceNames();
+			resourceNames.Each(rn =>
+			{
+				bool isBase = Path.GetExtension(rn).ToLowerInvariant().Equals(".base");
+				if (isBase)
+				{
+					Stream zipStream = currentAssembly.GetManifestResourceStream(rn);
+					ZipFile zipFile = ZipFile.Read(zipStream);
+					zipFile.Each(entry =>
+					{
+						entry.Extract(baseDirectory, ExtractExistingFileAction.DoNotOverwrite);
+					});
+				}
+			});
+		}
     }
 }

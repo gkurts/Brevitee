@@ -7,7 +7,7 @@ namespace Brevitee.Schema.Org
 	{
 		///<summary>The caption for this object.</summary>
 		public Text Caption {get; set;}
-		///<summary>The production company or studio that made the movie, TV series, season, or episode, or video.</summary>
+		///<summary>The production company or studio that made the movie, tv/radio series, season, or episode, or media object.</summary>
 		public Organization ProductionCompany {get; set;}
 		///<summary>Thumbnail image for an image or video.</summary>
 		public ImageObject Thumbnail {get; set;}

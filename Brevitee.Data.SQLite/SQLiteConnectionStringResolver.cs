@@ -36,7 +36,8 @@ namespace Brevitee.Data
 
         /// <summary>
         /// Register the default SQLiteConnectionStringResolver instance as 
-        /// a ConnectionStringResolver
+        /// a ConnectionStringResolver with the ConnectionStringResolvers static
+		/// class
         /// </summary>
         public static void Register()
         {
@@ -78,26 +79,25 @@ namespace Brevitee.Data
 
         public ConnectionStringSettings Resolve(string connectionName)
         {
-            if (Directory == null)
-            {
-                Directory = DirectoryResolver();
-                //if (HttpContext.Current != null)
-                //{
-                //    Directory = new DirectoryInfo(HttpContext.Current.Server.MapPath("~/App_Data"));
-                //}
-                //else
-                //{
-                //    Directory = new DirectoryInfo(".");
-                //}
-            }
+			string dbFile = GetDatabaseFilePath(connectionName);
 
             ConnectionStringSettings s = new ConnectionStringSettings();
-            s.ProviderName = SQLiteRegistrar.SQLiteAssemblyQualifiedName();
-            string dbFile = Path.Combine(Directory.FullName, string.Format("{0}.sqlite", connectionName));
+			s.Name = connectionName;
+            s.ProviderName = SQLiteRegistrar.SQLiteAssemblyQualifiedName();            
             s.ConnectionString = string.Format("Data Source={0};Version=3;", dbFile);
 
             return s;
         }
+
+		internal string GetDatabaseFilePath(string connectionName)
+		{
+			if (Directory == null)
+			{
+				Directory = DirectoryResolver();
+			}
+			string dbFile = Path.Combine(Directory.FullName, string.Format("{0}.sqlite", connectionName));
+			return dbFile;
+		}
 
         #endregion
     }

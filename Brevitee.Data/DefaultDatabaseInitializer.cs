@@ -8,6 +8,10 @@ using Brevitee.Incubation;
 
 namespace Brevitee.Data
 {
+	/// <summary>
+	/// A DatabaseInitializer that reads the connection string from the 
+	/// default configuration file
+	/// </summary>
     public class DefaultDatabaseInitializer: IDatabaseInitializer
     {
         static DefaultDatabaseInitializer _instance;

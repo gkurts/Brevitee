@@ -6,6 +6,7 @@ using System.IO;
 using Brevitee;
 using Newtonsoft.Json;
 using Brevitee.Drawing;
+using Brevitee.Management;
 
 namespace Brevitee.Server
 {
@@ -23,7 +24,7 @@ namespace Brevitee.Server
             }
             else
             {
-                return Brevitee.ExtensionsClass.ToJson(obj);
+                return Brevitee.Extensions.ToJson(obj);
             }
         }
 

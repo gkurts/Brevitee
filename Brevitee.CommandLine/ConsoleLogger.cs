@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Brevitee.Logging;
 using Brevitee;
+using System.Runtime.Serialization;
 
 namespace Brevitee.CommandLine
 {
@@ -15,6 +16,7 @@ namespace Brevitee.CommandLine
             this.AddDetails = true;
             this.UseColors = true;
         }
+		
         public bool UseColors { get; set; }
         public bool AddDetails { get; set; }
 

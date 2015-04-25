@@ -21,7 +21,26 @@ namespace Brevitee.Data
                 return StartNumber + Parameters.Count();
             }
         }
+		Func<string, string> _columnNameProvider;
+		public Func<string, string> ColumnNameFormatter
+		{
+			get
+			{
+				if (_columnNameProvider == null)
+				{
+					_columnNameProvider = (c) =>
+					{
+						return string.Format("[{0}]", c);
+					};
+				}
 
+				return _columnNameProvider;
+			}
+			set
+			{
+				_columnNameProvider = value;
+			}
+		}
         /// <summary>
         /// Adds the specified IParameterInfo
         /// </summary>

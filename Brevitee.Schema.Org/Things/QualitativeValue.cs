@@ -18,6 +18,6 @@ namespace Brevitee.Schema.Org
 		///<summary>This ordering relation for qualitative values indicates that the subject is not equal to the object.</summary>
 		public QualitativeValue NonEqual {get; set;}
 		///<summary>A pointer to a secondary value that provides additional information on the original value, e.g. a reference temperature.</summary>
-		public ThisOrThat<Enumeration, StructuredValue> ValueReference {get; set;}
+		public ThisOrThat<Enumeration , StructuredValue> ValueReference {get; set;}
 	}
 }

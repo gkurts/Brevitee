@@ -37,21 +37,21 @@ namespace Brevitee.Messaging.Tests
             });
         }
                
-        [UnitTest]
-        public void ShouldBeAbleToSendEmail()
-        {
-            Vault stickerizeSettings = Vault.Load(new FileInfo(".\\StickerizeSmtpSettings.vault.sqlite"), "SmtpSettings");
-            stickerizeSettings.Keys.Each(key =>
-            {
-                if (!key.ToLowerInvariant().Equals("password"))
-                {
-                    OutLineFormat("{0}={1}", key, stickerizeSettings[key]);
-                }
-            });
-            Notify.ByEmail(stickerizeSettings, "bryan.apellanes@gmail.com").Subject("Test: " + MethodBase.GetCurrentMethod().Name).Body("This is a test from stickerize").Send();
-        }
+		//[UnitTest]
+		//public void ShouldBeAbleToSendEmail()
+		//{
+		//	Vault stickerizeSettings = Vault.Load(new FileInfo(".\\StickerizeSmtpSettings.vault.sqlite"), "SmtpSettings");
+		//	stickerizeSettings.Keys.Each(key =>
+		//	{
+		//		if (!key.ToLowerInvariant().Equals("password"))
+		//		{
+		//			OutLineFormat("{0}={1}", key, stickerizeSettings[key]);
+		//		}
+		//	});
+		//	Notify.ByEmail(stickerizeSettings, "bryan.apellanes@gmail.com").Subject("Test: " + MethodBase.GetCurrentMethod().Name).Body("This is a test from stickerize").Send();
+		//}
 
-        [UnitTest(AlwaysAfter="CleanUp")]
+        [UnitTest]
         public void ShouldSetEmailTemplateInSpecifiedDirectory()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;
@@ -62,7 +62,7 @@ namespace Brevitee.Messaging.Tests
             Expect.IsTrue(templateFile.Exists, "template wasn't written");
         }
 
-        [UnitTest(AlwaysAfter="CleanUp")]
+        [UnitTest]
         public void ShouldBeAbleToGetEmailBody()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;
@@ -73,7 +73,7 @@ namespace Brevitee.Messaging.Tests
             Expect.AreEqual(_stringFormatContent._Format("Monkey"), body);
         }
 
-        [UnitTest(AlwaysAfter="CleanUp")]
+        [UnitTest]
         public void ShouldBeAbleToComposeEmail()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;
@@ -91,8 +91,7 @@ namespace Brevitee.Messaging.Tests
             Expect.AreEqual(body, email.Config.Body);
         }
 
-
-        [UnitTest(AlwaysAfter = "CleanUp")]
+        [UnitTest]
         public void ShouldBeAbleToGetNamedEmailBody()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;
@@ -103,7 +102,7 @@ namespace Brevitee.Messaging.Tests
             Expect.AreEqual(_namedFormatContent.NamedFormat(data), body);
         }
 
-        [UnitTest(AlwaysAfter = "CleanUp")]
+        [UnitTest]
         public void ShouldBeAbleToComposeNamedEmail()
         {
             string methodName = MethodBase.GetCurrentMethod().Name;

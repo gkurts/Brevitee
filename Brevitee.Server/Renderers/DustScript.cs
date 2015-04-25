@@ -74,7 +74,7 @@ namespace Brevitee.Server.Renderers
         {
             J.JsContext scriptContext = new J.JsContext();
             scriptContext.Load(Get());
-            scriptContext.SetCliValue("compiled", Regex.Unescape(compiled));
+			scriptContext.SetCliValue("compiled", Regex.Unescape(compiled));
             scriptContext.SetCliValue("templateName", templateName);
             scriptContext.SetCliValue("jsonData", data.ToJson());
             scriptContext.Run(@"

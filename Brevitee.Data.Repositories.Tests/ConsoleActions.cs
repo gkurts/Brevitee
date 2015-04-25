@@ -3,49 +3,63 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;
 using Brevitee.CommandLine;
-using Brevitee;
 using Brevitee.Testing;
-using Brevitee.Encryption;
+using Brevitee.Yaml;
 
-namespace Brevitee.Repositories.Tests
+namespace Brevitee.Data.Repositories.Tests
 {
-    [Serializable]
-    public class ConsoleActions : CommandLineTestInterface
-    {
-        // See the below for examples of ConsoleActions and UnitTests
+	[Serializable]
+	public class ConsoleActions: CommandLineTestInterface
+	{
+		static string _gherkin = @"Feature: Some terse yet descriptive text of what is desired
+  In order to realize a named business value
+  As an explicit system actor
+  I want to gain some beneficial outcome which furthers the goal
 
-        #region ConsoleAction examples
-        [ConsoleAction("Non Static Test")]
-        public void NonStatic()
-        {
-            Pass("Test passed");
-        }
+  Additional text...
 
-        [ConsoleAction("Static Test")]
-        public static void StaticTest()
-        {
-            Pass("Test passed");
-        }
+  Scenario: Some determinable business situation
+    Given some precondition
+    And some other precondition
+    When some action by the actor
+    And some other action
+    And yet another action
+    Then some testable outcome is achieved
+    And something else we can check happens too";
 
-        [ConsoleAction("With Parameters")]
-        public static void WithParameters(string inputString)
-        {
-            OutFormat("You typed {0}", inputString);
-        }
+		public class Spec
+		{
+			public string Feature { get; set; }
+			public dynamic Scenario { get; set; }
+		}
+		[ConsoleAction]
+		public void TryToReadGherkinAsSpecflow()
+		{
+			Spec spec = new Spec
+			{
+				Feature = "This is the feature description",
+				Scenario = new
+				{
+					Given = "Some precondition",
+					And = "Some other precondition",
+					When = "some action",
+					Then = "some result"
+				}
+			};
+			string fileName = ".\\test.yaml";
+			spec.ToYamlFile(".\\test.yaml");
 
-        [ConsoleAction("Warn")]
-        public void DoWarn()
-        {
-            Warn("This is a warning message");
-        }
+			"notepad {0}"._Format(fileName).Run();
+		}
 
-        [ConsoleAction("Error")]
-        public void DoError()
-        {
-            Error("This is an error", new Exception("This is an exception"));
-        }
-        #endregion
-    }
+		[ConsoleAction]
+		public void OutputDtoTest()
+		{
+			MainObject o = new MainObject();
+			DtoModel model = new DtoModel(o, "Test");
+			OutLine(model.Render());
+		}
+
+	}
 }

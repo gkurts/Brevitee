@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 
 namespace Brevitee.ServiceProxy
 {
+	/// <summary>
+	/// Resolves the current user of the 
+	/// application by first trying the default
+	/// web user then, if nothing is returned 
+	/// returns the owner of the current process.
+	/// </summary>
     public class DefaultUserResolver: IUserResolver
     {
         static DefaultUserResolver()

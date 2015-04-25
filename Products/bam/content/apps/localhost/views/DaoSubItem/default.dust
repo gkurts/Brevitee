@@ -1,0 +1,66 @@
+<fieldset data-type="object" itemscope="itemscope" itemtype="http://schema.org/Thing">
+  <label class="label" for="DaoBaseItem_Uuid">Uuid</label>
+  <input data-type="string" id="DaoBaseItem_Uuid" itemprop="Uuid" name="Uuid" type="text" />
+  <br />
+  <label class="label" for="DaoBaseItem_Name">Name</label>
+  <input data-type="string" id="DaoBaseItem_Name" itemprop="Name" name="Name" type="text" />
+  <br />
+  <label class="label" for="DaoBaseItem_Created">Created</label>
+  <input data-plugin="datepicker" data-type="datetime" id="DaoBaseItem_Created" itemprop="Created" name="Created" type="text" />
+  <br />
+  <label class="label" for="DaoBaseItem_IsCool">Is Cool</label>
+  <input data-type="boolean" id="DaoBaseItem_IsCool" itemprop="IsCool" name="IsCool" type="checkbox" />
+  <br />
+  <label class="label" for="DaoBaseItem_IntValue">Int Value</label>
+  <input data-type="number" id="DaoBaseItem_IntValue" itemprop="IntValue" name="IntValue" type="number" />
+  <br />
+  <label class="label" for="DaoBaseItem_LongValue">Long Value</label>
+  <input data-type="number" id="DaoBaseItem_LongValue" itemprop="LongValue" name="LongValue" type="number" />
+  <br />
+  <fieldset data-type="object" id="DaoBaseItem_DecimalValue" itemprop="DecimalValue" itemscope="itemscope" itemtype="http://schema.org/Thing" name="DecimalValue">
+    <legend>Decimal Value</legend>
+  </fieldset>
+  <fieldset data-array="true" data-type="object" id="DaoBaseItem_ByteArrayValue" itemprop="ByteArrayValue" itemscope="itemscope" itemtype="http://schema.org/Thing" name="ByteArrayValue">
+    <legend>Byte Array Value</legend>
+  </fieldset>
+</fieldset><fieldset data-type="object" itemscope="itemscope" itemtype="http://schema.org/Thing">
+  <label class="label" for="DaoSubItem_Uuid">Uuid</label>
+  <input data-type="string" id="DaoSubItem_Uuid" itemprop="Uuid" name="Uuid" type="text" />
+  <br />
+  <label class="label" for="DaoSubItem_Name">Name</label>
+  <input data-type="string" id="DaoSubItem_Name" itemprop="Name" name="Name" type="text" />
+  <br />
+  <label class="label" for="DaoSubItem_Created">Created</label>
+  <input data-plugin="datepicker" data-type="datetime" id="DaoSubItem_Created" itemprop="Created" name="Created" type="text" />
+  <br />
+  <label class="label" for="DaoSubItem_DaoBaseItemId">Dao Base Item Id</label>
+  <input data-type="number" id="DaoSubItem_DaoBaseItemId" itemprop="DaoBaseItemId" name="DaoBaseItemId" type="number" />
+  <br />
+  <fieldset data-type="object" id="DaoSubItem_DaoBaseItemOfDaoBaseItemId" itemprop="DaoBaseItemOfDaoBaseItemId" itemscope="itemscope" itemtype="http://schema.org/Thing" name="DaoBaseItemOfDaoBaseItemId">
+    <legend>Dao Base Item Of Dao Base Item Id</legend>
+    <label class="label" for="DaoBaseItem_Uuid">Uuid</label>
+    <input data-type="string" id="DaoBaseItem_Uuid" itemprop="Uuid" name="Uuid" type="text" />
+    <br />
+    <label class="label" for="DaoBaseItem_Name">Name</label>
+    <input data-type="string" id="DaoBaseItem_Name" itemprop="Name" name="Name" type="text" />
+    <br />
+    <label class="label" for="DaoBaseItem_Created">Created</label>
+    <input data-plugin="datepicker" data-type="datetime" id="DaoBaseItem_Created" itemprop="Created" name="Created" type="text" />
+    <br />
+    <label class="label" for="DaoBaseItem_IsCool">Is Cool</label>
+    <input data-type="boolean" id="DaoBaseItem_IsCool" itemprop="IsCool" name="IsCool" type="checkbox" />
+    <br />
+    <label class="label" for="DaoBaseItem_IntValue">Int Value</label>
+    <input data-type="number" id="DaoBaseItem_IntValue" itemprop="IntValue" name="IntValue" type="number" />
+    <br />
+    <label class="label" for="DaoBaseItem_LongValue">Long Value</label>
+    <input data-type="number" id="DaoBaseItem_LongValue" itemprop="LongValue" name="LongValue" type="number" />
+    <br />
+    <fieldset data-type="object" id="DaoBaseItem_DecimalValue" itemprop="DecimalValue" itemscope="itemscope" itemtype="http://schema.org/Thing" name="DecimalValue">
+      <legend>Decimal Value</legend>
+    </fieldset>
+    <fieldset data-array="true" data-type="object" id="DaoBaseItem_ByteArrayValue" itemprop="ByteArrayValue" itemscope="itemscope" itemtype="http://schema.org/Thing" name="ByteArrayValue">
+      <legend>Byte Array Value</legend>
+    </fieldset>
+  </fieldset>
+</fieldset>

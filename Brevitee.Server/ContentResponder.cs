@@ -13,6 +13,7 @@ using Brevitee.ServiceProxy;
 using Brevitee.Server.Renderers;
 using Brevitee.Javascript;
 using Brevitee.UserAccounts.Data;
+using Brevitee.Management;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Yahoo.Yui.Compressor;
@@ -24,17 +25,18 @@ namespace Brevitee.Server
     /// </summary>
     public class ContentResponder: ResponderBase, IInitialize<ContentResponder>
     {
+		public const string IncludeFileName = "include.js";
         public ContentResponder(BreviteeConf  conf)
             : base(conf)
         {
-            CommonDustRenderer = new CommonDustRenderer(this);
+            CommonTemplateRenderer = new CommonDustRenderer(this);
             this.UseCache = conf.UseCache;
         }
         
-        public ContentResponder(BreviteeConf conf, ILogger logger, RequestHandler requestHandler)
-            : base(conf, logger, requestHandler)
+        public ContentResponder(BreviteeConf conf, ILogger logger)
+            : base(conf, logger)
         {
-            CommonDustRenderer = new CommonDustRenderer(this);
+            CommonTemplateRenderer = new CommonDustRenderer(this);
             this.UseCache = conf.UseCache;
         }
 
@@ -46,7 +48,7 @@ namespace Brevitee.Server
         {
             get
             {
-                return Fs.Root;
+                return ServerRoot.Root;
             }
         }
 
@@ -110,10 +112,10 @@ namespace Brevitee.Server
             }
         }
 
-        public CommonDustRenderer CommonDustRenderer
+        public ITemplateRenderer CommonTemplateRenderer
         {
             get;
-            protected set;
+            set;
         }
 
         List<ILogger> _subscribers = new List<ILogger>();
@@ -201,16 +203,15 @@ namespace Brevitee.Server
             }
         }
 
-        protected internal void InitializeCommonDustRenderer()
+        protected internal void InitializeCommonTemplateRenderer()
         {
             OnCommonDustRendererInitializing();
 
-            string dustRoot = Path.Combine(Root, "dust");
-            StringBuilder allCompiledTemplates = new StringBuilder();
-            DirectoryInfo dir = new DirectoryInfo(dustRoot);
+            string viewRoot = Path.Combine(Root, "views");
+            DirectoryInfo dir = new DirectoryInfo(viewRoot);
             if (dir.Exists)
             {
-                CommonDustRenderer = new CommonDustRenderer(this);
+                CommonTemplateRenderer = new CommonDustRenderer(this);
             }
 
             OnCommonDustRendererInitialized();
@@ -289,6 +290,7 @@ namespace Brevitee.Server
                     responder.Subscribe(logger);
                 });
                 string appName = ac.Name.ToLowerInvariant();
+				responder.Initialize();
                 AppContentResponders[appName] = responder;
                 
                 OnAppContentResponderInitialized(ac);
@@ -450,30 +452,27 @@ namespace Brevitee.Server
             });
         }
 
-        protected internal Includes GetCommonIncludesFromIncludeJs()
+        protected internal Includes GetCommonIncludes()
         {
-            return GetCommonIncludesFromIncludeJs(Root, UseCache);
+            return GetCommonIncludes(Root, UseCache);
         }
 
-        protected static internal Includes GetCommonIncludesFromIncludeJs(string root, bool useCache)
+        protected static internal Includes GetCommonIncludes(string root, bool useCache)
         {
-            string includeJs = Path.Combine(root, "apps", "include.js");
+            string includeJs = Path.Combine(root, "apps", IncludeFileName);
             return GetIncludesFromIncludeJs(includeJs, useCache);
         }
-
+		
         /// <summary>
-        /// Gets the Includes for the specified AppConf prefixing each
-        /// path with /bam/apps/[appName] before returning.  Also adds
-        /// the init.js and all viewModel .js files.  Adding the prefix
-        /// /bam/apps/[appName] will ensure that the AppContentResponder
-        /// picks the scripts from the correct location.
+        /// Gets the Includes for the specified AppConf.  Also adds
+        /// the init.js and all viewModel .js files.
         /// </summary>
         /// <param name="appConf"></param>
         /// <returns></returns>
         protected static internal Includes GetAppIncludes(AppConf appConf)
         {
-            string includeJs = Path.Combine(appConf.AppRoot.Root, "include.js");
-            string appRoot = "/";
+            string includeJs = Path.Combine(appConf.AppRoot.Root, IncludeFileName);
+            string appRoot = Path.DirectorySeparatorChar.ToString();
             Includes includes = GetIncludesFromIncludeJs(includeJs, appConf.BreviteeConf.UseCache);
             includes.Scripts.Each((scr, i) =>
             {
@@ -481,22 +480,22 @@ namespace Brevitee.Server
             });
             includes.Css.Each((css, i) =>
             {
-                includes.Css[i] = Path.Combine(appRoot, css).Replace("\\", "/");
+				includes.Css[i] = Path.Combine(appRoot, css).Replace("\\", "/");
             });
 
             GetPageScripts(appConf).Each(script =>
             {
-                includes.AddScript(Path.Combine(appRoot, script).Replace("\\", "/"));
+				includes.AddScript(Path.Combine(appRoot, script).Replace("\\", "/"));
             });
 
             DirectoryInfo viewModelsDir = appConf.AppRoot.GetDirectory("viewModels");
             FileInfo[] viewModels = viewModelsDir.GetFiles("*.js");
             viewModels.Each(fi =>
             {
-                includes.AddScript(Path.Combine(appRoot, "viewModels", fi.Name).Replace("\\", "/"));
+				includes.AddScript(Path.Combine(appRoot, "viewModels", fi.Name).Replace("\\", "/"));
             });
 
-            includes.AddScript(Path.Combine(appRoot, "init.js").Replace("\\", "/"));
+			includes.AddScript(Path.Combine(appRoot, "init.js").Replace("\\", "/"));
             
             return includes;
         }
@@ -508,7 +507,7 @@ namespace Brevitee.Server
             List<string> results = new List<string>();
             pageNames.Each(pageName =>
             {
-                string script = Path.Combine("pages", pageName + ".js").Replace("\\", "/");
+                string script = "/" + Fs.CleanPath(Path.Combine("pages", pageName + ".js")).Replace("\\", "/"); // for use in html
                 if (appConf.AppRoot.FileExists(script))
                 {
                     results.Add(script);
@@ -576,6 +575,7 @@ namespace Brevitee.Server
 
             bool handled = false;
             string path = request.Url.AbsolutePath;
+			string commonPath = Path.Combine("/common", path.TruncateFront(1));
             
             byte[] content = new byte[] { };
             string appName = AppConf.AppNameFromUri(request.Url);
@@ -584,6 +584,7 @@ namespace Brevitee.Server
                 handled = AppContentResponders[appName].TryRespond(context);
             }
 
+			//TODO: Replace this implementation with the CacheManager
             lock(_handleLock)
             {
                 if (!handled)
@@ -598,13 +599,20 @@ namespace Brevitee.Server
                         content = MinCache[path];
                         handled = true;
                     }
-                    else if (Fs.FileExists(path))
+                    else if (ServerRoot.FileExists(path))
                     {
-                        byte[] temp = ReadFile(Fs, path);
+                        byte[] temp = ReadFile(ServerRoot, path);
 
                         content = temp;
                         handled = true;
-                    }
+					}
+					else if (ServerRoot.FileExists(commonPath))
+					{
+						byte[] temp = ReadFile(ServerRoot, commonPath);
+
+						content = temp;
+						handled = true;
+					}
                 }
 
                 if (handled)
@@ -616,6 +624,26 @@ namespace Brevitee.Server
 
             return handled;
         }
+
+		#region super hacky
+		// TODO: replace this with use of CacheManager
+		protected byte[] ReadFile(string fullPath)
+		{
+			byte[] temp = null;
+			if (Path.GetExtension(fullPath).ToLowerInvariant().Equals(".js"))
+			{
+				temp = ReadScript(fullPath);
+			}
+			else
+			{
+				temp = File.ReadAllBytes(fullPath);
+				if (UseCache)
+				{
+					Cache.Add(fullPath, temp);
+				}
+			}
+			return temp;
+		}
 
         protected byte[] ReadFile(Fs fs, string path)
         {
@@ -634,6 +662,27 @@ namespace Brevitee.Server
             }
             return temp;
         }
+
+		protected byte[] ReadScript(string fullPath)
+		{
+			byte[] result = null;
+			if (MinCache.ContainsKey(fullPath) && UseCache)
+			{
+				result = MinCache[fullPath];
+			}
+			else if (Cache.ContainsKey(fullPath) && UseCache)
+			{
+				result = Cache[fullPath];
+			}
+			else
+			{
+				string script = File.ReadAllText(fullPath);
+				byte[] scriptBytes = SetCacheAndGetBytes(Cache, MinCache, fullPath, script);
+				result = scriptBytes;
+			}
+
+			return result;
+		}
 
         protected byte[] ReadScript(Fs fs, string path)
         {
@@ -677,10 +726,10 @@ namespace Brevitee.Server
             minCache["{0}.min"._Format(path)] = minBytes;
             return scriptBytes;
         }
-        
-        #endregion
+		#endregion
+		#endregion
 
-        public bool IsInitialized
+		public bool IsInitialized
         {
             get
             {
@@ -695,7 +744,7 @@ namespace Brevitee.Server
                 OnInitializing();
                 
                 InitializeFileSystem();
-                InitializeCommonDustRenderer();
+                InitializeCommonTemplateRenderer();
                 InitializeAppResponders();
                 InitializeApps();
 

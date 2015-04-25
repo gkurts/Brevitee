@@ -13,8 +13,8 @@ GOTO COPY
 
 :COPY
 MD Brevitee.ServiceProxy\lib\%LIB%
-copy /Y .\BuildOutput\%VER%\Brevitee.ServiceProxy.dll Brevitee.ServiceProxy\lib\%LIB%\Brevitee.ServiceProxy.dll
-copy /Y .\BuildOutput\%VER%\Brevitee.ServiceProxy.xml Brevitee.ServiceProxy\lib\%LIB%\Brevitee.ServiceProxy.xml
+copy /Y .\BuildOutput\Release\%VER%\Brevitee.ServiceProxy.dll Brevitee.ServiceProxy\lib\%LIB%\Brevitee.ServiceProxy.dll
+copy /Y .\BuildOutput\Release\%VER%\Brevitee.ServiceProxy.xml Brevitee.ServiceProxy\lib\%LIB%\Brevitee.ServiceProxy.xml
 GOTO %NEXT%
 
 :END

@@ -16,20 +16,24 @@ using Brevitee.ServiceProxy;
 using Brevitee.Web;
 using System.IO;
 using Brevitee.UserAccounts;
+using Brevitee.Management;
 
 namespace Brevitee.Server
 {
     public class BreviteeServer: IInitialize<BreviteeServer>
     {
+		HashSet<IResponder> _responders;
         HttpServer _server;
+		const string ServerWorkspace = "serverWorkspace";
         
         #region configurable ctors
         public BreviteeServer(BreviteeConf conf)
         {
-            this.EnableDao = true;
-            this.EnableServiceProxy = true;
-            this.Initialized += InitializeHandler;
+			this._responders = new HashSet<IResponder>();
+            this.Initialized += HandleInitialization;
             this.SetConf(conf);
+			this.EnableDao = true;
+			this.EnableServiceProxy = true;
 
             SQLiteRegistrar.RegisterFallback();
 
@@ -37,17 +41,6 @@ namespace Brevitee.Server
             {
                 this.Stop();
             };
-        }
-
-        private void InitializeHandler(BreviteeServer server)
-        {
-            if (server.InitializeTemplates)
-            {
-                TemplateInitializer.Subscribe(Logger);
-                TemplateInitializer.Initialize();
-            }
-
-            this.IsInitialized = true;
         }
 
         TemplateInitializerBase _templateInitializer;
@@ -148,13 +141,14 @@ namespace Brevitee.Server
 
                 EnsureDefaults();
                 Logger.AddEntry("{0} initializing: \r\n{1}", this.GetType().Name, this.PropertiesToString());
-                ConfigureHttpServer();
                 
                 InitializeCommonSchemas();
 
                 InitializeResponders();
 
                 InitializeUserManagers();
+				
+				ConfigureHttpServer();
 
                 OnInitialized();
             }
@@ -203,50 +197,27 @@ namespace Brevitee.Server
 
         protected virtual void InitializeResponders()
         {
-            ContentResponder.Initialize();
-            if (EnableDao)
-            {
-                DaoResponder.Initialize();
-            }
-            if (EnableServiceProxy)
-            {
-                ServiceProxyResponder.Initialize();
-            }
+			foreach(IResponder responder in _responders)
+			{
+				responder.Subscribe(Logger);
+				responder.Initialize();
+			}
         }
         
+		/// <summary>
+		/// Subscribe the specified logger to the events of the
+		/// ContentResponder.  Will also subscribe to the DaoResponder
+		/// if EnableDao is true and the ServiceProxyReponder if
+		/// EnableServiceProxy is true.  Additionally, will subscribe to
+		/// any other responders that have been added using AddResponder
+		/// </summary>
+		/// <param name="logger"></param>
         protected virtual void SubscribeResponders(ILogger logger)
         {
-            ContentResponder.Subscribe(logger);
-            if (EnableDao)
-            {
-                DaoResponder.Subscribe(logger);
-            }
-            if (EnableServiceProxy)
-            {
-                ServiceProxyResponder.Subscribe(logger);
-            }
-        }
-
-        private void ConfigureHttpServer()
-        {
-            int maxThreads = this.MaxThreads;
-            if (maxThreads < 5)
-            {
-                maxThreads = 5;
-            }
-
-            _server = new HttpServer(maxThreads, Logger);
-            _server.HostPrefixes = GetHostPrefixes();
-            _server.ProcessRequest += ProcessRequest;
-        }
-
-        private void EnsureDefaults()
-        {
-            if(this.MaxThreads <= 0)
-            {
-                this.MaxThreads = 50;
-                Logger.AddEntry("Set MaxThreads to default value {0}", this.MaxThreads);
-            }
+			foreach (IResponder responder in _responders)
+			{
+				responder.Subscribe(logger);
+			}
         }
 
         List<ILogger> _subscribers = new List<ILogger>();
@@ -274,6 +245,11 @@ namespace Brevitee.Server
             }
         }
 
+		/// <summary>
+		/// Subscribe the specified logger to the 
+		/// events of the current BreviteeServer
+		/// </summary>
+		/// <param name="logger"></param>
         public void Subscribe(ILogger logger)
         {
             if (!IsSubscribed(logger))
@@ -418,6 +394,7 @@ namespace Brevitee.Server
             set
             {
                 _contentRoot = new Fs(value).Root;
+				ContentResponder.BreviteeConf = GetCurrentConf();
             }
         }
         
@@ -473,7 +450,7 @@ namespace Brevitee.Server
             }
         }
 
-        public void CreateApp(string appName, string defaultLayout = null)
+		public AppContentResponder CreateApp(string appName, string defaultLayout = null)
         {
             AppConf conf = new AppConf(appName);
             if (!string.IsNullOrEmpty(defaultLayout))
@@ -486,6 +463,7 @@ namespace Brevitee.Server
             responder.Initialize();
 
             OnCreatedApp(conf);
+			return responder;
         }
 
         public event Action<BreviteeServer, BreviteeConf> SettingConf;
@@ -512,7 +490,8 @@ namespace Brevitee.Server
             OnSettingConf(conf);
             DefaultConfiguration.CopyProperties(conf, this);
             Type loggerType;
-            this.Logger = conf.GetLogger(out loggerType);            
+            this.Logger = Log.Default = conf.GetLogger(out loggerType);
+			this.Logger.RestartLoggingThread();
             if (!loggerType.Name.Equals(conf.LoggerName))
             {
                 Logger.AddEntry("Configured Logger was ({0}) but the Logger found was ({1})", LogEventType.Warning, conf.LoggerName, loggerType.Name);
@@ -547,137 +526,49 @@ namespace Brevitee.Server
             return conf;
         }
 
-        BreviteeConf _conf;
-        object _confLock = new object();
-        /// <summary>
-        /// Get a BreviteeConf instance which represents the current
-        /// state of the BreviteeServer
-        /// </summary>
-        /// <returns></returns>
-        internal protected BreviteeConf GetCurrentConf(bool reload = true)
-        {
-            lock (_confLock)
-            {
-                if (reload || _conf == null)
-                {
-                    BreviteeConf conf = new BreviteeConf();
-                    DefaultConfiguration.CopyProperties(this, conf);
-                    conf.Server = this;
-                    _conf = conf;
-                }
-            }
-            return _conf;
-        }
-
-        protected HttpServer HttpServer
-        {
-            get { return _server; }
-        }
-
+		ContentResponder _contentResponder;
         public ContentResponder ContentResponder
         {
             get
             {
-                return RequestHandler.Content;
+				if (_contentResponder == null)
+				{
+					SetContentResponder();
+				}
+				return _contentResponder;
             }
         }
 
+
+		DaoResponder _daoResponder;
         public DaoResponder DaoResponder
         {
             get
             {
-                return RequestHandler.Dao;
+				if (_daoResponder == null)
+				{
+					SetDaoResponder();
+				}
+				return _daoResponder;
             }
         }
 
+		ServiceProxyResponder _serviceProxyResponder;
         public ServiceProxyResponder ServiceProxyResponder
         {
             get
             {
-                return RequestHandler.ServiceProxy;
-            }
-        }
-        
-        /// <summary>
-        /// If true will cause the initialization of the 
-        /// DaoResponder which will process all *.db.js
-        /// and *.db.json files.  See http://breviteedocs.wordpress.com/dao/
-        /// for information about the expected format 
-        /// of a *.db.js file.  The format of *db.json 
-        /// would be the json equivalent of the referenced
-        /// database object (see link).  See
-        /// Brevitee.Data.Schema.DataTypes for valid
-        /// data types.
-        /// </summary>
-        protected bool EnableDao
-        {
-            get;
-            set;
-        }
-
-        /// <summary>
-        /// If true will cause the initialization of the
-        /// ServiceProxyResponder which will register
-        /// all classes addorned with the Proxy attribute
-        /// as service proxy executors
-        /// </summary>
-        protected bool EnableServiceProxy
-        {
-            get;
-            set;
-        }
-
-        RequestHandler _requestHandler;
-        object _requestHandlerLock = new object();
-        public RequestHandler RequestHandler
-        {
-            get
-            {
-                return _requestHandlerLock.DoubleCheckLock(ref _requestHandler, RequestHandlerInstanciator);
-            }
-            private set
-            {
-                _requestHandler = value;
-                OnRequestHandlerSet(_requestHandler);
-            }
-        }
-
-        Func<RequestHandler> _requestHandlerInstanciator;
-        object _requestHandlerInstanciatorLock = new object();
-        public Func<RequestHandler> RequestHandlerInstanciator
-        {
-            get
-            {
-                return _requestHandlerInstanciatorLock.DoubleCheckLock(ref _requestHandlerInstanciator, () =>
-                {
-                    return () =>
-                    {
-                        BreviteeConf conf = GetCurrentConf(true);
-                        RequestHandler handler = new RequestHandler(conf, Logger, false);
-                        handler.AddResponder(handler.Content);
-                        if (EnableDao)
-                        {
-                            handler.AddResponder(handler.Dao);
-                        }
-                        if (EnableServiceProxy)
-                        {
-                            handler.AddResponder(handler.ServiceProxy);
-                        }
-
-                        OnRequestHandlerSet(handler);
-                        return handler;
-                    };
-                });
-            }
-            set
-            {
-                _requestHandlerInstanciator = value;
+				if (_serviceProxyResponder == null)
+				{
+					SetServiceProxyResponder();
+				}
+				return _serviceProxyResponder;
             }
         }
 
         public void SubscribeToResponded<T>(ResponderEventHandler subscriber) where T : class, IResponder
         {
-            RequestHandler.Responders.Each(r =>
+            Responders.Each(r =>
             {
                 T responder = r as T;
                 if (responder != null)
@@ -689,7 +580,7 @@ namespace Brevitee.Server
 
         public void SubscribeToNotResponded<T>(ResponderEventHandler subscriber) where T : class, IResponder
         {
-            RequestHandler.Responders.Each(r =>
+            Responders.Each(r =>
             {
                 T responder = r as T;
                 if (responder != null)
@@ -701,7 +592,7 @@ namespace Brevitee.Server
 
         public void SubscribeToResponded(ResponderEventHandler subscriber)
         {
-            RequestHandler.Responders.Each(r =>
+            Responders.Each(r =>
             {
                 r.Responded += subscriber;
             });
@@ -709,67 +600,23 @@ namespace Brevitee.Server
 
         public void SubscribeToNotResponded(ResponderEventHandler subscriber)
         {
-            RequestHandler.Responders.Each(r =>
+            Responders.Each(r =>
             {
                 r.NotResponded += subscriber;
             });
         }
 
-        public event Action<RequestHandler> RequestHandlerSet;
-
-        protected void OnRequestHandlerSet(RequestHandler handler)
-        {
-            if (RequestHandlerSet != null)
-            {
-                RequestHandlerSet(handler);
-            }
-        }
         
         public event Action<BreviteeServer> Starting;
         public event Action<BreviteeServer> Started;
-        protected void OnStarting()
-        {
-            if (Starting != null)
-            {
-                Starting(this);
-            }
-        }
-
-        protected void OnStarted()
-        {
-            if (Started != null)
-            {
-                Started(this);
-            }
-        }        
 
         public event Action<BreviteeServer> Stopping;
         public event Action<BreviteeServer> Stopped;
 
-        protected void OnStopping()
-        {
-            if (Stopping != null)
-            {
-                Stopping(this);
-            }
-        }
-
-        protected void OnStopped()
-        {
-            if (Stopped != null)
-            {
-                Stopped(this);
-            }
-        }
-
-        protected internal bool IsRunning
-        {
-            get;
-            private set;
-        }
 
         public void Start()
         {
+			SetWorkspace();
             Initialize();
 
             OnStarting();
@@ -795,10 +642,6 @@ namespace Brevitee.Server
         {
             Stop();
             this.IsInitialized = false;
-            lock (_requestHandlerLock)
-            {
-                _requestHandler = null; // causes the request handler to be reinitialized
-            }
             Start();
         }
         
@@ -817,6 +660,14 @@ namespace Brevitee.Server
                 return ServiceProxyResponder.AppServiceProviders;
             }
         }
+
+		public Dictionary<string, AppContentResponder> AppContentResponders
+		{
+			get
+			{
+				return ContentResponder.AppContentResponders;
+			}
+		}
 
         public void AddCommonService<T>()
         {
@@ -867,13 +718,345 @@ namespace Brevitee.Server
             Logger = mtl;
         }
 
-        protected void ProcessRequest(HttpListenerContext context)
-        {
-            HttpListenerRequest request = context.Request;
-            HttpListenerResponse response = context.Response;
+		public event Action<BreviteeServer, IResponder> ResponderAdded;
+		/// <summary>
+		/// Add an IResponder implementation to this
+		/// request handler
+		/// </summary>
+		/// <param name="responder"></param>
+		public void AddResponder(IResponder responder)
+		{
+			this._responders.Add(responder);
+			if (ResponderAdded != null)
+			{
+				ResponderAdded(this, responder);
+			}
+		}
 
-            RequestHandler.HandleRequest(new HttpContextWrapper(new RequestWrapper(request), new ResponseWrapper(response)));
-        }
+		public void RemoveResponder(IResponder responder)
+		{
+			if (_responders.Contains(responder))
+			{
+				_responders.Remove(responder);
+			}
+		}
+
+		public IResponder[] Responders
+		{
+			get
+			{
+				return _responders.ToArray();
+			}
+		}
+
+		Action<IHttpContext> _responderNotFoundHandler;
+		object _responderNotFoundHandlerLock = new object();
+		/// <summary>
+		/// Get or set the default handler used when no appropriate
+		/// responder is found for a given request.  This is the 
+		/// Action responsible for responding with a 404 status code
+		/// and supplying any additional information to the client.
+		/// </summary>
+		public Action<IHttpContext> ResponderNotFoundHandler
+		{
+			get
+			{
+				return _responderNotFoundHandlerLock.DoubleCheckLock(ref _responderNotFoundHandler, () => HandleResponderNotFound);
+			}
+			set
+			{
+				_responderNotFoundHandler = value;
+			}
+		}
+
+		Action<IHttpContext, Exception> _exceptionHandler;
+		object _exceptionHandlerLock = new object();
+		/// <summary>
+		/// Get or set the default exception handler.  This is the
+		/// Action responsible for responding with a 500 status code
+		/// and supplying any additional information to the client
+		/// pertaining to exceptions that may occur on the server.
+		/// </summary>
+		public Action<IHttpContext, Exception> ExceptionHandler
+		{
+			get
+			{
+				return _exceptionHandlerLock.DoubleCheckLock(ref _exceptionHandler, () => HandleException);
+			}
+			set
+			{
+				_exceptionHandler = value;
+			}
+		}
+		
+		public void HandleRequest(IHttpContext context)
+		{
+			IRequest request = context.Request;
+			IResponse response = context.Response;
+			IResponder responder = new ResponderList(_conf, _responders);
+			try
+			{
+				if (!responder.Respond(context))
+				{
+					ResponderNotFoundHandler(context);
+				}
+				else
+				{
+					response.StatusCode = (int)HttpStatusCode.OK;
+					response.OutputStream.Flush();
+					response.OutputStream.Close();
+				}
+			}
+			catch (Exception ex)
+			{
+				ExceptionHandler(context, ex);
+			}
+		}
+
+		BreviteeConf _conf;
+		object _confLock = new object();
+		/// <summary>
+		/// Get a BreviteeConf instance which represents the current
+		/// state of the BreviteeServer
+		/// </summary>
+		/// <returns></returns>
+		internal protected BreviteeConf GetCurrentConf(bool reload = true)
+		{
+			lock (_confLock)
+			{
+				if (reload || _conf == null)
+				{
+					BreviteeConf conf = new BreviteeConf();
+					DefaultConfiguration.CopyProperties(this, conf);
+					conf.Server = this;
+					_conf = conf;
+				}
+			}
+			return _conf;
+		}
+
+		protected HttpServer HttpServer
+		{
+			get { return _server; }
+		}
+
+		bool _enableDao;
+		/// <summary>
+		/// If true will cause the initialization of the 
+		/// DaoResponder which will process all *.db.js
+		/// and *.db.json files.  See http://breviteedocs.wordpress.com/dao/
+		/// for information about the expected format 
+		/// of a *.db.js file.  The format of *db.json 
+		/// would be the json equivalent of the referenced
+		/// database object (see link).  See
+		/// Brevitee.Data.Schema.DataTypes for valid
+		/// data types.
+		/// </summary>
+		protected bool EnableDao
+		{
+			get
+			{
+				return _enableDao;
+			}
+			set
+			{
+				_enableDao = value;
+				if (_enableDao)
+				{
+					SetDaoResponder();
+				}
+				else
+				{
+					RemoveResponder(_daoResponder);
+				}
+			}
+		}
+
+		bool _enableServiceProxy;
+		/// <summary>
+		/// If true will cause the initialization of the
+		/// ServiceProxyResponder which will register
+		/// all classes addorned with the Proxy attribute
+		/// as service proxy executors
+		/// </summary>
+		protected bool EnableServiceProxy
+		{
+			get
+			{
+				return _enableServiceProxy;
+			}
+			set
+			{
+				_enableServiceProxy = value;
+				if (_enableServiceProxy)
+				{
+					SetServiceProxyResponder();
+				}
+				else
+				{
+					RemoveResponder(_serviceProxyResponder);
+				}
+			}
+		}
+
+		protected void SetDaoResponder()
+		{
+			_daoResponder = new DaoResponder(GetCurrentConf(true), Logger);
+			AddResponder(_daoResponder);
+		}
+
+		protected void SetServiceProxyResponder()
+		{
+			_serviceProxyResponder = new ServiceProxyResponder(GetCurrentConf(true), Logger);
+			_serviceProxyResponder.ContentResponder = ContentResponder;
+			AddResponder(_serviceProxyResponder);
+		}
+
+		protected void SetContentResponder()
+		{
+			_contentResponder = new ContentResponder(GetCurrentConf(true), Logger);
+			AddResponder(_contentResponder);
+		}
+
+		protected void OnStopping()
+		{
+			if (Stopping != null)
+			{
+				Stopping(this);
+			}
+		}
+
+		protected void OnStopped()
+		{
+			if (Stopped != null)
+			{
+				Stopped(this);
+			}
+		}
+		protected void OnStarting()
+		{
+			if (Starting != null)
+			{
+				Starting(this);
+			}
+		}
+
+		protected void OnStarted()
+		{
+			if (Started != null)
+			{
+				Started(this);
+			}
+		}        
+
+		protected internal bool IsRunning
+		{
+			get;
+			private set;
+		}
+		protected void ProcessRequest(HttpListenerContext context)
+		{
+			HttpListenerRequest request = context.Request;
+			HttpListenerResponse response = context.Response;
+
+			HandleRequest(new HttpContextWrapper(new RequestWrapper(request), new ResponseWrapper(response)));
+		}
+
+		private void HandleResponderNotFound(IHttpContext context)
+		{
+			IResponse response = context.Response;
+			IRequest request = context.Request;
+
+			string path = request.Url.ToString();
+			string messageFormat = "No responder was found for the path: {0}";
+			string description = "Responder not found";
+
+			using (StreamWriter sw = new StreamWriter(response.OutputStream))
+			{
+				response.StatusCode = (int)HttpStatusCode.NotFound;
+				response.StatusDescription = description;
+				sw.WriteLine("<!DOCTYPE html>");
+				Tag html = new Tag("html");
+				html.Child(new Tag("body")
+					.Child(new Tag("h1").Text(description))
+					.Child(new Tag("p").Text(string.Format(messageFormat, path)))
+				);
+				sw.WriteLine(html.ToHtmlString());
+				sw.Flush();
+				sw.Close();
+			}
+
+			Logger.AddEntry(messageFormat, LogEventType.Warning, path);
+		}
+
+		private void HandleException(IHttpContext context, Exception ex)
+		{
+			IResponse response = context.Response;
+			IRequest request = context.Request;
+			using (StreamWriter sw = new StreamWriter(response.OutputStream))
+			{
+				string description = "({0})"._Format(ex.Message);
+				response.StatusCode = (int)HttpStatusCode.InternalServerError;
+				response.StatusDescription = description;
+				sw.WriteLine("<!DOCTYPE html>");
+				Tag html = new Tag("html");
+				html.Child(new Tag("body")
+					.Child(new Tag("h1").Text("Internal Server Exception"))
+					.Child(new Tag("p").Text(description))
+				);
+				sw.WriteLine(html.ToHtmlString());
+				sw.Flush();
+				sw.Close();
+			}
+
+			Logger.AddEntry("An error occurred handling the request: ({0})\r\n*** Request Details ***\r\n{1}",
+					ex,
+					ex.Message,
+					request.PropertiesToString());
+		}
+		
+		private void HandleInitialization(BreviteeServer server)
+		{
+			if (server.InitializeTemplates)
+			{
+				TemplateInitializer.Subscribe(Logger);
+				TemplateInitializer.Initialize();
+			}
+
+			this.IsInitialized = true;
+		}
+		
+		private void ConfigureHttpServer()
+		{
+			int maxThreads = this.MaxThreads;
+			if (maxThreads < 50)
+			{
+				maxThreads = 50;
+			}
+
+			_server = new HttpServer(maxThreads, Logger);
+			_server.HostPrefixes = GetHostPrefixes();
+			_server.ProcessRequest += ProcessRequest;
+		}
+
+		private void EnsureDefaults()
+		{
+			if (this.MaxThreads <= 0)
+			{
+				this.MaxThreads = 50;
+				Logger.AddEntry("Set MaxThreads to default value {0}", this.MaxThreads);
+			}
+		}
+
+		private void SetWorkspace()
+		{
+			string workSpace = Path.Combine(ContentRoot, ServerWorkspace);
+			if (!Directory.Exists(workSpace))
+			{
+				Directory.CreateDirectory(workSpace);
+			}
+			Directory.SetCurrentDirectory(workSpace);
+		}
     }
 
 }

@@ -14,13 +14,14 @@ namespace Brevitee.Data
 {
     public class Database
     {
-        AutoResetEvent resetEvent;
-        List<DbConnection> connections;
+        AutoResetEvent _resetEvent;
+        List<DbConnection> _connections;
         public Database()
         {
-            this.ServiceProvider = Incubator.Default;
-            this.resetEvent = new AutoResetEvent(false);
-            this.connections = new List<DbConnection>();
+			this._resetEvent = new AutoResetEvent(false);
+			this._connections = new List<DbConnection>();
+			this._schemaNames = new HashSet<string>();
+            this.ServiceProvider = Incubator.Default;           
             this.MaxConnections = 25;
         }
 
@@ -30,6 +31,7 @@ namespace Brevitee.Data
             this.ServiceProvider = serviceProvider;
             this.ConnectionString = connectionString;
             this.ConnectionName = connectionName;
+			this.ParameterPrefix = "@";
         }
 
         public DaoTransaction BeginTransaction()
@@ -41,9 +43,27 @@ namespace Brevitee.Data
 
         public Incubator ServiceProvider { get; set; }
 
+		public string ParameterPrefix { get; set; }
+		/// <summary>
+		/// Used to locate the connection string in the 
+		/// configuration file as well as uniquely identify
+		/// types that are associated with a specific 
+		/// schema.  This is a legacy feature and may
+		/// be deprecated in favor of using SchemaNames and
+		/// TryEnsureSchema.
+		/// </summary>
         public string ConnectionName { get; set; }
 
-        public string Name
+		HashSet<string> _schemaNames;
+		public string[] SchemaNames
+		{
+			get
+			{
+				return _schemaNames.ToArray();
+			}
+		}
+
+        public virtual string Name
         {
             get
             {
@@ -93,26 +113,33 @@ namespace Brevitee.Data
             return dictionary;
         }
 
-        private QuerySet ExecuteQuery<T>() where T : Dao, new()
-        {
-            QuerySet query = new QuerySet();
-            query.Select<T>();
-            query.Execute(this);
-            return query;
-        }
+		public virtual Query<C, T> GetQuery<C, T>() 
+			where C : IQueryFilter, IFilterToken, new()
+			where T: Dao, new()
+		{
+			return new Query<C,T>();
+		}
 
-        static object initEnumLock = new object();
-        private void InitEnumValues<EnumType, T>(string valueColumn, string nameColumn) where T : Dao, new()
-        {
-            FieldInfo[] fields = typeof(EnumType).GetFields(BindingFlags.Public | BindingFlags.Static);
-            foreach (FieldInfo field in fields)
-            {
-                T entry = new T();
-                entry.SetValue(valueColumn, field.GetRawConstantValue());
-                entry.SetValue(nameColumn, field.Name);
-                entry.Save();
-            }
-        }
+		public virtual Query<C, T> GetQuery<C, T>(WhereDelegate<C> where, OrderBy<C> orderBy = null)
+			where C : IQueryFilter, IFilterToken, new()
+			where T : Dao, new()
+		{
+			return new Query<C, T>(where, orderBy, this);
+		}
+
+		public virtual Query<C, T> GetQuery<C, T>(Func<C, QueryFilter<C>> where, OrderBy<C> orderBy = null)
+			where C : IQueryFilter, IFilterToken, new()
+			where T : Dao, new()
+		{
+			return new Query<C, T>(where, orderBy, this);
+		}
+
+		public virtual Query<C, T> GetQuery<C, T>(Delegate where)
+			where C : IQueryFilter, IFilterToken, new()
+			where T : Dao, new()
+		{
+			return new Query<C, T>(where, this);
+		}
 
         /// <summary>
         /// Execute the specified SqlStringBuilder using the 
@@ -153,14 +180,19 @@ namespace Brevitee.Data
             }
         }
         
-        public virtual DataTable GetDataTableFromSql(string sqlStatement, CommandType commandType, params DbParameter[] dbParamaters)
+		public virtual DataRow GetFirstRowFromSql(string sqlStatement, CommandType commandType, params DbParameter[] dbParameters)
+		{
+			return GetDataTableFromSql(sqlStatement, commandType, dbParameters).Rows[0];
+		}
+
+		public virtual DataTable GetDataTableFromSql(string sqlStatement, CommandType commandType, params DbParameter[] dbParameters)
         {
             DbProviderFactory providerFactory = ServiceProvider.Get<DbProviderFactory>();
             DbConnection conn = GetDbConnection();
             DataTable table = new DataTable();
             try
             {
-                DbCommand command = BuildCommand(sqlStatement, commandType, dbParamaters, providerFactory, conn);
+				DbCommand command = BuildCommand(sqlStatement, commandType, dbParameters, providerFactory, conn);
                 FillTable(table, command);
             }
             finally
@@ -170,6 +202,11 @@ namespace Brevitee.Data
 
             return table;
         }
+
+		public T GetServiceProver<T>()
+		{
+			return ServiceProvider.Get<T>();
+		}
 
         public virtual DbCommand CreateCommand()
         {
@@ -197,11 +234,16 @@ namespace Brevitee.Data
             return GetDataSetFromSql(sqlStatement, commandType, releaseConnection, conn, null, dbParamaters);
         }
 
-        public virtual DataSet GetDataSetFromSql(string sqlStatement, CommandType commandType, bool releaseConnection, DbConnection conn, DbTransaction tx, params DbParameter[] dbParamaters)
+		public virtual DataSet GetDataSetFromSql(string sqlStatement, CommandType commandType, bool releaseConnection, DbConnection conn, DbTransaction tx, params DbParameter[] dbParamaters)
+		{
+			return GetDataSetFromSql<object>(sqlStatement, commandType, releaseConnection, conn, tx, dbParamaters);
+		}
+
+        public virtual DataSet GetDataSetFromSql<T>(string sqlStatement, CommandType commandType, bool releaseConnection, DbConnection conn, DbTransaction tx, params DbParameter[] dbParamaters)
         {
             DbProviderFactory providerFactory = ServiceProvider.Get<DbProviderFactory>();
-           
-            DataSet set = new DataSet();
+
+			DataSet set = new DataSet(Dao.ConnectionName<T>().Or(8.RandomLetters()));
             try
             {
                 DbCommand command = BuildCommand(sqlStatement, commandType, dbParamaters, providerFactory, conn, tx);
@@ -218,6 +260,11 @@ namespace Brevitee.Data
             return set;
         }
 
+		protected internal virtual AssignValue GetAssignment(string keyColumn, object value)
+		{
+			return new AssignValue(keyColumn, value);
+		}
+
         internal static DbCommand BuildCommand(string sqlStatement, CommandType commandType, DbParameter[] dbParameters, DbProviderFactory providerFactory, DbConnection conn, DbTransaction tx  =null)
         {
             DbCommand command = providerFactory.CreateCommand();
@@ -233,57 +280,128 @@ namespace Brevitee.Data
             return command;
         }
 
-        private void FillTable(DataTable table, DbCommand command)
+        protected void FillTable(DataTable table, DbCommand command)
         {
             DbDataAdapter adapter = ServiceProvider.Get<DbProviderFactory>().CreateDataAdapter();
             adapter.SelectCommand = command;
             adapter.Fill(table);
         }
 
-        private void FillDataSet(DataSet dataSet, DbCommand command)
+        protected void FillDataSet(DataSet dataSet, DbCommand command)
         {
             DbDataAdapter adapter = ServiceProvider.Get<DbProviderFactory>().CreateDataAdapter();
             adapter.SelectCommand = command;
             adapter.Fill(dataSet);
         }
 
-        public string ConnectionString
+        public virtual string ConnectionString
         {
             get;
             set;
         }
 
+		public override bool Equals(object obj)
+		{
+			if (obj.GetType() == this.GetType() && 
+				!string.IsNullOrEmpty(ConnectionString))
+			{
+				Database db = obj as Database;
+				return db.ConnectionString.Equals(this.ConnectionString);
+			}
+			else
+			{
+				return base.Equals(obj);
+			}
+		}
+
+		public override int GetHashCode()
+		{
+			if(!string.IsNullOrEmpty(ConnectionString))
+			{
+				return ConnectionString.GetHashCode();
+			}
+			else
+			{
+				return base.GetHashCode();
+			}
+		}
+
         public DbConnection GetDbConnection()
         {
             return GetDbConnection(this.MaxConnections);
         }
-        
-        private DbConnection GetDbConnection(int max)
-        {
-            if (connections.Count >= max)
-            {
-                resetEvent.WaitOne();
-            }
 
-            DbConnection conn = ServiceProvider.Get<DbProviderFactory>().CreateConnection();
-            conn.ConnectionString = this.ConnectionString;
-            lock (connectionLock)
-            {
-                connections.Add(conn);
-            }
-            return conn;
-        }
+		public EnsureSchemaStatus TryEnsureSchema(Type type, ILogger logger = null)
+		{
+			Exception e;
+			return TryEnsureSchema(type, out e, logger);
+		}
+		public EnsureSchemaStatus TryEnsureSchema(Type type, out Exception ex, ILogger logger = null)
+		{
+			return TryEnsureSchema(type, false, out ex, logger);
+		}
+
+		public virtual EnsureSchemaStatus TryEnsureSchema(Type type, bool force, out Exception ex, ILogger logger = null)
+		{
+			EnsureSchemaStatus result = EnsureSchemaStatus.Invalid;
+			ex = null;
+			try
+			{
+				string schemaName = Dao.RealConnectionName(type);
+				if (!SchemaNames.Contains(schemaName) || force)
+				{
+					_schemaNames.Add(schemaName);
+					SchemaWriter schema = ServiceProvider.Get<SchemaWriter>();
+					schema.WriteSchemaScript(type);
+					ExecuteSql(schema, ServiceProvider.Get<IParameterBuilder>());					
+					result = EnsureSchemaStatus.Success;
+				}
+				else
+				{
+					result = EnsureSchemaStatus.AlreadyDone;
+				}
+			}
+			catch (Exception e)
+			{
+				ex = e;
+				result = EnsureSchemaStatus.Error;
+				logger = logger ?? Log.Default;
+				logger.AddEntry("Non fatal error occurred trying to write schema for type {0}: {1}", LogEventType.Warning, ex, type.Name, ex.Message);
+			}
+			return result;
+		}
+
+		Func<ColumnAttribute, string> _columnNameProvider;
+		protected internal virtual Func<ColumnAttribute, string> ColumnNameProvider
+		{
+			get
+			{
+				if (_columnNameProvider == null)
+				{
+					_columnNameProvider = (c) =>
+					{
+						return string.Format("[{0}]", c.Name);
+					};
+				}
+
+				return _columnNameProvider;
+			}
+			set
+			{
+				_columnNameProvider = value;
+			}
+		}
 
         object connectionLock = new object();
-        private void ReleaseConnection(DbConnection conn)
+        protected void ReleaseConnection(DbConnection conn)
         {
             try
             {
                 lock (connectionLock)
                 {
-                    if (connections.Contains(conn))
+                    if (_connections.Contains(conn))
                     {
-                        connections.Remove(conn);
+                        _connections.Remove(conn);
                     }
 
                     conn.Close();
@@ -296,7 +414,44 @@ namespace Brevitee.Data
                 // do nothing
             }
 
-            resetEvent.Set();
+            _resetEvent.Set();
         }
+		
+		private QuerySet ExecuteQuery<T>() where T : Dao, new()
+		{
+			QuerySet query = new QuerySet();
+			query.Select<T>();
+			query.Execute(this);
+			return query;
+		}
+
+		static object initEnumLock = new object();
+		private void InitEnumValues<EnumType, T>(string valueColumn, string nameColumn) where T : Dao, new()
+		{
+			FieldInfo[] fields = typeof(EnumType).GetFields(BindingFlags.Public | BindingFlags.Static);
+			foreach (FieldInfo field in fields)
+			{
+				T entry = new T();
+				entry.SetValue(valueColumn, field.GetRawConstantValue());
+				entry.SetValue(nameColumn, field.Name);
+				entry.Save();
+			}
+		}
+
+		private DbConnection GetDbConnection(int max)
+		{
+			if (_connections.Count >= max)
+			{
+				_resetEvent.WaitOne();
+			}
+
+			DbConnection conn = ServiceProvider.Get<DbProviderFactory>().CreateConnection();
+			conn.ConnectionString = this.ConnectionString;
+			lock (connectionLock)
+			{
+				_connections.Add(conn);
+			}
+			return conn;
+		}
     }
 }

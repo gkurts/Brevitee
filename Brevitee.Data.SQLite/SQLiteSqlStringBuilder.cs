@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-//using Brevitee.Data;
+using System.Reflection;
 using Brevitee.Incubation;
 using Brevitee;
 using Brevitee.Data;
@@ -30,7 +30,7 @@ namespace Brevitee.Data
             ColumnAttribute[] columns = GetColumns(daoType);
             ForeignKeyAttribute[] fks = GetForeignKeys(daoType);
 
-            Builder.AppendFormat("CREATE TABLE [{0}] ({1}{2}{3})\r\n",
+            Builder.AppendFormat("CREATE TABLE [{0}] ({1}{2}{3})",
                 daoType.GetCustomAttributeOfType<TableAttribute>().TableName,
                 columns.ToDelimited(c =>
                 {
@@ -62,6 +62,12 @@ namespace Brevitee.Data
             // empty implementation
             // SQLite drops Foreign keys implicitly when dropping tables
         }
+
+		protected override void WriteForeignKeys(Assembly daoAssembly, Func<Type, bool> typePredicate = null)
+		{
+			// empty implementation 
+			// SQLite can't alter a table to add foreign keys
+		}
 
         protected override void WriteDropTable(Type daoType)
         {

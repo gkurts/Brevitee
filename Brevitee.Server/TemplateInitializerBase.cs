@@ -163,17 +163,17 @@ namespace Brevitee.Server
 
                 InitializingCommonDaoTemplates += (daoReg) =>
                 {
-                    logger.AddEntry("{0}::Initializ(ING) Common Templates for ({0})", className, daoReg.ContextName);
+                    logger.AddEntry("{0}::Initializ(ING) Common Templates for ({1})", className, daoReg.ContextName);
                 };
 
                 InitializedCommonDaoTemplates += (daoReg) =>
                 {
-                    logger.AddEntry("{0}::Initializ(ED) Common Templates for ({0})", className, daoReg.ContextName);
+                    logger.AddEntry("{0}::Initializ(ED) Common Templates for ({1})", className, daoReg.ContextName);
                 };
 
                 InitializationException += (ex) =>
                 {
-                    logger.AddEntry("{0}::Initialization EXCEPTION: {1}", LogEventType.Warning, ex.Message);
+                    logger.AddEntry("{0}::Initialization EXCEPTION: {1}", LogEventType.Warning, className, ex.Message);
                 };
             }
         }

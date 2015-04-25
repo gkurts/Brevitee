@@ -120,6 +120,10 @@
       <Project>{f373eaf9-b69c-4322-9659-a53a8fb7d43f}</Project>
       <Name>Brevitee.Data.MsSql</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Brevitee.Data.Repositories\Brevitee.Data.Repositories.csproj">
+      <Project>{222ef625-a115-49c7-8bdb-5879725a7d17}</Project>
+      <Name>Brevitee.Data.Repositories</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Brevitee.Data.Schema\Brevitee.Data.Schema.csproj">
       <Project>{d2c2b1c0-1047-4211-92fc-37f332861161}</Project>
       <Name>Brevitee.Data.Schema</Name>

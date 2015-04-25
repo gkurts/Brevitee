@@ -48,6 +48,11 @@ namespace Brevitee.Yaml
             return ser.DeserializeFromFile(filePath, expectedTypes);
         }
         
+		public static object[] FromYamlFile(this FileInfo file, params Type[] expectedTypes)
+		{
+			return File.ReadAllText(file.FullName).FromYaml(expectedTypes);
+		}
+
         public static T FromYaml<T>(this FileInfo file, params Type[] expectedTypes)
         {
             return FromYaml<T>(File.ReadAllText(file.FullName));

@@ -13,8 +13,8 @@ GOTO COPY
 
 :COPY
 MD Brevitee.Schema.Org\lib\%LIB%
-copy /Y .\BuildOutput\%VER%\Brevitee.Schema.Org.dll Brevitee.Schema.Org\lib\%LIB%\Brevitee.Schema.Org.dll
-copy /Y .\BuildOutput\%VER%\Brevitee.Schema.Org.xml Brevitee.Schema.Org\lib\%LIB%\Brevitee.Schema.Org.xml
+copy /Y .\BuildOutput\Release\%VER%\Brevitee.Schema.Org.dll Brevitee.Schema.Org\lib\%LIB%\Brevitee.Schema.Org.dll
+copy /Y .\BuildOutput\Release\%VER%\Brevitee.Schema.Org.xml Brevitee.Schema.Org\lib\%LIB%\Brevitee.Schema.Org.xml
 GOTO %NEXT%
 
 :END

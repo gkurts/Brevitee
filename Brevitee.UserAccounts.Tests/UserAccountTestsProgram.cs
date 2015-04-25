@@ -21,6 +21,7 @@ namespace Brevitee.UserAccounts.Tests
     {
         static void Main(string[] args)
         {
+			IsolateMethodCalls = true;
             PreInit();
             Initialize(args);
         }
@@ -46,7 +47,21 @@ namespace Brevitee.UserAccounts.Tests
 
             // the arguments protected member is not available in PreInit() (this method)
             #endregion
-        }
+			AddValidArgument("t", true, "run all tests");
+			DefaultMethod = typeof(UserAccountTestsProgram).GetMethod("Start");
+		}
+
+		public static void Start()
+		{
+			if (Arguments.Contains("t"))
+			{
+				RunAllTests(typeof(UserAccountTestsProgram).Assembly);
+			}
+			else
+			{
+				Interactive();
+			}
+		}
 
         [ConsoleAction("Output AssemblyQualifiedName of EasyMembershipProvider")]
         public void OutAssemblyQualifiedNameOfEasyMembershipProvider()
@@ -56,26 +71,17 @@ namespace Brevitee.UserAccounts.Tests
                 .AssemblyQualifiedName
                 .SafeWriteToFile(".\\EasyMembershipProviderAssemblyQualifiedName.txt");
         }
-
-        public void InitSchemas()
-        {
-            SQLiteRegistrar.Register<User>();
-            Db.TryEnsureSchema<User>();
-        }
-
-        List<Dao> _toDelete = new List<Dao>();
+		
+        static List<Dao> _toDelete = new List<Dao>();
         public void DeleteDaos()
         {
-            _toDelete.Each(dao =>
-            {
-                dao.Delete();
-            });
+            
         }
 
         string userName = "monkey";
         string roleName = "TestRole";
 
-        [UnitTest("InitSchemas", "", "")]
+        [UnitTest]
         public void ShouldBeAbleToCreateRole()
         {
             DaoRoleProvider provider = new DaoRoleProvider();
@@ -86,7 +92,7 @@ namespace Brevitee.UserAccounts.Tests
             Expect.IsFalse(provider.RoleExists(roleName));
         }
 
-        [UnitTest("InitSchemas", "", "")]
+        [UnitTest]
         public void ShouldBeAbleToAddUsersToRole()
         {
             User user = User.Ensure(userName);
@@ -104,7 +110,7 @@ namespace Brevitee.UserAccounts.Tests
             provider.DeleteRole(roleName, false);
         }
 
-        [UnitTest("InitSchemas", "DeleteDaos", "")]
+        [UnitTest]
         public void ShouldInitFromAppConfig()
         {
             Dictionary<string, string> settings = new Dictionary<string,string>();

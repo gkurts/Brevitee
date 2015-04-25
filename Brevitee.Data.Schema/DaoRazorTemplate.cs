@@ -10,16 +10,14 @@ using System.IO;
 
 namespace Brevitee.Data.Schema
 {
-    public abstract class DaoRazorTemplate<TModel>: RazorBaseTemplate
+	public abstract class DaoRazorTemplate<TModel> : RazorTemplate<TModel>
     {
         public DaoRazorTemplate()
         {
             Generated = new StringBuilder();
         }
 
-        public string Namespace { get; set; }
-
-        public TModel Model { get; set; }
+		public string Namespace { get; set; }
 
         public void WriteClassProperty(Column column)
         {

@@ -71,22 +71,33 @@ namespace Brevitee.Data
             this.Add(new ContainsComparison(this.ColumnName, value));
             return this;
         }
+		public QueryFilter In(object[] values)
+		{
+			return In(values, "@");
+		}
 
-        public QueryFilter In(object[] values)
+        internal QueryFilter In(object[] values, string parameterPrefix = "@")
         {
-            this.Add(new InComparison(this.ColumnName, values));
+            this.Add(new InComparison(this.ColumnName, values, parameterPrefix));
+            return this;
+        }
+		public QueryFilter In(long[] values)
+		{
+			return In(values, "@");
+		}
+        internal QueryFilter In(long[] values, string parameterPrefix)
+        {
+            this.Add(new InComparison(this.ColumnName, values, parameterPrefix));
             return this;
         }
 
-        public QueryFilter In(long[] values)
+		public QueryFilter In(string[] values)
+		{
+			return In(values, "@");
+		}
+        internal QueryFilter In(string[] values, string parameterPrefix)
         {
-            this.Add(new InComparison(this.ColumnName, values));
-            return this;
-        }
-
-        public QueryFilter In(string[] values)
-        {
-            this.Add(new InComparison(this.ColumnName, values));
+            this.Add(new InComparison(this.ColumnName, values, parameterPrefix));
             return this;
         }
 

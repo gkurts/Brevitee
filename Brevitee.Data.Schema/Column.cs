@@ -88,7 +88,7 @@ namespace Brevitee.Data.Schema
         }
 
         [DropDown(typeof(DataTypes))]
-        public DataTypes Type { get; set; }
+        public virtual DataTypes Type { get; set; }
 
         public string MaxLength { get; set; }
 
@@ -134,10 +134,10 @@ namespace Brevitee.Data.Schema
                             SetDbDataype("Bit", "1");
                             break;
                         case DataTypes.Int:
-                            SetDbDataype("Int", "4");
+                            SetDbDataype("Int", "10");
                             break;
                         case DataTypes.Long:
-                            SetDbDataype("BigInt", "8");
+                            SetDbDataype("BigInt", "19");
                             break;
                         case DataTypes.Decimal:
                             SetDbDataype("Decimal", "28");

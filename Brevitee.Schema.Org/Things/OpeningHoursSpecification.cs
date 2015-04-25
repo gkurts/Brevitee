@@ -11,7 +11,7 @@ namespace Brevitee.Schema.Org
 		public DayOfWeek DayOfWeek {get; set;}
 		///<summary>The opening hour of the place or service on the given day(s) of the week.</summary>
 		public Time Opens {get; set;}
-		///<summary>The beginning of the validity of offer, price specification, or opening hours data.</summary>
+		///<summary>The date when the item becomes valid.</summary>
 		public DateTime ValidFrom {get; set;}
 		///<summary>The end of the validity of offer, price specification, or opening hours data.</summary>
 		public DateTime ValidThrough {get; set;}

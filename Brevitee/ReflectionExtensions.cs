@@ -9,7 +9,51 @@ namespace Brevitee
 {
     public static class ReflectionExtensions
     {
-        /// <summary>
+		/// <summary>
+		/// Invoke the specified static method of the 
+		/// specified (extension method "current") type
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="type"></param>
+		/// <param name="methodName"></param>
+		/// <param name="args"></param>
+		/// <returns></returns>
+		public static T InvokeStatic<T>(this Type type, string methodName, params object[] args)
+		{
+			Args.ThrowIfNull(type);
+			Args.ThrowIfNull(methodName);
+			return (T)type.GetMethod(methodName).Invoke(null, args);
+		}
+		public static T Invoke<T>(this object instance, string methodName, params object[] args)
+		{
+			Args.ThrowIfNull(instance, "instance");
+			Args.ThrowIfNull(methodName, "methodName");
+			return (T)instance.GetType().GetMethod(methodName).Invoke(instance, args);
+		}
+
+		public static void Invoke(this object instance, string methodName, params object[] args)
+		{
+			Args.ThrowIfNull(instance, "instance");
+			Args.ThrowIfNull(methodName, "methodName");
+			instance.GetType().GetMethod(methodName).Invoke(instance, args);
+		}
+
+		public static bool HasProperty(this object instance, string propertyName)
+		{
+			Args.ThrowIfNull(instance, "instance");
+			PropertyInfo ignore;
+			return HasProperty(instance, propertyName, out ignore);
+		}
+
+		public static bool HasProperty(this object instance, string propertyName, out PropertyInfo prop)
+		{
+			Args.ThrowIfNull(instance, "instance");
+			Type type = instance.GetType();
+			prop = type.GetProperty(propertyName);
+			return prop != null;
+		}
+
+		/// <summary>
         /// Get the property of the current instance with the specified name
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -18,10 +62,20 @@ namespace Brevitee
         /// <returns></returns>
         public static T Property<T>(this object instance, string propertyName)
         {
-            Type type = instance.GetType();
-            PropertyInfo property = type.GetProperty(propertyName);
-            return (T)property.GetValue(instance, null);
+			return (T)Property(instance, propertyName);
         }
+
+		public static object Property(this object instance, string propertyName)
+		{
+			Args.ThrowIfNull(instance, "instance");
+			Type type = instance.GetType();
+			PropertyInfo property = type.GetProperty(propertyName);
+			if (property == null)
+			{
+				PropertyNotFound(propertyName, type);
+			}
+			return property.GetValue(instance);
+		}
 
         /// <summary>
         /// Set the property with the specified name
@@ -30,12 +84,26 @@ namespace Brevitee
         /// <param name="propertyName"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static object Property(this object instance, string propertyName, object value)
+        public static object Property(this object instance, string propertyName, object value, bool throwIfPropertyNotFound = true)
         {
+			Args.ThrowIfNull(instance, "instance");
             Type type = instance.GetType();
             PropertyInfo property = type.GetProperty(propertyName);
-            property.SetValue(instance, value, null);
-            return instance;
+			if (property == null && throwIfPropertyNotFound)
+			{
+				PropertyNotFound(propertyName, type);
+			}
+
+			if (property != null)
+			{
+				if (value == DBNull.Value)
+				{
+					value = null;
+				}
+				property.SetValue(instance, value, null);				
+			}
+
+			return instance;
         }
 
         public static void EachPropertyInfo(this object instance, Action<PropertyInfo> action)
@@ -69,5 +137,11 @@ namespace Brevitee
                 action(pi, value, i);
             });
         }
+		
+		private static void PropertyNotFound(string propertyName, Type type)
+		{
+			Args.Throw<InvalidOperationException>("Specified property ({0}) was not found on object of type ({1})", propertyName, type.Name);
+		}
+
     }
 }

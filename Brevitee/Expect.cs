@@ -11,7 +11,7 @@ namespace Brevitee
     /// </summary>
     public static class Expect
     {
-        public static bool HtmlEncodeExceptions { get; set; }
+        public static bool ShouldHtmlEncodeExceptions { get; set; }
 
 		/// <summary>
 		/// Asserts that the current boolean is true
@@ -27,7 +27,7 @@ namespace Brevitee
             if (!boolToCheck)
             {
                 if (string.IsNullOrEmpty(message))
-                    throw new ExpectFailedException(true, boolToCheck, HtmlEncodeExceptions);
+                    throw new ExpectFailedException(true, boolToCheck, ShouldHtmlEncodeExceptions);
                 else
                     throw new ExpectFailedException(message);
             }
@@ -53,7 +53,7 @@ namespace Brevitee
             if (boolToCheck)
             {
                 if (string.IsNullOrEmpty(message))
-                    throw new ExpectFailedException(false, boolToCheck, HtmlEncodeExceptions);
+                    throw new ExpectFailedException(false, boolToCheck, ShouldHtmlEncodeExceptions);
                 else
                     throw new ExpectFailedException(message);
             }
@@ -177,9 +177,9 @@ namespace Brevitee
             if (expected != actual)
             {
                 if (!string.IsNullOrEmpty(message))
-                    throw new ExpectFailedException(message, HtmlEncodeExceptions);
+                    throw new ExpectFailedException(message, ShouldHtmlEncodeExceptions);
 
-                throw new ExpectFailedException(expected.ToString(), actual.ToString(), HtmlEncodeExceptions);
+                throw new ExpectFailedException(expected.ToString(), actual.ToString(), ShouldHtmlEncodeExceptions);
             }
         }
 
@@ -197,7 +197,7 @@ namespace Brevitee
                     throw new ExpectFailedException("References weren't equal");
                 }
 
-                throw new ExpectFailedException(message, HtmlEncodeExceptions);
+                throw new ExpectFailedException(message, ShouldHtmlEncodeExceptions);
             }
         }
 
@@ -217,7 +217,7 @@ namespace Brevitee
             {
                 if (string.IsNullOrEmpty(message))
                 {
-                    throw new ExpectFailedException(expected.ToString(), actual.ToString(), HtmlEncodeExceptions);
+                    throw new ExpectFailedException(expected.ToString(), actual.ToString(), ShouldHtmlEncodeExceptions);
                 }
                 else
                 {
@@ -244,7 +244,7 @@ namespace Brevitee
             {
                 if (string.IsNullOrEmpty(failureMessage))
                 {
-                    throw new ExpectFailedException(expected, actual, HtmlEncodeExceptions);
+                    throw new ExpectFailedException(expected, actual, ShouldHtmlEncodeExceptions);
                 }
                 else
                 {
@@ -267,7 +267,7 @@ namespace Brevitee
                 {
                     string expectString = expected == null ? "null" : expected.ToString();
                     string actualString = actual == null ? "null" : actual.ToString();
-                    throw new ExpectFailedException(expectString, actualString, HtmlEncodeExceptions);
+                    throw new ExpectFailedException(expectString, actualString, ShouldHtmlEncodeExceptions);
                 }
                 else
                 {
@@ -275,7 +275,7 @@ namespace Brevitee
                 }
             }
         }
-
+		
         public static void DerivesFromType<T>(this object objectToCheck)
         {
             DerivesFromType<T>(objectToCheck, string.Empty);
@@ -288,7 +288,7 @@ namespace Brevitee
             {
                 if (string.IsNullOrEmpty(failureMessage))
                 {
-                    throw new ExpectFailedException(typeof(T), objectToCheck, HtmlEncodeExceptions);
+                    throw new ExpectFailedException(typeof(T), objectToCheck, ShouldHtmlEncodeExceptions);
                 }
                 else
                 {
@@ -318,7 +318,7 @@ namespace Brevitee
             if (objectToCheck.GetType() != typeof(T))
             {
                 if (string.IsNullOrEmpty(failureMessage))
-                    throw new ExpectFailedException(typeof(T), objectToCheck, HtmlEncodeExceptions);
+                    throw new ExpectFailedException(typeof(T), objectToCheck, ShouldHtmlEncodeExceptions);
                 else
                     throw new ExpectFailedException(failureMessage);
             }
@@ -330,7 +330,7 @@ namespace Brevitee
             {
                 if (string.IsNullOrWhiteSpace(failureMessage))
                 {
-                    throw new ExpectFailedException(typeof(T), objectToCheck, HtmlEncodeExceptions);
+                    throw new ExpectFailedException(typeof(T), objectToCheck, ShouldHtmlEncodeExceptions);
                 }
                 else
                 {
@@ -398,7 +398,7 @@ namespace Brevitee
         public static void Extends<T>(object objectToCheck)
         {
             if (!(objectToCheck is T))
-                throw new ExpectFailedException(string.Format("{0} doesn't extend {1}", objectToCheck.GetType().Name, typeof(T).Name), HtmlEncodeExceptions);
+                throw new ExpectFailedException(string.Format("{0} doesn't extend {1}", objectToCheck.GetType().Name, typeof(T).Name), ShouldHtmlEncodeExceptions);
         }
 
         public static void IsNull(object objectToCheck)
@@ -419,7 +419,7 @@ namespace Brevitee
                 if (!string.IsNullOrEmpty(failureMessage))
                     throw new ExpectFailedException(failureMessage);
                 else
-                    throw new ExpectFailedException("null", objectToCheck.GetType().Name, HtmlEncodeExceptions);
+                    throw new ExpectFailedException("null", objectToCheck.GetType().Name, ShouldHtmlEncodeExceptions);
             }
         }
 
@@ -435,7 +435,7 @@ namespace Brevitee
                 if (!string.IsNullOrEmpty(failureMessage))
                     throw new ExpectFailedException(failureMessage);
                 else
-                    throw new ExpectFailedException("object", "null", HtmlEncodeExceptions);
+                    throw new ExpectFailedException("object", "null", ShouldHtmlEncodeExceptions);
             }
         }    
         public static void Fail()
@@ -445,7 +445,7 @@ namespace Brevitee
 
         public static void Fail(string message)
         {
-            throw new ExpectFailedException(message, HtmlEncodeExceptions);
+            throw new ExpectFailedException(message, ShouldHtmlEncodeExceptions);
         }
     }
 }

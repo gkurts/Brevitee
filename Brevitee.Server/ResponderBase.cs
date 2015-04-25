@@ -5,10 +5,11 @@ using System.Text;
 using Brevitee.Logging;
 using System.IO;
 using Brevitee.ServiceProxy;
+using Brevitee.Management;
 
 namespace Brevitee.Server
 {
-    public abstract class ResponderBase: IResponder
+    public abstract class ResponderBase: Loggable, IResponder
     {
         Dictionary<string, string> _contentTypes;
         public ResponderBase(BreviteeConf conf)
@@ -44,11 +45,10 @@ namespace Brevitee.Server
             }
         }
 
-        public ResponderBase(BreviteeConf conf, ILogger logger, RequestHandler requestHandler)
+        public ResponderBase(BreviteeConf conf, ILogger logger)
             : this(conf)
         {
             this.Logger = logger;
-            this.RequestHandler = requestHandler;
         }
 
         protected string GetContentType(string path)
@@ -91,16 +91,19 @@ namespace Brevitee.Server
             }
         }
 
-        protected internal RequestHandler RequestHandler
-        {
-            get;
-            set;
-        }
-
+		ILogger _logger;
+		object _loggerLock = new object();
         public ILogger Logger
         {
-            get;
-            internal set;
+			get
+			{
+				return _loggerLock.DoubleCheckLock(ref _logger, () => Log.Default);
+
+			}
+			internal set
+			{
+				_logger = value;
+			}
         }
 
         protected internal virtual string Name
@@ -110,6 +113,18 @@ namespace Brevitee.Server
                 return this.GetType().Name.ToLowerInvariant();
             }
         }
+
+
+		public virtual void Initialize()
+		{
+			IsInitialized = true;
+		}
+
+		public virtual bool IsInitialized
+		{
+			get;
+			private set;
+		}
 
         /// <summary>
         /// The event that fires when a response is sent
@@ -143,7 +158,7 @@ namespace Brevitee.Server
             set;
         }
 
-        public Fs Fs
+        public Fs ServerRoot
         {
             get
             {

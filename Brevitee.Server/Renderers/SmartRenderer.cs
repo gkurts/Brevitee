@@ -13,14 +13,14 @@ using Brevitee.ServiceProxy;
 
 namespace Brevitee.Server.Renderers
 {
-    public class SmartRenderer: RendererBase
+    public class SmartRenderer: Renderer
     {
         Dictionary<string, IRenderer> _renderers;
         public SmartRenderer(ILogger logger)
             : base("text/plain", "")
         {
             this._renderers = new Dictionary<string, IRenderer>();
-            this.Logger = logger;
+			this.Logger = logger ?? Log.Default;
             this.AddBaseRenderers();
         }
 

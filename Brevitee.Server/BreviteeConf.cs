@@ -7,6 +7,7 @@ using Brevitee.Logging;
 using Brevitee.Web;
 using Brevitee.Yaml;
 using Brevitee.Configuration;
+using Brevitee.Management;
 using Brevitee.Data;
 using Brevitee.CommandLine;
 using Brevitee.UserAccounts.Data;
@@ -32,7 +33,7 @@ namespace Brevitee.Server
             this.DaoSearchPattern = "*Dao.dll";
             this.LoggerPaths = new string[] { "." };
             this.LoggerSearchPattern = "*Logging.dll";
-            this.ServiceSearchPattern = "*Services.dll";
+			this.ServiceSearchPatterns = new string[] { "*Services.dll", "*Proxyables.dll" };
             this.LoggerName = "ConsoleLogger";
             this.InitializeFileSystemFromEnum = InitializeFrom.Resource;
             this.ZipPath = "~/bkg/content.root";
@@ -84,7 +85,7 @@ namespace Brevitee.Server
             set;
         }
 
-        public string ServiceSearchPattern
+        public string[] ServiceSearchPatterns
         {
             get;
             set;
@@ -298,7 +299,7 @@ namespace Brevitee.Server
             }
             set
             {
-                _schemaInitializers = new List<SchemaInitializer>(value);
+				_schemaInitializers = new List<SchemaInitializer>(value ?? new SchemaInitializer[] { });
             }
         }
         

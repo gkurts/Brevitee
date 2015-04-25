@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace Brevitee.Data
 {
-    public class DaoCollection<C, T> : PagedEnumerator<T>, IEnumerable<T>, ICommittable, IHasDataTable
+    public class DaoCollection<C, T> : PagedEnumerator<T>, IEnumerable<T>, ILoadable, IHasDataTable, IAddable
         where C : IQueryFilter, IFilterToken, new()
         where T : Dao, new()
     {
@@ -40,22 +40,24 @@ namespace Brevitee.Data
 
             SetDataTable(table);
         }
-        
-        public DaoCollection(Database database, DataTable table, Dao parent = null, string referencingColumn = null)
-        {
-            this._parent = parent;
-            this._table = table;
-            this.ReferencingColumn = referencingColumn;
-            this.Database = database;
 
-            SetDataTable(table);
-        }
+		public DaoCollection(Database database, DataTable table, Dao parent = null, string referencingColumn = null)
+			: this()
+		{
+			this._parent = parent;
+			this._table = table;
+			this.ReferencingColumn = referencingColumn;
+			this.Database = database;
+
+			SetDataTable(table);
+		}
 
 
         public DaoCollection(Query<C, T> query, Dao parent = null, string referencingColumn = null): this()
         {
             this._parent = parent;
-            this.Query = query;
+			this.Query = query;
+			this.Database = query.Database;
             this.ReferencingColumn = referencingColumn;
         }
 
@@ -125,6 +127,7 @@ namespace Brevitee.Data
             set
             {
                 _database = value;
+				SetEachDatabase();
             }
         }
 
@@ -140,7 +143,7 @@ namespace Brevitee.Data
             val.SetDataTable(this.DataTable);
             return val;
         }
-
+		
         public bool Loaded
         {
             get;
@@ -311,32 +314,35 @@ namespace Brevitee.Data
 
         public void Commit(Database db)
         {
+			db = db ?? Database;
             SqlStringBuilder sql = db.ServiceProvider.Get<SqlStringBuilder>();
             WriteCommit(sql);
 
             sql.Execute(db);
         }
 
-        public void WriteCommit(SqlStringBuilder sql)
+        public void WriteCommit(SqlStringBuilder sql, Database db = null)
         {
+			db = db ?? Database;
             foreach (T dao in this._values)
             {
-                dao.WriteCommit(sql);
+                dao.WriteCommit(sql, db);
             }
         }
 
         public void Delete(Database db = null)
         {
-            if (db == null)
-            {
-                db = Db.For<T>();
-            }
+			db = db ?? Database;
             SqlStringBuilder sql = db.ServiceProvider.Get<SqlStringBuilder>();
             WriteDelete(sql);
-
             sql.Execute(db);
         }
 
+		/// <summary>
+		/// Write the necessary Sql statements into the specified SqlStringBuilder 
+		/// to delete all the records represented by the current collection.
+		/// </summary>
+		/// <param name="sql"></param>
         public virtual void WriteDelete(SqlStringBuilder sql)
         {
             if (this._values.Count > 0)
@@ -492,5 +498,23 @@ namespace Brevitee.Data
         }
 
         #endregion
-    }
+
+		#region IAddable Members
+
+		public void Add(object value)
+		{
+			this.Add((T)value);
+		}
+
+		#endregion
+
+
+		private void SetEachDatabase()
+		{
+			foreach(Dao dao in this)
+			{
+				dao.Database = Database;
+			}
+		}
+	}
 }

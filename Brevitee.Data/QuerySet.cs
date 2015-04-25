@@ -40,6 +40,14 @@ namespace Brevitee.Data
             base.Select<T>().Where(filter).Go();
         }
 
+		protected List<IHasDataTable> ResultDataTables
+		{
+			get
+			{
+				return _results;
+			}
+		}
+
         public override SqlStringBuilder Insert<T>(T instance)
         {
             return Insert((Dao)instance);
@@ -136,7 +144,7 @@ namespace Brevitee.Data
         /// </summary>
         protected internal virtual void SubscribeToExecute()
         {
-            Executed += (s, d) =>
+            this.Executed += (s, d) =>
             {
                 if (_results.Count > 0)
                 {

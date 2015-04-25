@@ -69,7 +69,7 @@ namespace Brevitee.Data.Schema
                 string filePath = SchemaNameToFilePath(schemaName);
                 if (!useExisting && File.Exists(filePath))
                 {                    
-                    string backUpPath = SchemaNameToFilePath("{0}_{1}"._Format(schemaName, DateTime.UtcNow.ToJulianDate()));
+                    string backUpPath = SchemaNameToFilePath("{0}_{1}_{2}"._Format(schemaName, DateTime.UtcNow.ToJulianDate(), 4.RandomLetters()));
                     File.Move(filePath, backUpPath);
                 }
                 SchemaDefinition schema = LoadSchema(schemaName);
@@ -230,7 +230,7 @@ namespace Brevitee.Data.Schema
             }
         }
 
-        public Result SetForeignKey(string targetTable, string referencingTable, string referencingColumn)
+        public Result SetForeignKey(string targetTable, string referencingTable, string referencingColumn, string referencedKey = null)
         {
             lock (_sync)
             {
@@ -242,7 +242,7 @@ namespace Brevitee.Data.Schema
                     if (col.Type == DataTypes.Int || col.Type == DataTypes.Long)
                     {
                         ForeignKeyColumn fk = new ForeignKeyColumn(col, targetTable);
-                        fk.ReferencedKey = target.Key != null ? target.Key.Name.PascalCase(true, " ", "_").DropLeadingNonLetters() : string.Empty;
+                        fk.ReferencedKey = target.Key != null ? target.Key.Name.PascalCase(true, " ", "_").DropLeadingNonLetters() : referencedKey;
                         fk.ReferencedTable = target.Name;
                         return SetForeignKey(table, target, fk);
                     }
@@ -264,7 +264,8 @@ namespace Brevitee.Data.Schema
             table.RemoveColumn(fk.Name);
             table.AddColumn(fk);
             target.ReferencingForeignKeys = GetReferencingForeignKeysForTable(target.Name);
-            CurrentSchema.Save();
+			table.ForeignKeys = GetForeignKeysForTable(table.Name);
+			CurrentSchema.Save();
             return new Result("ForeignKeyColumn set");
         }
 
@@ -307,12 +308,18 @@ namespace Brevitee.Data.Schema
         {
             CurrentSchema.RemoveTable(tableName);
         }
-            
-        public Result Generate(FileInfo databaseDotJs, bool compile = false, bool keepSource = false, string genTo = ".\\tmp", string partialsDir = null)
+
+		public Result Generate(FileInfo databaseDotJs, bool compile = false, bool keepSource = false, string genTo = ".\\tmp", string partialsDir = null)
+		{
+			string result = databaseDotJs.JsonFromJsLiteralFile("database");
+			return Generate(result, compile ? new DirectoryInfo(BinDir) : null, keepSource, genTo, partialsDir);
+		}
+    
+        public Result Generate(FileInfo databaseDotJs, DirectoryInfo compileTo, bool keepSource = false, string genTo = ".\\tmp", string partialsDir = null)
         {
             string result = databaseDotJs.JsonFromJsLiteralFile("database");
 
-            return Generate(result, compile ? new DirectoryInfo(BinDir): null, keepSource, genTo, partialsDir);
+            return Generate(result, compileTo, keepSource, genTo, partialsDir);
         }
 
         public Result Generate(FileInfo databaseDotJs, DirectoryInfo compileTo, DirectoryInfo temp, DirectoryInfo partialsDir)
@@ -356,22 +363,21 @@ namespace Brevitee.Data.Schema
                     }
                     else
                     {
-                        SchemaManager manager = new SchemaManager();
                         string nameSpace = (string)rehydrated["nameSpace"];
                         string schemaName = (string)rehydrated["schemaName"];
                         result.Namespace = nameSpace;
                         result.SchemaName = schemaName;
                         List<dynamic> foreignKeys = new List<dynamic>();
                         
-                        manager.SetSchema(schemaName, false);
+                        SetSchema(schemaName, false);
 
-                        ProcessTables(rehydrated, manager, foreignKeys);
-                        ProcessXrefs(rehydrated, manager, foreignKeys);
+                        ProcessTables(rehydrated, foreignKeys);
+						ProcessXrefs(rehydrated, foreignKeys);
 
                         foreach (dynamic fk in foreignKeys)
                         {
-                            manager.AddColumn(fk.ForeignKeyTable, new Column(fk.ReferencingColumn, DataTypes.Long));
-                            manager.SetForeignKey(fk.PrimaryTable, fk.ForeignKeyTable, fk.ReferencingColumn);
+                            AddColumn(fk.ForeignKeyTable, new Column(fk.ReferencingColumn, DataTypes.Long));
+                            SetForeignKey(fk.PrimaryTable, fk.ForeignKeyTable, fk.ReferencingColumn);
                         }
 
                         DirectoryInfo daoDir = new DirectoryInfo(tempDir);
@@ -380,55 +386,9 @@ namespace Brevitee.Data.Schema
                             daoDir.Create();
                         }
 
-                        RazorBaseTemplate.DefaultInspector = (s) => { }; // turn off output to console
-                        DaoGenerator generator = new DaoGenerator(nameSpace);
-                        if (compile)
-                        {
-                            if (!compileTo.Exists)
-                            {
-                                compileTo.Create();
-                            }
-
-                            generator.GenerateComplete += (g, s) =>
-                            {
-                                List<DirectoryInfo> daoDirs = new List<DirectoryInfo>();
-                                daoDirs.Add(daoDir);
-                                if (!string.IsNullOrEmpty(partialsDir))
-                                {
-                                    daoDirs.Add(new DirectoryInfo(partialsDir));
-                                }
-
-                                Compile(daoDirs.ToArray(), generator, nameSpace, compileTo);
-
-                                if (CompilerErrors != null)
-                                {
-                                    result.Success = false;
-                                    result.Message = string.Empty;
-                                    foreach (CompilerError err in GetErrors())
-                                    {
-                                        result.Message = string.Format("{0}\r\nFile=>{1}\r\n{2}:::Line {3}, Column {4}::{5}",
-                                                result.Message, err.FileName, err.ErrorNumber, err.Line, err.Column, err.ErrorText);
-                                    }
-                                }
-                                else
-                                {
-                                    result.Message = string.Format("{0}\r\n{1}", result.Message, "Dao compiled");
-                                    result.Success = true;
-                                }
-
-                                if (!keepSource)
-                                {
-                                    daoDir.Delete(true);
-                                    daoDir.Refresh();
-                                    if (daoDir.Exists)
-                                    {
-                                        daoDir.Delete();
-                                    }
-                                }
-                            };
-                        }
-
-                        generator.Generate(manager.CurrentSchema, daoDir.FullName, partialsDir);
+						DaoGenerator generator = GetDaoGenerator(compileTo, keepSource, partialsDir, compile, result, nameSpace, daoDir);
+                        generator.Generate(CurrentSchema, daoDir.FullName, partialsDir);
+						result.DaoAssembly = generator.DaoAssemblyFile;
                     }
                     return result;
                 }
@@ -441,6 +401,58 @@ namespace Brevitee.Data.Schema
                 return r;
             }
         }
+
+		private DaoGenerator GetDaoGenerator(DirectoryInfo compileTo, bool keepSource, string partialsDir, bool compile, Result result, string nameSpace, DirectoryInfo daoDir)
+		{
+			RazorBaseTemplate.DefaultInspector = (s) => { }; // turn off output to console
+			DaoGenerator generator = new DaoGenerator(nameSpace);
+			if (compile)
+			{
+				if (!compileTo.Exists)
+				{
+					compileTo.Create();
+				}
+
+				generator.GenerateComplete += (gen, s) =>
+				{
+					List<DirectoryInfo> daoDirs = new List<DirectoryInfo>();
+					daoDirs.Add(daoDir);
+					if (!string.IsNullOrEmpty(partialsDir))
+					{
+						daoDirs.Add(new DirectoryInfo(partialsDir));
+					}
+
+					gen.DaoAssemblyFile = Compile(daoDirs.ToArray(), gen, nameSpace, compileTo);
+
+					if (CompilerErrors != null)
+					{
+						result.Success = false;
+						result.Message = string.Empty;
+						foreach (CompilerError err in GetErrors())
+						{
+							result.Message = string.Format("{0}\r\nFile=>{1}\r\n{2}:::Line {3}, Column {4}::{5}",
+									result.Message, err.FileName, err.ErrorNumber, err.Line, err.Column, err.ErrorText);
+						}
+					}
+					else
+					{
+						result.Message = string.Format("{0}\r\n{1}", result.Message, "Dao compiled");
+						result.Success = true;
+					}
+
+					if (!keepSource)
+					{
+						daoDir.Delete(true);
+						daoDir.Refresh();
+						if (daoDir.Exists)
+						{
+							daoDir.Delete();
+						}
+					}
+				};
+			}
+			return generator;
+		}
 
         /// <summary>
         /// Augmentations that are executed prior to adding columns and 
@@ -491,6 +503,29 @@ namespace Brevitee.Data.Schema
             }
         }
 
+		/// <summary>
+		/// Adds a cross reference table (xref) which creates a many
+		/// to many relationship between the two tables specified
+		/// </summary>
+		/// <param name="leftTableName"></param>
+		/// <param name="rightTableName"></param>
+		public void SetXref(string leftTableName, string rightTableName)
+		{
+			string xrefTableName = string.Format("{0}{1}", leftTableName, rightTableName);
+			string leftColumnName = string.Format("{0}Id", leftTableName);
+			string rightColumnName = string.Format("{0}Id", rightTableName);
+			AddXref(leftTableName, rightTableName);
+			AddTable(xrefTableName);
+			AddColumn(xrefTableName, new Column("Id", DataTypes.Long, false));
+			SetKeyColumn(xrefTableName, "Id");
+			AddColumn(xrefTableName, new Column("Uuid", DataTypes.String, false));
+			AddColumn(xrefTableName, new Column(leftColumnName, DataTypes.Long, false));
+			AddColumn(xrefTableName, new Column(rightColumnName, DataTypes.Long, false));
+			SetForeignKey(leftTableName, xrefTableName, leftColumnName);
+			SetForeignKey(rightTableName, xrefTableName, rightColumnName);
+		}
+
+
         /// <summary>
         /// Gets the most recent set of exceptions that occurred during an attempted
         /// Generate -> Compile
@@ -517,24 +552,29 @@ namespace Brevitee.Data.Schema
             return results;
         }
 
-        private void ProcessTables(dynamic rehydrated, SchemaManager manager, List<dynamic> foreignKeys)
+        private void ProcessTables(dynamic rehydrated, List<dynamic> foreignKeys)
         {
             foreach (dynamic table in rehydrated["tables"])
             {
                 string tableName = (string)table["name"];
                 Args.ThrowIfNullOrEmpty(tableName, "Table.name");
-                manager.AddTable(tableName);
+                this.AddTable(tableName);
 
-                ExecutePreColumnAugmentations(tableName, manager);
+                ExecutePreColumnAugmentations(tableName);
 
-                AddColumns(manager, table, tableName);
+                AddColumns(table, tableName);
 
                 AddForeignKeys(foreignKeys, table, tableName);
 
-                ExecutePostColumnAugmentations(tableName, manager);
+                ExecutePostColumnAugmentations(tableName);
             }
         }
 
+
+		internal void ExecutePostColumnAugmentations(string tableName)
+		{
+			ExecutePostColumnAugmentations(tableName, this);
+		}
         private void ExecutePostColumnAugmentations(string tableName, SchemaManager manager)
         {
             foreach (SchemaManagerAugmentation augmentation in PostColumnAugmentations)
@@ -542,10 +582,13 @@ namespace Brevitee.Data.Schema
                 augmentation.Execute(tableName, manager);
             }
         }
-
-        private void ExecutePreColumnAugmentations(string tableName, SchemaManager manager)
+		internal void ExecutePreColumnAugmentations(string tableName)
+		{
+			ExecutePreColumnAugmentations(tableName, this);
+		}
+        protected static void ExecutePreColumnAugmentations(string tableName, SchemaManager manager)
         {
-            foreach (SchemaManagerAugmentation augmentation in PreColumnAugmentations)
+            foreach (SchemaManagerAugmentation augmentation in manager.PreColumnAugmentations)
             {
                 augmentation.Execute(tableName, manager);
             }
@@ -569,6 +612,11 @@ namespace Brevitee.Data.Schema
             }
         }
 
+		private void AddColumns(dynamic table, string tableName)
+		{
+			AddColumns(this, table, tableName);
+		}
+
         private static void AddColumns(SchemaManager manager, dynamic table, string tableName)
         {
             if (table["cols"] != null)
@@ -591,7 +639,12 @@ namespace Brevitee.Data.Schema
             }
         }
 
-        private void ProcessXrefs(dynamic rehydrated, SchemaManager manager, List<dynamic> foreignKeys)
+		private void ProcessXrefs(dynamic rehydrated, List<dynamic> foreignKeys)
+		{
+			ProcessXrefs(this, rehydrated, foreignKeys);
+		}
+
+		protected static void ProcessXrefs(SchemaManager manager, dynamic rehydrated, List<dynamic> foreignKeys)
         {
             if (rehydrated["xrefs"] != null)
             {
@@ -603,24 +656,34 @@ namespace Brevitee.Data.Schema
                     Args.ThrowIfNullOrEmpty(leftTableName, "xref[0]");
                     Args.ThrowIfNullOrEmpty(rightTableName, "xref[1]");
 
-                    string xrefTableName = string.Format("{0}{1}", leftTableName, rightTableName);
-                    string leftColumnName = string.Format("{0}Id", leftTableName);
-                    string rightColumnName = string.Format("{0}Id", rightTableName);
-
-                    manager.AddXref(leftTableName, rightTableName);
-
-                    manager.AddTable(xrefTableName);
-                    manager.AddColumn(xrefTableName, new Column("Id", DataTypes.Long, false));
-                    manager.SetKeyColumn(xrefTableName, "Id");
-                    manager.AddColumn(xrefTableName, new Column(leftColumnName, DataTypes.Long, false));
-                    manager.AddColumn(xrefTableName, new Column(rightColumnName, DataTypes.Long, false));
-
-                    AddForeignKey(foreignKeys, leftTableName, xrefTableName, leftColumnName);
-                    AddForeignKey(foreignKeys, rightTableName, xrefTableName, rightColumnName);
+					SetXref(manager, foreignKeys, leftTableName, rightTableName);
                 }
 
             }
         }
+		public void SetXref(List<dynamic> foreignKeys, string leftTableName, string rightTableName)
+		{
+			SetXref(this, foreignKeys, leftTableName, rightTableName);
+		}
+
+		private static void SetXref(SchemaManager manager, List<dynamic> foreignKeys, string leftTableName, string rightTableName)
+		{
+			string xrefTableName = string.Format("{0}{1}", leftTableName, rightTableName);
+			string leftColumnName = string.Format("{0}Id", leftTableName);
+			string rightColumnName = string.Format("{0}Id", rightTableName);
+
+			manager.AddXref(leftTableName, rightTableName);
+
+			manager.AddTable(xrefTableName);
+			manager.AddColumn(xrefTableName, new Column("Id", DataTypes.Long, false));
+			manager.SetKeyColumn(xrefTableName, "Id");
+			manager.AddColumn(xrefTableName, new Column("Uuid", DataTypes.String, false));
+			manager.AddColumn(xrefTableName, new Column(leftColumnName, DataTypes.Long, false));
+			manager.AddColumn(xrefTableName, new Column(rightColumnName, DataTypes.Long, false));
+
+			AddForeignKey(foreignKeys, leftTableName, xrefTableName, leftColumnName);
+			AddForeignKey(foreignKeys, rightTableName, xrefTableName, rightColumnName);
+		}
 
         private static void AddForeignKey(List<dynamic> foreignKeys, string primaryTable, string foreignKeyTable, string referencingColumnName)
         {

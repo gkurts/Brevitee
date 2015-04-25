@@ -54,7 +54,7 @@ namespace Brevitee.ServiceProxy.Tests
         public static void Prepare()
         {
             ConsoleLogger logger = new ConsoleLogger();
-            SecureChannel.EnsureRepository(logger);
+            SecureChannel.InitializeDatabase(logger);
             RegisterDb();
             ClearApps();
         }

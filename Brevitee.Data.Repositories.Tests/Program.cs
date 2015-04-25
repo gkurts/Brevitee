@@ -13,7 +13,7 @@ using Brevitee;
 using Brevitee.Testing;
 using Brevitee.Encryption;
 
-namespace Brevitee.Repositories.Tests
+namespace Brevitee.Data.Repositories.Tests
 {
     [Serializable]
     class Program : CommandLineTestInterface

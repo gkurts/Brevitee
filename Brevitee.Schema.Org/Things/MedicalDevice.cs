@@ -17,8 +17,8 @@ namespace Brevitee.Schema.Org
 		public Text PreOp {get; set;}
 		///<summary>A description of the procedure involved in setting up, using, and/or installing the device.</summary>
 		public Text Procedure {get; set;}
-		///<summary>The purpose or purposes of this device, for example whether it is intended for diagnostic or therapeutic use.</summary>
-		public MedicalDevicePurpose Purpose {get; set;}
+		///<summary>A goal towards an action is taken. Can be concrete or abstract.</summary>
+		public ThisOrThat<MedicalDevicePurpose , Thing> Purpose {get; set;}
 		///<summary>A possible serious complication and/or serious side effect of this therapy. Serious adverse outcomes include those that are life-threatening; result in death, disability, or permanent damage; require hospitalization or prolong existing hospitalization; cause congenital anomalies or birth defects; or jeopardize the patient and may require medical or surgical intervention to prevent one of the outcomes in this definition.</summary>
 		public MedicalEntity SeriousAdverseOutcome {get; set;}
 	}

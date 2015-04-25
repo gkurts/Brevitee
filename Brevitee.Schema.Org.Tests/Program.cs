@@ -49,9 +49,25 @@ namespace Brevitee.Schema.Org.Tests
 
             // the arguments protected member is not available in PreInit() (this method)
             #endregion
-        }
+			AddValidArgument("t", true, "run all tests");			
+			DefaultMethod = typeof(Program).GetMethod("Start");
+		}
 
-        Queue<SpecificType> types;
+		public static void Start()
+		{
+			if (Arguments.Contains("t"))
+			{
+				RunAllTests(typeof(Program).Assembly);
+			}
+			else
+			{
+				Interactive();
+			}
+		}
+
+		public static HashSet<string> FailedTypeNames { get; private set; }
+
+		Queue<SpecificType> types;
         [ConsoleAction("Generate Schema.org.cs files")]
         public void Generate()
         {
@@ -59,7 +75,8 @@ namespace Brevitee.Schema.Org.Tests
             {
                 Directory.CreateDirectory("C:\\Schema.org");
             }
-
+			
+			FailedTypeNames = new HashSet<string>();
             types = new Queue<SpecificType>();
             currentType = new SpecificType { TypeName = "Thing", Extends = "DataType" };
             types.Enqueue(currentType);
@@ -68,17 +85,37 @@ namespace Brevitee.Schema.Org.Tests
             {
                 currentType = types.Dequeue();
                 string content = GetCsCode();
-                Write(content);
+                TryWrite(content);
                 foreach (SpecificType specific in GetSpecificTypes(currentType.TypeName))
                 {
                     types.Enqueue(specific);
                 }
             }
+
+			foreach(string failedType in FailedTypeNames)
+			{
+				FileInfo file = new FileInfo("C:\\Schema.org\\{0}.cs"._Format(failedType));
+				try
+				{
+					file.Delete();
+				}
+				catch (Exception ex)
+				{
+					OutLineFormat("Failed to delete file {0}: {1}", ConsoleColor.Magenta, file.FullName, ex.Message);
+				}
+			}
         }
 
-        private void Write(string content)
+        private void TryWrite(string content)
         {
-            File.WriteAllText("c:\\Schema.org\\" + currentType.TypeName + ".cs", content);
+			try
+			{
+				File.WriteAllText("c:\\Schema.org\\" + currentType.TypeName.LettersOnly() + ".cs", content);
+			}
+			catch (Exception ex)
+			{
+				OutLineFormat("Unable to write content for type {0}", ConsoleColor.DarkYellow, currentType.TypeName);
+			}
         }
 
         static SpecificType currentType;
@@ -89,7 +126,7 @@ namespace Brevitee.Schema.Org.Tests
                 return string.Empty;
             }
 
-            Property[] properties = GetProperties(currentType.TypeName);
+            SchemaDotOrgProperty[] properties = GetProperties(currentType.TypeName);
 
             StringBuilder result = new StringBuilder();
             result.AppendLine("using System;");
@@ -97,17 +134,17 @@ namespace Brevitee.Schema.Org.Tests
             result.AppendLine("namespace Brevitee.Schema.Org");
             result.AppendLine("{");
             result.AppendFormat("\t///<summary>{0}</summary>\r\n", GetTypeDescription(currentType.TypeName));
-            result.AppendFormat("\tpublic class {0}", currentType.TypeName);
+            result.AppendFormat("\tpublic class {0}", currentType.TypeName.LettersOnly().PascalCase());
             if (!string.IsNullOrEmpty(currentType.Extends))
             {
                 result.AppendFormat(": {0}", currentType.Extends);
             }
             result.AppendLine();
             result.AppendLine("\t{");
-            foreach (Property prop in properties)
+            foreach (SchemaDotOrgProperty prop in properties)
             {
                 result.AppendFormat("\t\t///<summary>{0}</summary>\r\n", prop.Description);
-                result.AppendFormat("\t\tpublic {0} {1} {{get; set;}}\r\n", prop.ExpectedType, prop.Name.PascalCase());
+				result.AppendFormat("\t\tpublic {0} {1} {{get; set;}}\r\n", prop.ExpectedType, prop.Name.PrefixWithUnderscoreIfStartsWithNumber().PascalCase());
             }
             result.AppendLine("\t}");
             result.AppendLine("}");
@@ -117,81 +154,73 @@ namespace Brevitee.Schema.Org.Tests
 
         private static string GetTypeDescription(string typeName)
         {
-            string html = GetHtml(typeName);
-            CQ cq = CQ.Create(html);
-            XmlDocument xmlDoc = new XmlDocument();
-            xmlDoc.LoadXml(string.Format("<main>{0}</main>", cq["body"].Html().Replace("<br>", "").Replace("<br/>", "").Replace("<br />", "").Replace("<hr>", "").Replace("<hr/>", "").Replace("<hr />", "")));
+            string html = TryGetHtml(typeName);
+			string returnValue = string.Empty;
+			if (!string.IsNullOrEmpty(html))
+			{
+				CQ cq = CQ.Create(html);
+				cq = cq.Remove("script");
+				returnValue = cq["[property='rdfs:comment']"].First().Text().Replace("\r", "").Replace("\n", "");
+			}
 
-            string result = string.Empty;
-            bool found = false;
-            foreach (XmlNode node in xmlDoc.ChildNodes)
-            {
-                foreach (XmlNode _node in node.ChildNodes)
-                {
-                    if (!found && _node.Attributes["id"].Value.Equals("mainContent"))
-                    {
-                        foreach (XmlNode __node in _node.ChildNodes)
-                        {
-                            if (__node.NodeType == XmlNodeType.Text)
-                            {
-                                result = __node.Value;
-                                found = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (found)
-                    {
-                        break;
-                    }
-                }
-            }
-
-            return result.Trim().Replace("\n", "\n///");
+			return returnValue;
         }
 
-        private static IEnumerable<XmlNode> NextChild(XmlNode node)
+        private static SchemaDotOrgProperty[] GetProperties(string typeName)
         {
-            XmlNodeList list = node.ChildNodes;
-
-            for (int i = 0; i < node.ChildNodes.Count; i++)
-            {
-                yield return node.ChildNodes[i];
-            }
-        }
-
-        private static Property[] GetProperties(string typeName)
-        {
-            string html = GetHtml(typeName);
+            string html = TryGetHtml(typeName);
             CQ cq = CQ.Create(html);
             CQ propBody = cq[string.Format(".definition-table .supertype-name a[href={0}]", typeName)].First().ParentsUntil(".definition-table").Next();
-            List<Property> properties = new List<Property>();
+            List<SchemaDotOrgProperty> properties = new List<SchemaDotOrgProperty>();
             cq["tr", propBody].Each((row) =>
             {
                 string propName = cq[".prop-nam", row].Children().First().Text();
                 string expectedType = cq[".prop-ect", row].Text().Trim();
-                string description = cq[".prop-desc", row].Text().Trim();
-                properties.Add(new Property { Name = propName.PascalCase(), ExpectedType = expectedType, Description = description });
+				string description = cq[".prop-desc", row].Text().Trim().Replace("\r", "").Replace("\n", "");
+				if (properties.Where(p => p.Name.Equals(propName.PascalCase())).FirstOrDefault() == null)
+				{
+					properties.Add(new SchemaDotOrgProperty { Name = propName.PascalCase(), ExpectedType = expectedType, Description = description });
+				}
             });
 
             return properties.ToArray();
         }
 
-        private static string GetHtml(string typeName)
+        private static string TryGetHtml(string typeName)
         {
-            string baseUrl = "http://schema.org/";
-            WebClient client = new WebClient();
-            string html = client.DownloadString(string.Format("{0}{1}", baseUrl, typeName));
-            return html;
+			try
+			{
+				string baseUrl = "http://schema.org/";
+				WebClient client = new WebClient();
+				string html = client.DownloadString(string.Format("{0}{1}", baseUrl, typeName));
+				return html;
+			}
+			catch (Exception ex)
+			{
+				OutLineFormat("An error occurred getting html for type {0}", ConsoleColor.Yellow, typeName);
+				FailedTypeNames.Add(typeName);
+				return string.Empty;
+			}
         }
 
         public class SpecificType
         {
-            public string TypeName { get; set; }
+			string _typeName;
+			public string TypeName
+			{
+				get
+				{
+					return _typeName;
+				}
+				set
+				{
+					_typeName = value.LettersOnly().PascalCase();
+				}
+			}
             public string Extends { get; set; }
         }
 
+		static List<string> _gotTypes = new List<string>();
         /// <summary>
         /// Gets the extenders of the specified typeName
         /// </summary>
@@ -199,13 +228,19 @@ namespace Brevitee.Schema.Org.Tests
         /// <returns></returns>
         public static SpecificType[] GetSpecificTypes(string typeName)
         {
-            string html = GetHtml(typeName);
-            CQ cq = CQ.Create(html);
-            List<SpecificType> result = new List<SpecificType>();
-            cq["h3"].Next().First().Children().Each((li) =>
-            {
-                result.Add(new SpecificType { Extends = typeName, TypeName = cq["a", li].Attr("href") });
-            });
+			List<SpecificType> result = new List<SpecificType>();
+			if (!_gotTypes.Contains(typeName))
+			{
+				_gotTypes.Add(typeName);
+				string html = TryGetHtml(typeName);
+				CQ cq = CQ.Create(html);
+				Action<IDomObject> eacher = (el) =>
+				{
+					result.Add(new SpecificType { Extends = typeName, TypeName = el.InnerText });
+				};
+
+				cq["#mainContent li a"].Each(eacher);
+			}
 
             return result.ToArray();
         }
@@ -251,7 +286,7 @@ namespace Brevitee.Schema.Org.Tests
             Text t = DataType.GetDataType<Text>("Text");
             Expect.IsNotNull(t);
 
-            URL u = DataType.GetDataType<URL>("Url");
+            Url u = DataType.GetDataType<Url>("Url");
             Expect.IsNotNull(u);
         }
 

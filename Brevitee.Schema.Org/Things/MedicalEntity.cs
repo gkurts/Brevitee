@@ -5,7 +5,7 @@ namespace Brevitee.Schema.Org
 	///<summary>The most generic type of entity related to health and the practice of medicine.</summary>
 	public class MedicalEntity: Thing
 	{
-		///<summary>Any alternate name for this medical entity.</summary>
+		///<summary>An alias for the item.</summary>
 		public Text AlternateName {get; set;}
 		///<summary>A medical code for the entity, taken from a controlled vocabulary or ontology such as ICD-9, DiseasesDB, MeSH, SNOMED-CT, RxNorm, etc.</summary>
 		public MedicalCode Code {get; set;}

@@ -27,7 +27,7 @@
 		{
 			if(_@(Model.ReferencedClass.CamelCase())Of@(Model.PropertyName) == null)
 			{
-				_@(Model.ReferencedClass.CamelCase())Of@(Model.PropertyName) = @(Namespace).@(Model.ReferencedClass).OneWhere(c => c.KeyColumn == this.@(Model.PropertyName));
+				_@(Model.ReferencedClass.CamelCase())Of@(Model.PropertyName) = @(Namespace).@(Model.ReferencedClass).OneWhere(c => c.KeyColumn == this.@(Model.PropertyName), this.Database);
 			}
 			return _@(Model.ReferencedClass.CamelCase())Of@(Model.PropertyName);
 		}

@@ -93,25 +93,29 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             //});
         }
         
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void BattleStateShouldBePendingSetBattleTypeAfterCreate()
         {
+			First();
             Battle battle = StartTestBattle();
             Expect.IsTrue(battle.State == BattleState.PendingSetBattleType);
+			After();
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void BattleStateShouldBePendingSelectionsAfterSetBattleType()
         {
+			First();
             Battle battle = StartTestBattle();
             Expect.IsTrue(battle.State == BattleState.PendingSetBattleType);
             battle.SetBattleType(BattleType.Three);
             Expect.IsTrue(battle.State == BattleState.PendingSelections);
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void BattleStateShouldBePendingPlayerTwoSelectionsIfPlayerOneSelections()
         {
+			First();
             Battle battle = StartTestBattle();
             Expect.IsTrue(battle.State == BattleState.PendingSetBattleType);
             battle.SetBattleType(BattleType.Three);
@@ -120,9 +124,10 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             Expect.IsTrue(battle.State == BattleState.PendingPlayerTwoSelections);
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void BattleStateShouldBePendingPlayerOneSelectionsIfPlayerTwoSelections()
         {
+			First();
             Battle battle = StartTestBattle();
             Expect.IsTrue(battle.State == BattleState.PendingSetBattleType);
             battle.SetBattleType(BattleType.Three);
@@ -131,9 +136,10 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             Expect.IsTrue(battle.State == BattleState.PendingPlayerOneSelections);
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void BattleStateShouldBeRockPaperScissorsAfterSelection()
         {
+			First();
             Battle battle = StartTestBattle();
             battle.SetBattleType(BattleType.Three);
             battle.SetPlayerOneSelections(CreatePlayerOneSelections());
@@ -141,9 +147,10 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             Expect.IsTrue(battle.State == BattleState.PendingRockPaperScissors);
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void BattleStateShouldBePlayerTwoRockPaperScissors()
         {
+			First();
             Battle battle = StartTestBattle();
             battle.SetBattleType(BattleType.Three);
             battle.SetPlayerOneSelections(CreatePlayerOneSelections());
@@ -153,9 +160,10 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             Expect.IsTrue(battle.State == BattleState.PendingPlayerTwoRockPaperScissors);
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void BattleStateShouldBePlayerOneRockPaperScissors()
         {
+			First();
             Battle battle = StartTestBattle();
             battle.SetBattleType(BattleType.Three);
             battle.SetPlayerOneSelections(CreatePlayerOneSelections());
@@ -165,9 +173,10 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             Expect.IsTrue(battle.State == BattleState.PendingPlayerOneRockPaperScissors);
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void RockPaperScissorsWinnerShouldBePlayerOne()
         {
+			First();
             PlayerSelections playerOneSelections = CreatePlayerOneSelections();
             PlayerSelections playerTwoSelections = CreatePlayerTwoSelections();
             Battle battle = StartTestBattle();
@@ -179,11 +188,13 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             battle.SetPlayerOneRockPaperScissors(RockPaperScissors.Paper);
             Player one = battle.PlayerOne;
             Expect.IsTrue(battle.RockPaperScissorsWinner.Equals(one));
+			After();
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void RockPaperScissorsWinnerShouldBePlayerTwo()
         {
+			First();
             PlayerSelections playerOneSelections = CreatePlayerOneSelections();
             PlayerSelections playerTwoSelections = CreatePlayerTwoSelections();
             Battle battle = StartTestBattle();
@@ -195,11 +206,13 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             battle.SetPlayerOneRockPaperScissors(RockPaperScissors.Scissors);
             Player two = battle.PlayerTwo;
             Expect.IsTrue(battle.RockPaperScissorsWinner.Equals(two));
+			After();
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void BattleStateShouldBePendingRockPaperScissorsAfterTie()
         {
+			First();
             PlayerSelections playerOneSelections = CreatePlayerOneSelections();
             PlayerSelections playerTwoSelections = CreatePlayerTwoSelections();
             Battle battle = StartTestBattle();
@@ -213,12 +226,14 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             Expect.IsTrue(battle.State == BattleState.PendingRockPaperScissors);
             Expect.IsNull(battle.RockPaperScissorsWinner, "Rock paper scissors winner should be null");
             Expect.IsNull(battle.Field, "Battle.Field should be null");
+			After();
         }
 
         //PendingDefender
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void BattleStateShouldBePendingDefender()
         {
+			First();
             PlayerSelections playerOneSelections = CreatePlayerOneSelections();
             PlayerSelections playerTwoSelections = CreatePlayerTwoSelections();
             Battle battle = StartTestBattle();
@@ -239,11 +254,13 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             //attack.Skill = playerOneSelections.Skills[0]; // this should cause an error also
             battle.Attack(attack);
             Expect.IsTrue(battle.State == BattleState.PendingDefender);
+			After();
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void BattleStateShouldBePendingAttacker()
         {
+			First();
             PlayerSelections playerOneSelections = CreatePlayerOneSelections();
             PlayerSelections playerTwoSelections = CreatePlayerTwoSelections();
             Battle battle = StartTestBattle();
@@ -261,11 +278,13 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             battle.Defend(defense);
 
             Expect.IsTrue(battle.State == BattleState.PendingAttacker);
+			After();
         }
         
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void SetPlayerSelectionsShouldSetupPlayerFields()
         {
+			First();
             PlayerSelections playerOneSelections = CreatePlayerOneSelections();
             PlayerSelections playerTwoSelections = CreatePlayerTwoSelections();
             Battle battle = StartTestBattle();
@@ -286,11 +305,13 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
                 Character check = battle.PlayerTwoField.AllCharacters.Where(c => c.Id.Value == l).FirstOrDefault();
                 Expect.IsNotNull(check);
             });
+			After();
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void BattleStateShouldBePendingTurnAfterAttackDefense()
         {
+			First();
             PlayerSelections playerOneSelections = CreatePlayerOneSelections();
             PlayerSelections playerTwoSelections = CreatePlayerTwoSelections();
             Battle battle = StartTestBattle();
@@ -329,11 +350,13 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             Expect.IsTrue(battle.State == BattleState.PendingTurn);
             Expect.IsNotNull(battle.Field);
             Expect.IsTrue(battle.Field.Attacker.Player.Equals(battle.PlayerTwo));
+			After();
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void BattleStateShouldBePendingTurn()
         {
+			First();
             Battle battle = StartTestBattle();
             battle.SetBattleType(BattleType.Three);
             battle.SetPlayerOneSelections(CreatePlayerOneSelections());
@@ -344,6 +367,7 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             Player one = battle.PlayerOne;
             Expect.IsTrue(battle.RockPaperScissorsWinner.Equals(one));
             Expect.IsTrue(battle.State == BattleState.PendingTurn);
+			After();
         }
         internal static PlayerSelections CreatePlayerOneSelections()
         {
@@ -378,38 +402,45 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             return result;
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void GetOnePlayerShouldNotDuplicate()
         {
+			First();
             string name= "Name_".RandomLetters(4);
             Player one = Player.GetOne(name);
             Player two = Player.GetOne(name);
             Expect.AreEqual(one, two);
+			After();
         }
             
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void PlayerOneAndTwoShouldBeRightAfterBattleStarts()
         {
+			First();
             Player one = Player.GetOne("Player_".RandomLetters(4));
             Player two = Player.GetOne("Player_".RandomLetters(4));
             Battle b = Battle.StartNew(one, two);
             Expect.AreEqual(one, b.PlayerOne);
             Expect.AreEqual(two, b.PlayerTwo);
+			After();
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void ShouldBeAbleToSetBattleType()
         {
+			First();
             Player one = Player.GetOne("Player_".RandomLetters(4));
             Player two = Player.GetOne("Player_".RandomLetters(4));
             Battle b = Battle.StartNew(one, two);
             b.SetBattleType(BattleType.Three);
             Expect.AreEqual((int)BattleType.Three, b.MaxActiveCharacters.Value);
+			After();
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void ShouldBeAbleToCreateCharacter()
         {
+			First();
             Character c = Character.Create("Test Characer_".RandomLetters(4), 
                 10, 10, 10, 10, 10, 100, Elements.Fire);
 
@@ -418,11 +449,13 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             Expect.IsGreaterThan(c.Id.Value, 0);
             Character check = Character.OneWhere(f => f.Id == c.Id);
             Expect.AreEqual(c.Name, check.Name);
+			After();
         }
         
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void ShouldBeAbleToCreateWeapon()
         {
+			First();
             Weapon w = Weapon.Create("Test Weapon_".RandomLetters(4), 10, Elements.Air);
 
             Expect.IsNotNull(w);
@@ -430,23 +463,27 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             Expect.IsGreaterThan(w.Id.Value, 0);
             Weapon check = Weapon.OneWhere(f => f.Id == w.Id);
             Expect.AreEqual(w.Name, check.Name);
+			After();
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void ShouldBeAbleToCreateSpell()
         {
+			First();
             Spell s = Spell.Create("Test spell_".RandomLetters(4), 10, Elements.Water);
 
             Expect.IsNotNull(s);
             Expect.IsNotNull(s.Id);
             Expect.IsGreaterThan(s.Id.Value, 0);
             Spell check = Spell.OneWhere(f => f.Id == s.Id);
-            Expect.AreEqual(s.Name, check.Name);            
+            Expect.AreEqual(s.Name, check.Name);
+			After();
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void ShouldBeAbleToCreateSkill()
         {
+			First();
             Skill s = Skill.Create("Test skill_".RandomLetters(4), 10);
 
             Expect.IsNotNull(s);
@@ -454,11 +491,13 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             Expect.IsGreaterThan(s.Id.Value, 0);
             Skill check = Skill.OneWhere(f => f.Id == s.Id);
             Expect.AreEqual(s.Name, check.Name);
+			After();
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void ShouldBeAbleToCreateEffects()
         {
+			First();
             Dictionary<CharacterAttributes, int> effectDictionary = new Dictionary<CharacterAttributes,int>();
             effectDictionary[CharacterAttributes.Strength] = -3;
             effectDictionary[CharacterAttributes.Magic] = +6;
@@ -478,11 +517,13 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             check = ef.Where(e => e.Attribute == CharacterAttributes.Acuracy.ToString()).FirstOrDefault();
             Expect.IsNotNull(check);
             Expect.AreEqual(+2, check.Value);
+			After();
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void ShouldBeAbleToCreateEquipment()
         {
+			First();
             Dictionary<CharacterAttributes, int> effects = new Dictionary<CharacterAttributes, int>();
             effects[CharacterAttributes.Magic] = +8;
             effects[CharacterAttributes.Speed] = -1;
@@ -493,11 +534,13 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             {
                 Expect.IsTrue(eq.EffectsByEquipmentId.Contains(eff));
             });
+			After();
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void ShouldBeAbleToSetPlayerOneCharacterSelections()
         {
+			First();
             Battle battle = StartTestBattle();
             
             Character[] oneCharacters = GetTestCharacters(6);
@@ -515,6 +558,7 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             {
                 Expect.IsTrue(oneField.AllCharacters.Contains(c));
             });
+			After();
         }
 
         class TestPlayer : Player
@@ -526,9 +570,10 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             }
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void StartNewBattleShouldCallPrepareForBattle()
         {
+			First();
             TestPlayer one = new TestPlayer();
             TestPlayer two = new TestPlayer();
             Expect.IsFalse(one.PrepareForBattleCalled, "P1 PrepareForBattle was true and shouldn't have been");
@@ -536,7 +581,7 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             Battle testBattle = Battle.StartNew(one, two);
             Expect.IsTrue(one.PrepareForBattleCalled, "P1 PrepareForBattle was not called");
             Expect.IsTrue(two.PrepareForBattleCalled, "P2 PrepareForBattle was not called");
-
+			After();
         }
 
         Player _testPlayer;
@@ -570,9 +615,10 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             _testPlayer.Delete();
         }
 
-        [UnitTest("First", "EraseTestPlayersExistence", "")]
+        [UnitTest]
         public void ShouldBeAbleToAcquireCharacter()
         {
+			First();
             Player test = Player.GetOne("Acquiring Character Player");
             _testPlayer = test;
             Character monkey = Character.Create("Monkey", 8, 9, 4, 6, 93, 175, Elements.Earth);
@@ -583,11 +629,13 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
 
             Player reloaded = Player.OneWhere(c => c.Id == test.Id.Value);
             Expect.IsTrue(reloaded.Has(monkey));
+			EraseTestPlayersExistence();
         }
 
-        [UnitTest("First", "EraseTestPlayersExistence", "")]
+        [UnitTest]
         public void ShouldBeAbleToAcquireSpell()
         {
+			First();
             Player test = Player.GetOne("Acquiring Spell Player");
             _testPlayer = test;
             Spell fireBall = Spell.Create("Fire Ball", 8, Elements.Fire);
@@ -598,11 +646,13 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
 
             Player reloaded = Player.OneWhere(c => c.Id == test.Id.Value);
             Expect.IsTrue(reloaded.Has(fireBall));
+			EraseTestPlayersExistence();
         }
 
-        [UnitTest("First", "EraseTestPlayersExistence", "")]
+        [UnitTest]
         public void ShouldBeAbleToAcquireWeapon()
         {
+			First();
             Player test = Player.GetOne("Acquiring Weapon Player");
             _testPlayer = test;
             Weapon giantHammer = Weapon.Create("Giant Hammer", 8, Elements.Fire);
@@ -613,11 +663,13 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
 
             Player reloaded = Player.OneWhere(c => c.Id == test.Id.Value);
             Expect.IsTrue(reloaded.Has(giantHammer));
+			EraseTestPlayersExistence();
         }
 
-        [UnitTest("First", "EraseTestPlayersExistence", "")]
+        [UnitTest]
         public void ShouldBeAbleToAcquireSkill()
         {
+			First();
             Player test = Player.GetOne("Acquiring Skill Player");
             _testPlayer = test;
             Skill facePunch = Skill.Create("Face Punch", 3);
@@ -628,11 +680,13 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
 
             Player reloaded = Player.OneWhere(c => c.Id == test.Id.Value);
             Expect.IsTrue(reloaded.Has(facePunch));
+			EraseTestPlayersExistence();
         }
 
-        [UnitTest("First", "EraseTestPlayersExistence", "")]
+        [UnitTest]
         public void ShouldBeAbleToAcquireEquipment()
         {
+			First();
             Player test = Player.GetOne("Acquiring Equipment Player");
             _testPlayer = test;
             Dictionary<CharacterAttributes, int> effects = new Dictionary<CharacterAttributes, int>();
@@ -647,11 +701,13 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
 
             Player reloaded = Player.OneWhere(c => c.Id == test.Id.Value);
             Expect.IsTrue(reloaded.Has(tinFoilHat));
+			EraseTestPlayersExistence();
         }
 
-        [UnitTest("First", "","")]
+        [UnitTest]
         public void EquipmentShouldHaveEffects()
         {
+			First();
             Dictionary<CharacterAttributes, int> effects = new Dictionary<CharacterAttributes, int>();
             effects[CharacterAttributes.Defense] = +3;
             effects[CharacterAttributes.Magic] = -1;
@@ -665,9 +721,10 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             Expect.AreEqual(-1, minusOneMagic.Value);
         }
 
-        [UnitTest("First", "EraseTestPlayersExistence", "")]
+        [UnitTest]
         public void PlayerSelectionsValidationTest()
         {
+			First();
             Player one = Player.GetOne("Selection Validation Test Player");
             _testPlayer = one;
             Character oldBaldGuy = Character.Create("Old Bald Guy", 3, 2, 1, 1, 79, 50, Elements.Air);
@@ -690,6 +747,8 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             validation = selections.TryValidate();
             Expect.IsTrue(validation.Success);
             Out(validation.Message, ConsoleColor.Cyan);
+
+			EraseTestPlayersExistence();
         }
 
         class TestPlayerSelections: PlayerSelections
@@ -709,9 +768,10 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             }
         }
 
-        [UnitTest("First", "","")]
+        [UnitTest]
         public void BattleSetSelectionsShouldCallTryValidate()
         {
+			First();
             Battle battle = StartTestBattle();
             TestPlayerSelections oneSelections = new TestPlayerSelections();
             Expect.IsFalse(oneSelections.TryValidateCalled, "TryValidateCalled was already true and it shouldn't have been");
@@ -720,9 +780,10 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             Expect.IsTrue(oneSelections.TryValidateCalled, "TryValidateCalled was not true");
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void ShouldBeAbleToSetPlayerTwoCharacterSelections()
         {
+			First();
             Character[] twoCharacters = GetTestCharacters(6);
             long[] charIds = twoCharacters.Select(ch => ch.Id.Value).ToArray();
 
@@ -739,11 +800,13 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             {
                 Expect.IsTrue(twoField.AllCharacters.Contains(c));
             });
+			After();
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void ShouldBeAbleToSetPlayerOneWeaponSelections()
         {
+			First();
             Weapon[] weapons = GetTestWeapons(2);
             long[] weaponIds = weapons.Select(w => w.Id.Value).ToArray();
 
@@ -757,11 +820,13 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             PlayerField field = battle.PlayerOneField;
             Expect.IsNotNull(field.Weapons);
             Expect.AreEqual(weapons.Length, field.Weapons.Length);
+			After();
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void ShouldBeAbleToSetPlayerTwoWeaponSelections()
         {
+			First();
             Weapon[] weapons = GetTestWeapons(2);
             long[] weaponIds = weapons.Select(w => w.Id.Value).ToArray();
 
@@ -775,11 +840,13 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             PlayerField field = battle.PlayerTwoField;
             Expect.IsNotNull(field.Weapons);
             Expect.AreEqual(weapons.Length, field.Weapons.Length);
+			After();
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void ShouldBeAbleToSetPlayerOneSelections()
         {
+			First();
             PlayerSelections selections = CreatePlayerOneSelections();//new PlayerSelections { Characters = characters, Weapons = weapons, Spells = spells, Skills = skills, Equipment = equipment };
             long[] characters = selections.Characters;
             long[] weapons = selections.Weapons;
@@ -792,11 +859,13 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
 
             PlayerField field = battle.PlayerOneField;
             ValidateSelections(characters, weapons, spells, skills, equipment, field);
+			After();
         }
 
-        [UnitTest("First", "After", "")]
+        [UnitTest]
         public void ShouldBeAbleToSetPlayerTwoSelections()
         {
+			First();
             PlayerSelections selections = CreatePlayerTwoSelections();//new PlayerSelections { Characters = characters, Weapons = weapons, Spells = spells, Skills = skills, Equipment = equipment };
             long[] characters = selections.Characters;
             long[] weapons = selections.Weapons;
@@ -808,6 +877,7 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
 
             PlayerField field = battle.PlayerTwoField;
             ValidateSelections(characters, weapons, spells, skills, equipment, field);
+			After();
         }
 
         private static void ValidateSelections(long[] characters, long[] weapons, long[] spells, long[] skills, long[] equipment, PlayerField field)

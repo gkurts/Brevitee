@@ -9,13 +9,21 @@ namespace Brevitee.Logging
     [AttributeUsage(AttributeTargets.Event)]
     public class VerbosityAttribute: Attribute
     {
-        public VerbosityAttribute(LogEventType eventType)
+		public VerbosityAttribute(VerbosityLevel eventType)
         {
             this.Value = eventType;
         }
 
-        public LogEventType Value { get; set; }
+		public VerbosityAttribute(LogEventType eventType)
+		{
+			this.Value = (VerbosityLevel)eventType;
+		}
 
+        public VerbosityLevel Value { get; set; }
+
+		/// <summary>
+		/// The "NamedFormat" message format to use when outputting messages
+		/// </summary>
         public string MessageFormat { get; set; }
 
         public bool TryGetMessage(object value, out string message)

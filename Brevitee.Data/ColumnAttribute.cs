@@ -19,18 +19,7 @@ namespace Brevitee.Data
 
         public string Table { get; set; }
         public string Name { get; set; }
-        [Obsolete("Use DbDataType instead")]
-        public string ExtractedType
-        {
-            get
-            {
-                return DbDataType;
-            }
-            set
-            {
-                DbDataType = value;
-            }
-        }
+       
         public string DbDataType { get; set; }
         public string MaxLength { get; set; }
         public virtual bool AllowNull { get; set; }

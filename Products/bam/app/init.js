@@ -1,6 +1,6 @@
 
 $(document).ready(function () {
-    bam.app("sample", "#eDATBillingContent").setPageTransitionFilter("current", "next", function (tx, d) {
+    bam.app("localhost", "[data-app=localhost]").setPageTransitionFilter("current", "next", function (tx, d) {
         // tx is the transitionHandler which looks like this
         // {
         //      name: <string>,
@@ -21,8 +21,10 @@ $(document).ready(function () {
         page.setStateHelloEffect("error", "shake");
     })
     .pageActivated("instructions", function (page) {
-        bam.app("sample").view("sample.test", { Title: "Dust Step", Details: "These are the details" }, ".dustTarget");
+        bam.app("localhost").view("sample.test", { Title: "Dust Step", Details: "These are the details" }, ".dustTarget");
     })
-    .run("start");
+    .run($("[data-app=localhost]").attr("data-start") || "home");
+
+    // may also call bam.activateApps();
 });
 

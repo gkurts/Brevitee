@@ -2,20 +2,25 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>
-        Start Page
-    </title>     
+        Home Page
+    </title>
 </head>
 <body>
     <div id="pageContent">
         <div id="errors" style="display:none;" data-state="error"></div>
-        <h1>Sample Start</h1>
+        <div id="messages" style="display:none;"></div>
+        <h1>Brevitee Application Example</h1>
 
-        <span class="btn" data-navigate-to="contentPage">Content Page</span>
-        <span class="btn" data-navigate-to="instructions">Instructions</span> 
-        
+        <span class="btn btn-default" data-navigate-to="contentPage">Content Page</span>
+        <span class="btn btn-default" data-navigate-to="instructions">Instructions</span>
+        <span class="btn btn-default" data-navigate-to="tests/templateTests">Template Tests</span>
+        <span class="btn btn-default" data-navigate-to="tests/DaoTests">Dao Tests</span>
+        <br /><br />
+        <label for="effectTypes">Default Transition Effect</label>
         <select id="effectTypes" name="effects" 
             data-view-model="effectViewModel"
             >
+            <option value="fade">Fade</option>
             <option value="blind">Blind</option>
             <option value="bounce">Bounce</option>
             <option value="clip">Clip</option>
@@ -30,8 +35,6 @@
             <option value="size">Size</option>
             <option value="slide">Slide</option>
         </select>
-
-            
     </div>
     <hr />
 </body>

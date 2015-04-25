@@ -8,7 +8,7 @@ using Brevitee.ServiceProxy;
 
 namespace Brevitee.Server.Renderers
 {
-    public class CsvRenderer: RendererBase
+    public class CsvRenderer: Renderer
     {
         public CsvRenderer()
             : base("application/vnd.ms-excel", ".csv")

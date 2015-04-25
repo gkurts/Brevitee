@@ -307,7 +307,7 @@ namespace laotzu
 
 		private SchemaDefinition ExtractSchema(GenConfig config, string filePath)
         {
-            SqlClientSchemaExtractor extractor = new SqlClientSchemaExtractor(config.Name);
+            MsSqlSchemaExtractor extractor = new MsSqlSchemaExtractor(config.Name);
 			if (config.Verbose) 
 			{
 				extractor.ProcessingTable += (o, a) => Out(string.Format("Processing table {0}", a.Table.Name));

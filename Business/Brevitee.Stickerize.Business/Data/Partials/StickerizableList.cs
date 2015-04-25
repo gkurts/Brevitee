@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Brevitee.Data;
 using Brevitee;
 
 namespace Brevitee.Stickerize.Business.Data
@@ -14,18 +15,23 @@ namespace Brevitee.Stickerize.Business.Data
             return StickerizableList.OneWhere(c => c.Id == id);
         }
 
+		public static StickerizableList GetOrCreate(string name, Database database)
+		{
+			return GetOrCreate(name, 99999, database);
+		}
+
         /// <summary>
         /// Creates the list with the specified name returning
         /// an existing one if one already exists
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static StickerizableList GetOrCreate(string name, long creatorId = 99999)
+        public static StickerizableList GetOrCreate(string name, long creatorId = 99999, Database database = null)
         {
-            StickerizableList list = GetByName(name, creatorId);
+            StickerizableList list = GetByName(name, creatorId, database);
 			if (list == null)
 			{
-				list = Create(name, creatorId);
+				list = Create(name, creatorId, database);
 			}
 			return list;
         }
@@ -36,9 +42,9 @@ namespace Brevitee.Stickerize.Business.Data
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static StickerizableList GetByName(string name, long creatorId = 99999)
+        public static StickerizableList GetByName(string name, long creatorId = 99999, Database database = null)
         {
-            StickerizableList result = StickerizableList.OneWhere(c => c.Name == name && c.CreatorId == creatorId);    
+            StickerizableList result = StickerizableList.OneWhere(c => c.Name == name && c.CreatorId == creatorId, database);    
 
             return result;
         }
@@ -50,7 +56,7 @@ namespace Brevitee.Stickerize.Business.Data
 		/// <param name="name"></param>
 		/// <param name="creatorId"></param>
 		/// <returns></returns>
-		public static StickerizableList Create(string name, long creatorId = 99999)
+		public static StickerizableList Create(string name, long creatorId = 99999, Database database = null)
 		{
 			StickerizableList result = new StickerizableList();
 			result = new StickerizableList();
@@ -58,7 +64,7 @@ namespace Brevitee.Stickerize.Business.Data
 			result.Public = false;
 			result.Created = DateTime.UtcNow.Date;
 			result.CreatorId = creatorId;
-			result.Save();
+			result.Save(database);
 			return result;
 		}
 

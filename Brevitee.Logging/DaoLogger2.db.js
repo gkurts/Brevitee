@@ -1,5 +1,5 @@
 var database = {
-    nameSpace: "Brevitee.Logging",
+    nameSpace: "Brevitee.Logging.Data",
     schemaName: "DaoLogger2",
     xrefs: [
         [ "Event", "Param" ]
@@ -46,13 +46,13 @@ var database = {
             name: "Event",
             fks: [
                 { SignatureId: "Signature" },
-                { ComputerId: "Computer" },
-                { CategoryId: "Category" },
-                { SourceId: "Source" },
-                { UserId: "User" }
+                { ComputerNameId: "ComputerName" },
+                { CategoryNameId: "CategoryName" },
+                { SourceNameId: "SourceName" },
+                { UserNameId: "UserName" }
             ],
             cols: [
-                { Occurred: "DateTime", Null: false },
+                { Time: "DateTime", Null: false },
                 { Severity: "Int" },
                 { EventId: "Int" }
             ]

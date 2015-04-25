@@ -22,6 +22,7 @@ namespace Brevitee.Automation.Nuget
 
         public PackageVersion(string version)
         {
+			this._meta = new packageMetadata();
             SetVersion(version);
         }
 

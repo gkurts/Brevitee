@@ -160,7 +160,7 @@ namespace Brevitee.Logging
         /// </summary>
         protected static string GetAppDataFolder()
         {
-            return ExtensionsClass.GetAppDataFolder(new object());
+            return Extensions.GetAppDataFolder(new object());
         }
     }
 }

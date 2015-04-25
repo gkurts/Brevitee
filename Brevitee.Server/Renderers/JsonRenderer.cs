@@ -9,7 +9,7 @@ using System.IO;
 
 namespace Brevitee.Server.Renderers
 {
-    public class JsonRenderer: RendererBase
+    public class JsonRenderer: Renderer
     {
         public JsonRenderer()
             : base("application/json", ".json")

@@ -38,3 +38,4 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("Brevitee.Data.Tests")]
 [assembly: InternalsVisibleTo("Brevitee.Data.Tests")]
 [assembly: InternalsVisibleTo("Brevitee.Data.MsSql")]
+[assembly: InternalsVisibleTo("Brevitee.Data.Repositories")]

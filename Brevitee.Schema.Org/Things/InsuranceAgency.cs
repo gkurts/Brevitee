@@ -2,7 +2,7 @@ using System;
 
 namespace Brevitee.Schema.Org
 {
-	///<summary>Insurance agency.</summary>
+	///<summary>An Insurance agency.</summary>
 	public class InsuranceAgency: FinancialService
 	{
 	}

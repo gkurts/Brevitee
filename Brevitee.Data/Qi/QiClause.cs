@@ -14,6 +14,8 @@ namespace Brevitee.Data.Qi
         {
             property = string.Empty;
             val = string.Empty;
+			ColumnNameFormatter = (c) => c;
+			ParameterPrefix = string.Empty;
         }
         public bool hasValue { get; set; }
         public int num { get; set; }
@@ -126,6 +128,8 @@ namespace Brevitee.Data.Qi
 
         #region IParameterInfo Members
 
+		public Func<string, string> ColumnNameFormatter { get; set; }
+		public string ParameterPrefix { get; set; }
         public string ColumnName
         {
             get

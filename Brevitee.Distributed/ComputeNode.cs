@@ -9,7 +9,7 @@ using System.Net.Sockets;
 
 namespace Brevitee.Distributed
 {
-    public class ComputeNode: IRepositoryProvider, IHasInfo
+    public class ComputeNode: IDistributedRepository, IHasInfo
     {
         [Info("The host name of the compute node.")]
         public string HostName { get; set; }
@@ -62,50 +62,50 @@ namespace Brevitee.Distributed
             return result;
         }
 
-        public IRepositoryProvider RepositoryProvider
+        public IDistributedRepository RepositoryProvider
         {
             get;
             set;
         }
 
-        #region IRepositoryProvider Members
+		#region IDistributedRepository Members
 
-        public virtual void Create(object value)
-        {
-            EnsureProvider();
-            RepositoryProvider.Create(value);
-        }
+		public void Create(CreateOperation value)
+		{
+			EnsureProvider();
+			RepositoryProvider.Create(value);
+		}
 
-        private void EnsureProvider()
-        {
-            Expect.IsNotNull(RepositoryProvider, "The RepositoryProvider must be specified");
-        }
+		public T Retrieve<T>(RetrieveOperation value)
+		{
+			EnsureProvider();
+			return RepositoryProvider.Retrieve<T>(value);
+		}
 
-        public virtual T Retrieve<T>(object key)
-        {
-            EnsureProvider();
-            return RepositoryProvider.Retrieve<T>(key);
-        }
+		public void Update(UpdateOperation value)
+		{
+			EnsureProvider();
+			RepositoryProvider.Update(value);
+		}
 
-        public virtual void Update(object value)
-        {
-            EnsureProvider();
-            RepositoryProvider.Update(value);
-        }
+		public void Delete(DeleteOperation value)
+		{
+			EnsureProvider();
+			RepositoryProvider.Delete(value);
+		}
 
-        public virtual IEnumerable<T> Search<T>(object query)
-        {
-            EnsureProvider();
-            return RepositoryProvider.Search<T>(query);
-        }
+		public IEnumerable<T> Query<T>(QueryOperation query)
+		{
+			EnsureProvider();
+			return RepositoryProvider.Query<T>(query);
+		}
 
-        public virtual void Delete(object value)
-        {
-            EnsureProvider();
-            RepositoryProvider.Delete(value);
-        }
-        #endregion
+		public ReplicationResult RecieveReplica(Operation operation)
+		{
+			throw new NotImplementedException();
+		}
 
+		#endregion
         #region IHasInfo Members
 
         public object GetInfo()
@@ -120,13 +120,20 @@ namespace Brevitee.Distributed
 
         #endregion
 
+
+
         public override string ToString()
         {
-            string host = this.HostName ?? "null";
-            string ipv4 = this.IPV4Address == null ? "null" : this.IPV4Address.ToString();
-            string ipv6 = this.IPV6Address == null ? "null" : this.IPV6Address.ToString();
-            return "HostName:{0},IPV4:{1},IPV6:{2}"._Format(host, ipv4, ipv6);
+			return Identifier();
         }
+
+		public string Identifier()
+		{
+			string host = this.HostName ?? "null";
+			string ipv4 = this.IPV4Address == null ? "null" : this.IPV4Address.ToString();
+			string ipv6 = this.IPV6Address == null ? "null" : this.IPV6Address.ToString();
+			return "HostName:{0},IPV4:{1},IPV6:{2}"._Format(host, ipv4, ipv6);
+		}
 
         public override bool Equals(object obj)
         {
@@ -144,5 +151,10 @@ namespace Brevitee.Distributed
         {
             return this.ToString().GetHashCode();
         }
-    }
+		
+		private void EnsureProvider()
+		{
+			Expect.IsNotNull(RepositoryProvider, "The RepositoryProvider must be specified");
+		}
+	}
 }

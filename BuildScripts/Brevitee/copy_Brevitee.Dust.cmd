@@ -13,8 +13,8 @@ GOTO COPY
 
 :COPY
 MD Brevitee.Dust\lib\%LIB%
-copy /Y .\BuildOutput\%VER%\Brevitee.Dust.dll Brevitee.Dust\lib\%LIB%\Brevitee.Dust.dll
-copy /Y .\BuildOutput\%VER%\Brevitee.Dust.xml Brevitee.Dust\lib\%LIB%\Brevitee.Dust.xml
+copy /Y .\BuildOutput\Release\%VER%\Brevitee.Dust.dll Brevitee.Dust\lib\%LIB%\Brevitee.Dust.dll
+copy /Y .\BuildOutput\Release\%VER%\Brevitee.Dust.xml Brevitee.Dust\lib\%LIB%\Brevitee.Dust.xml
 GOTO %NEXT%
 
 :END

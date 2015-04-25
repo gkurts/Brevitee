@@ -33,7 +33,7 @@ namespace Brevitee.Server.Renderers
                 request.Result = ((BreviteeApplicationManagerResult)request.Result).Data;
             }
 
-            HandlePreAndPost();
+            HandlePrependAndPostpend();
 
             string script = request.Result as string;
             if (script == null)
@@ -76,7 +76,7 @@ namespace Brevitee.Server.Renderers
             }
         }
 
-        protected virtual void HandlePreAndPost()
+        protected virtual void HandlePrependAndPostpend()
         {
             string ext = ExecutionRequest.Ext;
             // if ext is jsonp

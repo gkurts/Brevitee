@@ -1,0 +1,269 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Bryan.Apellanes.Data.Repositories</name>
+    </assembly>
+    <members>
+        <member name="P:Bryan.Apellanes.Data.Repositories.DtoModel.LeftXrefs">
+            <summary>
+            Xrefs where the current PocoType is the left
+            side of the cross refernce table
+            </summary>
+        </member>
+        <member name="P:Bryan.Apellanes.Data.Repositories.DtoModel.RightXrefs">
+            <summary>
+            Xrefs where the current PocoType is the Right
+            side of the cross reference table
+            </summary>
+        </member>
+        <member name="T:Bryan.Apellanes.Data.Repositories.IHasUpdatedXrefCollectionProperties">
+            <summary>
+            Used internally by Generated Dto's
+            </summary>
+        </member>
+        <member name="T:Bryan.Apellanes.Data.Repositories.KeyAttribute">
+            <summary>
+            Specifies that a property should be used as the 
+            primary key for an object
+            </summary>
+        </member>
+        <member name="P:Bryan.Apellanes.Data.Repositories.Meta.Hash">
+            <summary>
+            Returns UuidHash
+            </summary>
+        </member>
+        <member name="T:Bryan.Apellanes.Data.Repositories.DaoRepository">
+            <summary>
+            A repository that will generate an underlying Dao
+            for the types added
+            </summary>
+            <typeparam name="T"></typeparam>
+        </member>
+        <member name="M:Bryan.Apellanes.Data.Repositories.DaoRepository.Create``1(``0)">
+            <summary>
+            Creates (Saves) the specified instance of T.  While
+            the parameter value specified will be updated with 
+            the newly assigned Id, one should favor using the
+            return value instead as it will be an augmented extension
+            of T.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="toCreate"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Bryan.Apellanes.Data.Repositories.DaoRepository.Update``1(``0)">
+            <summary>
+            Updates the repository instance that represents the specified 
+            value.  
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="toUpdate"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Bryan.Apellanes.Data.Repositories.DaoRepository.GetDtoType(System.Type)">
+            <summary>
+            Get the dto type for the specified poco type.
+            Will not return null unless the specified pocoType
+            is null.
+            </summary>
+            <param name="pocoType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Bryan.Apellanes.Data.Repositories.DaoRepository.SetParentProperties(System.Object)">
+            <summary>
+            Sets the properties that represent PrimaryKeys if any
+            </summary>
+            <param name="dtoInstance"></param>
+        </member>
+        <member name="M:Bryan.Apellanes.Data.Repositories.DaoRepository.GetParentPropertyOfChild(System.Object,System.Type)">
+            <summary>
+            Get the instance of the parentType specified for the 
+            specified dto instance
+            </summary>
+            <param name="dtoChild"></param>
+            <param name="parentType"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Bryan.Apellanes.Data.Repositories.DaoRepository.GetParentDaoPropertyOfChildForTypeFk(Bryan.Apellanes.Data.Repositories.TypeFk)">
+            <summary>
+            Get the PropertyInfo that represents the parent object instance for the specified
+            TypeFk
+            </summary>
+            <param name="typeFk"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Bryan.Apellanes.Data.Repositories.DaoRepository.GetChildCollectionDaoPropertyForTypeFk(Bryan.Apellanes.Data.Repositories.TypeFk)">
+            <summary>
+            Get the PropertyInfo that represents the child collection for the specified 
+            TypeFk
+            </summary>
+            <param name="typeFk"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Bryan.Apellanes.Data.Repositories.ObjectRepository.SetParentProperties(System.Object,System.Object)">
+            <summary>
+            Sets the properties that represent PrimaryKeys if any
+            </summary>
+            <param name="parent"></param>
+            <param name="child"></param>
+        </member>
+        <member name="T:Bryan.Apellanes.Data.Repositories.ObjectReaderWriter">
+            <summary>
+            Class used to write objects to disk.  Will 
+            write two representations of the object, one
+            as an IpcMessage <see cref="T:Bryan.Apellanes.IpcMessage"/>
+            and another "searchable" version of all
+            the properties in crawlable files
+            </summary>
+        </member>
+        <member name="T:Bryan.Apellanes.Data.Repositories.TypeDaoGenerator">
+            <summary>
+            A class used to generate data access objects from
+            CLR types.
+            </summary>
+        </member>
+        <member name="M:Bryan.Apellanes.Data.Repositories.TypeDaoGenerator.CreateSchemaDefinition(System.String)">
+            <summary>
+            Create a SchemaDefintionCreateResult for the types currently
+            added to the TypeDaoGenerator
+            </summary>
+            <param name="schemaName"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Bryan.Apellanes.Data.Repositories.TypeDaoGenerator.Namespace">
+            <summary>
+            The namespace to place generated Dao objects into
+            </summary>
+        </member>
+        <member name="M:Bryan.Apellanes.Data.Repositories.TypeSchemaGenerator.GetXrefTypesFor(System.Type)">
+            <summary>
+            Get the properties where the type of the
+            property is of a type that has a property that is
+            an enumerable of the type specified
+            </summary>
+            <param name="type"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Bryan.Apellanes.Data.Repositories.TypeSchemaGenerator.GetReferencingForeignKeyTypesFor(System.Type)">
+            <summary>
+            Get the types for each IEnumerable property of the specified type
+            </summary>
+            <param name="parentType"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Bryan.Apellanes.Data.Repositories.TypeSchemaGenerator.SchemaName">
+            <summary>
+            Holds the name of the currently generating
+            schema
+            </summary>
+        </member>
+        <member name="P:Bryan.Apellanes.Data.Repositories.TypeSchemaGenerator.Instant">
+            <summary>
+            A string representation of the UtcNow at the time
+            of reference.  <see cref="T:Bryan.Apellanes.Instant"/>
+            </summary>
+        </member>
+        <member name="E:Bryan.Apellanes.Data.Repositories.TypeSchemaGenerator.KeyPropertyNotFound">
+            <summary>
+            The event that occurs when a Type is found in the current
+            TypeSchema hierarchy with no Key property specified (the Type's key is determined
+            by whether a property has the KeyAttribute custom attribute or
+            the name of "Id")
+            </summary>
+        </member>
+        <member name="E:Bryan.Apellanes.Data.Repositories.TypeSchemaGenerator.ReferencingPropertyNotFound">
+            <summary>
+            The event that occurs when a Type is found in the current
+            TypeSchema hierarchy with an IEnumerable&lt;T&gt; property where the underlying type of
+            the IEnumerable doesn't have a property referencing
+            the current Type's key (the Type's key is determined
+            by whether a property has the KeyAttribute custom attribute or
+            the name of "Id")
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "E:Bryan.Apellanes.Data.Repositories.TypeSchemaGenerator.ChildParentPropertyNotFound" -->
+        <member name="T:Bryan.Apellanes.Data.Repositories.TypeFk">
+            <summary>
+            Foreing key descriptor for generated TypeSchemas
+            </summary>
+        </member>
+        <member name="P:Bryan.Apellanes.Data.Repositories.TypeFk.PrimaryKeyType">
+            <summary>
+            The type of the Primary Key poco
+            </summary>
+        </member>
+        <member name="P:Bryan.Apellanes.Data.Repositories.TypeFk.PrimaryKeyProperty">
+            <summary>
+            The property of the Primary Key poco
+            that represents the Id/Primary Key
+            </summary>
+        </member>
+        <member name="P:Bryan.Apellanes.Data.Repositories.TypeFk.ForeignKeyType">
+            <summary>
+            The type of the Foreign Key poco
+            </summary>
+        </member>
+        <member name="P:Bryan.Apellanes.Data.Repositories.TypeFk.ForeignKeyProperty">
+            <summary>
+            The Foreign Key property that references the 
+            Primary Key
+            </summary>
+        </member>
+        <member name="P:Bryan.Apellanes.Data.Repositories.TypeFk.CollectionProperty">
+            <summary>
+            The property that represents the collection
+            of Foreign Keys that represent the same 
+            Primary Key
+            </summary>
+        </member>
+        <member name="P:Bryan.Apellanes.Data.Repositories.TypeFk.ChildParentProperty">
+            <summary>
+            The property that represents the Parent
+            Primary Key instance on the Foreign Key
+            </summary>
+        </member>
+        <member name="T:Bryan.Apellanes.Data.Repositories.TypeXref">
+            <summary>
+            Used to describe a many to many 
+            relationship between two types.
+            This would imply that each type
+            has an IEnumerable property
+            of the other type
+            </summary>
+        </member>
+        <member name="P:Bryan.Apellanes.Data.Repositories.TypeXref.LeftCollectionProperty">
+            <summary>
+            The property of the Left type that represents
+            the collection containing elements of the Right type
+            </summary>
+        </member>
+        <member name="P:Bryan.Apellanes.Data.Repositories.TypeXref.RightCollectionProperty">
+            <summary>
+            The property of the Right type that represents 
+            the collection containing elements of the Left type
+            </summary>
+        </member>
+        <member name="P:Bryan.Apellanes.Data.Repositories.TypeXref.LeftCollectionTypeName">
+            <summary>
+            The name of the LeftCollectionProperty.  Used by underlying 
+            Dto generator
+            </summary>
+        </member>
+        <member name="P:Bryan.Apellanes.Data.Repositories.TypeXref.RightCollectionTypeName">
+            <summary>
+            The name of the RightCollectionProperty.  Used by underlying
+            Dto generator
+            </summary>
+        </member>
+        <member name="P:Bryan.Apellanes.Data.Repositories.TypeXref.LeftArrayOrList">
+            <summary>
+            Used by the underlying Dto generator
+            </summary>
+        </member>
+        <member name="P:Bryan.Apellanes.Data.Repositories.TypeXref.RightArrayOrList">
+            <summary>
+            Used by the underlying Dto generator
+            </summary>
+        </member>
+    </members>
+</doc>

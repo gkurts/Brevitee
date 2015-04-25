@@ -99,7 +99,7 @@ namespace Brevitee.Data
                 }
             }
             
-            return new DatabaseInitializationResult(null, new Exception(string.Format("Failed to initialize database:\r\n{0}", _exceptionMessages.ToArray().ToDelimited(s=>s, "\r\n"))));
+            return new DatabaseInitializationResult(null, new DatabaseInitializationFailedException(_exceptionMessages));
         }
         
     }

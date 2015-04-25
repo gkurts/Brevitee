@@ -10,12 +10,6 @@ namespace Brevitee.Data
 {
     public abstract class SchemaWriter: SqlStringBuilder
     {
-        static List<Assembly> _done;
-        static SchemaWriter()
-        {
-            _done = new List<Assembly>();
-        }
-
         public SchemaWriter()
         {
             this.KeyColumnFormat = "{0} IDENTITY (1,1) PRIMARY KEY";
@@ -67,33 +61,24 @@ namespace Brevitee.Data
         /// <typeparam name="T">The type to analyse</typeparam>
         /// <returns>False if the Assembly that the specified type 
         /// is defined in has already been analysed, true otherwise</returns>
-        public bool WriteSchemaScript<T>(bool skipIfDone = true) where T: Dao
+        public bool WriteSchemaScript<T>() where T: Dao
         {
-            if (_done.Contains(typeof(T).Assembly) && skipIfDone)
-            {
-                return false;
-            }
-
-            ForEachTable<T>(this.WriteCreateTable);
-            this.WriteForeignKeys(typeof(T));
-            Go();
-            _done.Add(typeof(T).Assembly);
-            return true;
+			return WriteSchemaScript(typeof(T));
         }
 
-        public bool WriteSchemaScript(Type type, bool skipIfDone = true)
+        public bool WriteSchemaScript(Type type)
         {
-            if (_done.Contains(type.Assembly) && skipIfDone)
-            {
-                return false;
-            }
-
             ForEachTable(type, this.WriteCreateTable);
             this.WriteForeignKeys(type);
-            Go();
-            _done.Add(type.Assembly);
             return true;
         }
+
+		public bool WriteSchemaScript(Assembly assembly)
+		{
+			ForEachTable(assembly, this.WriteCreateTable, t => t.HasCustomAttributeOfType<TableAttribute>());
+			this.WriteForeignKeys(assembly, t => t.HasCustomAttributeOfType<TableAttribute>());
+			return true;
+		}
 
         private void ForEachTable<T>(Action<Type> action) where T : Dao
         {
@@ -105,19 +90,28 @@ namespace Brevitee.Data
         {
             string connectionName = Dao.ConnectionName(type);
 
-            foreach (Type t in type.Assembly.GetTypes())
-            {
-                if (t.HasCustomAttributeOfType<TableAttribute>(false))
-                {
-                    Dao next = t.GetConstructor(Type.EmptyTypes).Invoke(null) as Dao;
-                    if (next != null && next.ConnectionName().Equals(connectionName))
-                    {
-                        action(t);
-                        Go();
-                    }
-                }
-            }
+			foreach (Type t in type.Assembly.GetTypes().Where(t => t.HasCustomAttributeOfType<TableAttribute>(false)))
+			{
+				Dao next = t.GetConstructor(Type.EmptyTypes).Invoke(null) as Dao;				
+				if (next != null && next.ConnectionName().Equals(connectionName))
+				{
+					action(t);
+					Go();
+				}
+			}
         }
+
+		private void ForEachTable(Assembly assembly, Action<Type> action, Func<Type, bool> typePredicate)
+		{
+			foreach (Type t in assembly.GetTypes().Where(t => t.HasCustomAttributeOfType<TableAttribute>(false)))
+			{
+				if (typePredicate(t))
+				{
+					action(t);
+					Go();
+				}
+			}
+		}
 
         public void DropTable(Type daoType)
         {
@@ -136,7 +130,7 @@ namespace Brevitee.Data
         /// EnableDrop is false.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        public void DropAllTables<T>() where T: Dao
+        public virtual void DropAllTables<T>() where T: Dao
         {
             if (!this.EnableDrop)
             {
@@ -202,7 +196,32 @@ namespace Brevitee.Data
                 }
             }
         }
-        
+
+		protected virtual void WriteForeignKeys(Assembly daoAssembly, Func<Type, bool> typePredicate = null)
+		{
+			Args.ThrowIfNull(daoAssembly, "daoAssembly");
+			typePredicate = typePredicate == null ? t => t.HasCustomAttributeOfType<TableAttribute>() : typePredicate;
+			foreach (Type type in daoAssembly.GetTypes())
+			{
+				if (typePredicate(type))
+				{
+					ForeignKeyAttribute[] columns = GetForeignKeys(type);
+					foreach (ForeignKeyAttribute fk in columns)
+					{
+						if (fk != null)
+						{
+							// table1Name, fkName, column1Name, table2Name, column2Name
+							// "ALTER TABLE [{0}] ADD CONSTRAINT {1} FOREIGN KEY ({2}) REFERENCES [{3}] ({4})";
+							Builder.AppendFormat("ALTER TABLE [{0}] ADD CONSTRAINT {1} FOREIGN KEY ({2}) REFERENCES [{3}] ({4})",
+								fk.Table, fk.ForeignKeyName, fk.Name, fk.ReferencedTable, fk.ReferencedKey);
+
+							Go();
+						}
+					}
+				}				
+			}
+		}
+
         protected virtual void WriteDropTable(Type daoType)
         {
             TableAttribute attr = null;

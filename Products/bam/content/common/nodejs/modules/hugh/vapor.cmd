@@ -1,0 +1,1 @@
+node .\node_modules\protractor\lib\cli.js vapor.conf.js -b chrome --suite vapor

@@ -71,8 +71,14 @@
     <AssemblyOriginatorKeyFile>signing.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Ionic.Zip">
+    <Reference Include="Ionic.Zip, Version=1.9.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\DotNetZip.1.9.2\lib\net20\Ionic.Zip.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <Private>True</Private>
+      <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -95,7 +101,7 @@
       <HintPath>..\packages\Microsoft.AspNet.WebPages.3.0.0\lib\net45\System.Web.Helpers.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Mvc, Version=5.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+      <Private>True</Private>
       <HintPath>..\packages\Microsoft.AspNet.Mvc.5.0.0\lib\net45\System.Web.Mvc.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -118,7 +124,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdHocCSharpCompiler.cs" />
     <Compile Include="Args.cs" />
+    <Compile Include="CompilationException.cs" />
     <Compile Include="Configuration\IConfigurer.cs" />
     <Compile Include="Configuration\DefaultConfiguration.cs" />
     <Compile Include="Configuration\DefaultConfigurer.cs" />
@@ -128,6 +136,7 @@
     <Compile Include="Configuration\RequiredPropertiesNotSetException.cs" />
     <Compile Include="Configuration\RequiredPropertyNotFoundException.cs" />
     <Compile Include="Documentation\doc.cs" />
+    <Compile Include="DynamicTypeRecursionLimitReachedException.cs" />
     <Compile Include="EncryptAttribute.cs" />
     <Compile Include="Encryption\Rsa.cs" />
     <Compile Include="Encryption\RSAKeyValue.cs" />
@@ -138,6 +147,7 @@
     <Compile Include="Logging\ILoggable.cs" />
     <Compile Include="Logging\Loggable.cs" />
     <Compile Include="Logging\VerbosityAttribute.cs" />
+    <Compile Include="Logging\Severity.cs" />
     <Compile Include="Logging\VerbosityLevel.cs" />
     <Compile Include="IpcMessage.cs" />
     <Compile Include="IpcMessageRoot.cs" />
@@ -164,7 +174,7 @@
     <Compile Include="ExceptionHelper.cs" />
     <Compile Include="Expect.cs" />
     <Compile Include="ExpectFailedException.cs" />
-    <Compile Include="ExtensionsClass.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="HashAlgorithms.cs" />
     <Compile Include="RandomNumber.cs" />
     <Compile Include="JulianDate.cs" />
@@ -208,6 +218,7 @@
     <Compile Include="Web\QueryStringParameter.cs" />
     <Compile Include="Web\UserAgents.cs" />
     <Compile Include="UserUtil.cs" />
+    <Compile Include="_.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Documentation\XmlDocumentation.xsd">

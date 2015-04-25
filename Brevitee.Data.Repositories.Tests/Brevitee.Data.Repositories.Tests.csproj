@@ -8,12 +8,14 @@
     <ProjectGuid>{6E5C0894-EBA9-4B58-AC42-FA4707524D97}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Brevitee.Repositories.Tests</RootNamespace>
-    <AssemblyName>Brevitee.Repositories.Tests</AssemblyName>
+    <RootNamespace>Brevitee.Data.Repositories.Tests</RootNamespace>
+    <AssemblyName>Brevitee.Data.Repositories.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -73,22 +75,111 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web.Mvc, Version=4.0.0.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.AspNet.Mvc.5.0.0\lib\net45\System.Web.Mvc.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="YamlSerializer">
+      <HintPath>..\packages\YamlSerializer.1.0\lib\Net35\YamlSerializer.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BackupDatabaseTests.cs" />
     <Compile Include="ConsoleActions.cs" />
+    <Compile Include="ObjectRepositoryUnitTests.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="UnitTests.cs" />
+    <Compile Include="DaoRepositoryUnitTests.cs" />
+    <Compile Include="Test_Generated\MainObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Test_Generated\MainObjectCollection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Test_Generated\MainObjectColumns.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Test_Generated\Qi\MainObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Test_Generated\Qi\SecondaryObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Test_Generated\Qi\SecondaryObjectTernaryObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Test_Generated\Qi\TernaryObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Test_Generated\RepoTestsContext.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Test_Generated\SecondaryObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Test_Generated\SecondaryObjectCollection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Test_Generated\SecondaryObjectColumns.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Test_Generated\SecondaryObjectTernaryObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Test_Generated\SecondaryObjectTernaryObjectCollection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Test_Generated\SecondaryObjectTernaryObjectColumns.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Test_Generated\TernaryObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Test_Generated\TernaryObjectCollection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Test_Generated\TernaryObjectColumns.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Brevitee.Analytics\Brevitee.Analytics.csproj">
+      <Project>{67cca5a4-9b97-444c-9f4b-f464b2e04d6b}</Project>
+      <Name>Brevitee.Analytics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.CommandLine\Brevitee.CommandLine.csproj">
+      <Project>{ea9863a9-8e0b-4497-b7fd-abf450a3e468}</Project>
+      <Name>Brevitee.CommandLine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Data.MSSql\Brevitee.Data.MsSql.csproj">
+      <Project>{f373eaf9-b69c-4322-9659-a53a8fb7d43f}</Project>
+      <Name>Brevitee.Data.MsSql</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Data.Oracle\Brevitee.Data.Oracle.csproj">
+      <Project>{296d4f9e-09f3-48c1-9968-d161c9666756}</Project>
+      <Name>Brevitee.Data.Oracle</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Brevitee.Data.Repositories\Brevitee.Data.Repositories.csproj">
       <Project>{222ef625-a115-49c7-8bdb-5879725a7d17}</Project>
       <Name>Brevitee.Data.Repositories</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Data.Schema\Brevitee.Data.Schema.csproj">
+      <Project>{d2c2b1c0-1047-4211-92fc-37f332861161}</Project>
+      <Name>Brevitee.Data.Schema</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Data.SQLite\Brevitee.Data.SQLite.csproj">
+      <Project>{42339dbf-9389-42f8-9d28-4c523caa7b01}</Project>
+      <Name>Brevitee.Data.SQLite</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Data\Brevitee.Data.csproj">
+      <Project>{3b52b739-58fd-4b49-b815-6b317e701520}</Project>
+      <Name>Brevitee.Data</Name>
     </ProjectReference>
     <ProjectReference Include="..\Brevitee.Incubation\Brevitee.Incubation.csproj">
       <Project>{AA186331-A0D0-4F77-BEA2-E7B7650D3FF5}</Project>
@@ -98,19 +189,30 @@
       <Project>{85212881-c676-4b40-b311-37c2d1706042}</Project>
       <Name>Brevitee.Testing</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Yaml\Brevitee.Yaml.csproj">
+      <Project>{1c5258ec-7579-4032-94ec-b016bdc1b876}</Project>
+      <Name>Brevitee.Yaml</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Brevitee\Brevitee.csproj">
       <Project>{8794C09D-D72C-420C-812F-BFDA251B64C9}</Project>
       <Name>Brevitee</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Brevitee.CommandLine\Brevitee.CommandLine.csproj">
-      <Project>{EA9863A9-8E0B-4497-B7FD-ABF450A3E468}</Project>
-      <Name>Brevitee.CommandLine</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Test.db.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

@@ -10,7 +10,7 @@ namespace Brevitee.Yaml
     public static class ServiceProxySystemYaml
     {
         /// <summary>
-        /// Registers the rss file extension and the delegate used
+        /// Registers the yaml file extension and the delegate used
         /// to handle it.
         /// </summary>
         public static void Register()

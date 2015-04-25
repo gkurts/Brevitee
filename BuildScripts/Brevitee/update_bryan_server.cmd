@@ -1,0 +1,1 @@
+call C:\src\Brevitee\Brevitee\Brevitee.Server\zip_base_app_and_content.cmd

@@ -6,6 +6,7 @@ nuget pack Brevitee.Analytics\Brevitee.Analytics.nuspec
 nuget pack Brevitee.Automation\Brevitee.Automation.nuspec
 nuget pack Brevitee.CommandLine\Brevitee.CommandLine.nuspec 
 nuget pack Brevitee.Data\Brevitee.Data.nuspec
+nuget pack Brevitee.Data\Brevitee.Data.Repositories.nuspec
 nuget pack Brevitee.Distributed\Brevitee.Distributed.nuspec
 nuget pack Brevitee.Drawing\Brevitee.Drawing.nuspec
 nuget pack Brevitee.Dust\Brevitee.Dust.nuspec

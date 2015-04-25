@@ -13,8 +13,8 @@ GOTO COPY
 
 :COPY
 MD Brevitee.UserAccounts\lib\%LIB%
-copy /Y .\BuildOutput\%VER%\Brevitee.UserAccounts.dll Brevitee.UserAccounts\lib\%LIB%\Brevitee.UserAccounts.dll
-copy /Y .\BuildOutput\%VER%\Brevitee.UserAccounts.xml Brevitee.UserAccounts\lib\%LIB%\Brevitee.UserAccounts.xml
+copy /Y .\BuildOutput\Release\%VER%\Brevitee.UserAccounts.dll Brevitee.UserAccounts\lib\%LIB%\Brevitee.UserAccounts.dll
+copy /Y .\BuildOutput\Release\%VER%\Brevitee.UserAccounts.xml Brevitee.UserAccounts\lib\%LIB%\Brevitee.UserAccounts.xml
 GOTO %NEXT%
 
 :END

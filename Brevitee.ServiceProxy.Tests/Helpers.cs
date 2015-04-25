@@ -223,7 +223,6 @@ namespace Brevitee.ServiceProxy.Tests
         private static void CreateServer(out string baseAddress, out BreviteeServer server)
         {
             BreviteeConf conf = new BreviteeConf();
-            //conf.Port = 8080;
             baseAddress = "http://localhost:8080";
             server = new BreviteeServer(conf);
         }

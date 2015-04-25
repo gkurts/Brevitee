@@ -51,49 +51,69 @@
   <ItemGroup>
     <Compile Include="DaoLogger.cs" />
     <Compile Include="DaoLogger2.cs" />
-    <Compile Include="Generated1\LogEvent.cs" />
-    <Compile Include="Generated1\LogEventCollection.cs" />
-    <Compile Include="Generated1\LogEventColumns.cs" />
-    <Compile Include="Generated1\Qi\LogEvent.cs" />
-    <Compile Include="Generated2\CategoryName.cs" />
-    <Compile Include="Generated2\CategoryNameCollection.cs" />
-    <Compile Include="Generated2\CategoryNameColumns.cs" />
-    <Compile Include="Generated2\ComputerName.cs" />
-    <Compile Include="Generated2\ComputerNameCollection.cs" />
-    <Compile Include="Generated2\ComputerNameColumns.cs" />
-    <Compile Include="Generated2\DaoLogger2Context.cs" />
-    <Compile Include="Generated2\Event.cs" />
-    <Compile Include="Generated2\EventCollection.cs" />
-    <Compile Include="Generated2\EventColumns.cs" />
-    <Compile Include="Generated2\EventParam.cs" />
-    <Compile Include="Generated2\EventParamCollection.cs" />
-    <Compile Include="Generated2\EventParamColumns.cs" />
-    <Compile Include="Generated2\Param.cs" />
-    <Compile Include="Generated2\ParamCollection.cs" />
-    <Compile Include="Generated2\ParamColumns.cs" />
-    <Compile Include="Generated2\Qi\CategoryName.cs" />
-    <Compile Include="Generated2\Qi\ComputerName.cs" />
-    <Compile Include="Generated2\Qi\Event.cs" />
-    <Compile Include="Generated2\Qi\EventParam.cs" />
-    <Compile Include="Generated2\Qi\Param.cs" />
-    <Compile Include="Generated2\Qi\Signature.cs" />
-    <Compile Include="Generated2\Qi\SourceName.cs" />
-    <Compile Include="Generated2\Qi\UserName.cs" />
-    <Compile Include="Generated2\Signature.cs" />
-    <Compile Include="Generated2\SignatureCollection.cs" />
-    <Compile Include="Generated2\SignatureColumns.cs" />
-    <Compile Include="Generated2\SourceName.cs" />
-    <Compile Include="Generated2\SourceNameCollection.cs" />
-    <Compile Include="Generated2\SourceNameColumns.cs" />
-    <Compile Include="Generated2\UserName.cs" />
-    <Compile Include="Generated2\UserNameCollection.cs" />
-    <Compile Include="Generated2\UserNameColumns.cs" />
+    <Compile Include="DaoLogger2_Generated\CategoryName.cs" />
+    <Compile Include="DaoLogger2_Generated\CategoryNameCollection.cs" />
+    <Compile Include="DaoLogger2_Generated\CategoryNameColumns.cs" />
+    <Compile Include="DaoLogger2_Generated\ComputerName.cs" />
+    <Compile Include="DaoLogger2_Generated\ComputerNameCollection.cs" />
+    <Compile Include="DaoLogger2_Generated\ComputerNameColumns.cs" />
+    <Compile Include="DaoLogger2_Generated\DaoLogger2Context.cs" />
+    <Compile Include="DaoLogger2_Generated\Event.cs" />
+    <Compile Include="DaoLogger2_Generated\EventCollection.cs" />
+    <Compile Include="DaoLogger2_Generated\EventColumns.cs" />
+    <Compile Include="DaoLogger2_Generated\EventParam.cs" />
+    <Compile Include="DaoLogger2_Generated\EventParamCollection.cs" />
+    <Compile Include="DaoLogger2_Generated\EventParamColumns.cs" />
+    <Compile Include="DaoLogger2_Generated\Param.cs" />
+    <Compile Include="DaoLogger2_Generated\ParamCollection.cs" />
+    <Compile Include="DaoLogger2_Generated\ParamColumns.cs" />
+    <Compile Include="DaoLogger2_Generated\Qi\CategoryName.cs" />
+    <Compile Include="DaoLogger2_Generated\Qi\ComputerName.cs" />
+    <Compile Include="DaoLogger2_Generated\Qi\Event.cs" />
+    <Compile Include="DaoLogger2_Generated\Qi\EventParam.cs" />
+    <Compile Include="DaoLogger2_Generated\Qi\Param.cs" />
+    <Compile Include="DaoLogger2_Generated\Qi\Signature.cs" />
+    <Compile Include="DaoLogger2_Generated\Qi\SourceName.cs" />
+    <Compile Include="DaoLogger2_Generated\Qi\UserName.cs" />
+    <Compile Include="DaoLogger2_Generated\Signature.cs" />
+    <Compile Include="DaoLogger2_Generated\SignatureCollection.cs" />
+    <Compile Include="DaoLogger2_Generated\SignatureColumns.cs" />
+    <Compile Include="DaoLogger2_Generated\SourceName.cs" />
+    <Compile Include="DaoLogger2_Generated\SourceNameCollection.cs" />
+    <Compile Include="DaoLogger2_Generated\SourceNameColumns.cs" />
+    <Compile Include="DaoLogger2_Generated\UserName.cs" />
+    <Compile Include="DaoLogger2_Generated\UserNameCollection.cs" />
+    <Compile Include="DaoLogger2_Generated\UserNameColumns.cs" />
+    <Compile Include="DaoLogger2LogReader.cs" />
+    <Compile Include="DaoLoggerLogReader.cs" />
+    <Compile Include="DaoLoggerLogReaderBase.cs" />
+    <Compile Include="DaoLogger_Generated\DaoLoggerContext.cs" />
+    <Compile Include="DaoLogger_Generated\LogEvent.cs" />
+    <Compile Include="DaoLogger_Generated\LogEventCollection.cs" />
+    <Compile Include="DaoLogger_Generated\LogEventColumns.cs" />
+    <Compile Include="DaoLogger_Generated\Qi\LogEvent.cs" />
+    <Compile Include="IDaoLogger.cs" />
+    <Compile Include="ILogReader.cs" />
+    <Compile Include="LogEntry.cs" />
+    <Compile Include="LogReader.cs" />
+    <Compile Include="LogReaderFactory.cs" />
+    <Compile Include="ObjectRepositoryLogger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RepositoryLogger.cs" />
+    <Compile Include="ObjectRepositoryLoggerLogReader.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="DaoLogger.db.js" />
     <Content Include="DaoLogger2.db.js" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Brevitee.Data.Repositories\Brevitee.Data.Repositories.csproj">
+      <Project>{222ef625-a115-49c7-8bdb-5879725a7d17}</Project>
+      <Name>Brevitee.Data.Repositories</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Brevitee.Data.Schema\Brevitee.Data.Schema.csproj">
       <Project>{d2c2b1c0-1047-4211-92fc-37f332861161}</Project>
       <Name>Brevitee.Data.Schema</Name>

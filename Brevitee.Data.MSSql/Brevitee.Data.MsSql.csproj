@@ -77,19 +77,22 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extensions.cs" />
+    <Compile Include="MsSqlDatabase.cs" />
     <Compile Include="SchemaExtractorEventArgs.cs" />
-    <Compile Include="SqlClientDatabaseInitializer.cs" />
-    <Compile Include="SqlClientQuerySet.cs" />
-    <Compile Include="SqlClientRegistrar.cs" />
-    <Compile Include="SqlClientParameterBuilder.cs" />
-    <Compile Include="SqlClientRegistrarCaller.cs" />
-    <Compile Include="SqlClientSchemaExtractor.cs" />
-    <Compile Include="SqlClientSqlStringBuilder.cs" />
+    <Compile Include="MsSqlConnectionStringResolver.cs" />
+    <Compile Include="MsSqlCredentials.cs" />
+    <Compile Include="MsSqlDatabaseInitializer.cs" />
+    <Compile Include="MsSqlQuerySet.cs" />
+    <Compile Include="MsSqlRegistrar.cs" />
+    <Compile Include="MsSqlParameterBuilder.cs" />
+    <Compile Include="MsSqlRegistrarCaller.cs" />
+    <Compile Include="MsSqlSchemaExtractor.cs" />
+    <Compile Include="MsSqlSqlStringBuilder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Brevitee.Data.Schema\Brevitee.Data.Schema.csproj">
-      <Project>{D2C2B1C0-1047-4211-92FC-37F332861161}</Project>
+      <Project>{d2c2b1c0-1047-4211-92fc-37f332861161}</Project>
       <Name>Brevitee.Data.Schema</Name>
     </ProjectReference>
     <ProjectReference Include="..\Brevitee.Data\Brevitee.Data.csproj">
@@ -102,6 +105,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

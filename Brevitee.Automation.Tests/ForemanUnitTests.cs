@@ -277,6 +277,8 @@ namespace Brevitee.Automation.Tests
         public void ShouldBeAbleToRunJobWithSpecifiedStepNumber()
         {
             string name = MethodBase.GetCurrentMethod().Name;
+			TestWorker.ValueToCheck = false;
+			StepTestWorker.ValueToCheck = false;
             Foreman fm = GetTestForeman(name);
             string jobName = "Job_" + name;
 

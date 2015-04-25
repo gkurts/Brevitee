@@ -10,6 +10,8 @@ namespace Brevitee.Logging
 {
     public static class Log
     {
+		static ILogger _defaultLogger;
+		static object _defaultLoggerLock = new object();
         /// <summary>
         /// Represents the default logger determined by the configuration 
         /// file.
@@ -18,8 +20,12 @@ namespace Brevitee.Logging
         {
             get
             {
-                return GetDefaultLogger();
+				return _defaultLoggerLock.DoubleCheckLock(ref _defaultLogger, () => GetDefaultLogger());
             }
+			set
+			{
+				_defaultLogger = value;				
+			}
         }
 
         /// <summary>

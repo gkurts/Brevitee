@@ -7,8 +7,6 @@ namespace Brevitee.Data
 {
     public abstract class ParameterParser: IParameterInfoParser
     {
-        #region IComparisonParser Members
-
         public abstract IEnumerable<IFilterToken> Filters
         {
             get;
@@ -58,7 +56,5 @@ namespace Brevitee.Data
 
             return builder.ToString();
         }
-
-        #endregion
     }
 }

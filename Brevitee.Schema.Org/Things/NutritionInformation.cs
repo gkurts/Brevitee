@@ -19,7 +19,7 @@ namespace Brevitee.Schema.Org
 		public Mass ProteinContent {get; set;}
 		///<summary>The number of grams of saturated fat.</summary>
 		public Mass SaturatedFatContent {get; set;}
-		///<summary>The serving size, in terms of the number of volume or mass</summary>
+		///<summary>The serving size, in terms of the number of volume or mass.</summary>
 		public Text ServingSize {get; set;}
 		///<summary>The number of milligrams of sodium.</summary>
 		public Mass SodiumContent {get; set;}

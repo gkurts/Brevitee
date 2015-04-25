@@ -14,6 +14,9 @@ using Brevitee;
 
 namespace Brevitee
 {
+	/// <summary>
+	/// Container for serialization related extensioni methods
+	/// </summary>
     public static class SerializationExtensions
     {
         /// <summary>
@@ -102,6 +105,35 @@ namespace Brevitee
             return formatter.Deserialize(stream);
         }
 
+		/// <summary>
+		/// Get the ammount of memory occupied by the 
+		/// specified target (current target if used as extension method)
+		/// </summary>
+		/// <param name="target"></param>
+		/// <returns></returns>
+		public static int MemorySize(this object target)
+		{
+			byte[] ignore;
+			return MemorySize(target, out ignore);
+		}
+
+		public static int MemorySize(this object target, out byte[] byteStream)
+		{
+			byteStream = ToBinaryBytes(target);
+			return byteStream.Length;
+		}
+		public static long LongMemorySize(this object target)
+		{
+			byte[] ignore;
+			return LongMemorySize(target, out ignore);
+		}
+
+		public static long LongMemorySize(this object target, out byte[] byteStream)
+		{
+			byteStream = ToBinaryBytes(target);
+			return byteStream.LongLength;
+		}
+
         public static byte[] ToBinaryBytes(this object target)
         {
             return ToBinaryStream(target).GetBuffer();
@@ -119,10 +151,16 @@ namespace Brevitee
         public static void ToBinaryFile(this object target, string filePath)
         {
             FileMode mode = File.Exists(filePath) ? FileMode.Truncate : FileMode.Create;
+			FileInfo file = new FileInfo(filePath);
+			if (!file.Directory.Exists)
+			{
+				file.Directory.Create();
+			}
             using (FileStream fs = new FileStream(filePath, mode))
             {
                 byte[] binary = target.ToBinaryBytes();
                 fs.Write(binary, 0, binary.Length);
+				fs.Flush();				
             }            
         }
 
@@ -203,6 +241,14 @@ namespace Brevitee
             MemoryStream ms = new MemoryStream(xmlBytes);
             return (T)ser.Deserialize(ms);
         }
+
+		public static object FromXml(this string xml, Type type, Encoding encoding = null)
+		{
+			XmlSerializer ser = new XmlSerializer(type);
+			byte[] xmlBytes = encoding.GetBytes(xml);
+			MemoryStream ms = new MemoryStream(xmlBytes);
+			return ser.Deserialize(ms);
+		}
 
         static object fromXmlProxy = new object();
         public static void SetPropertiesFromXml<T>(object target, string filePath)

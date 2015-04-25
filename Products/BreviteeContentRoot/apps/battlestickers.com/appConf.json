@@ -1,0 +1,6 @@
+{
+  "Name": "battlestickers.com",
+  "DefaultLayout": "basic",
+  "GenerateDao": true,
+  "CheckDaoHashes": true
+}

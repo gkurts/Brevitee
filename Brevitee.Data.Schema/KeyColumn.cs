@@ -10,6 +10,8 @@ namespace Brevitee.Data.Schema
     /// </summary>
     public class KeyColumn: Column
     {
+		public KeyColumn() { }
+
         public KeyColumn(Column c)
             : base(c.TableName)
         {

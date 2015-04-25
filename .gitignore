@@ -30,7 +30,6 @@ obj/
 [Rr]elease*/
 _ReSharper*/
 [Tt]est[Rr]esult*
-Products/*
 Bryan.Apellanes.suo
 
 *.dll
@@ -44,3 +43,8 @@ packages/
 *.nupkg
 *.cab
 *.msi
+Products/BryanToolkit/BryanToolkit-cache/cacheIndex.txt
+Products/BryanToolkit/BryanToolkit-cache/part1/disk1.cab
+Products/BryanToolkit/BryanToolkit-SetupFiles/BryanToolkit.msi
+ProjectTemplates/BAMvvm/App_Data/DaoRef.sqlite
+node_modules/

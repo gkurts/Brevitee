@@ -80,8 +80,7 @@ namespace Brevitee.Encryption.Tests
 
         [ConsoleAction("Copy vault")]
         public void CopyVault()
-        {
-            
+        {            
             string copyTo = Prompt("Enter the name of the new vault");
 
             if (Current == null)

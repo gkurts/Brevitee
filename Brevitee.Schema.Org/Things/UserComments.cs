@@ -10,7 +10,7 @@ namespace Brevitee.Schema.Org
 		///<summary>The time at which the UserComment was made.</summary>
 		public Date CommentTime {get; set;}
 		///<summary>The creator/author of this CreativeWork or UserComments. This is the same as the Author property for CreativeWork.</summary>
-		public ThisOrThat<Organization, Person> Creator {get; set;}
+		public ThisOrThat<Organization , Person> Creator {get; set;}
 		///<summary>Specifies the CreativeWork associated with the UserComment.</summary>
 		public CreativeWork Discusses {get; set;}
 		///<summary>The URL at which a reply may be posted to the specified UserComment.</summary>

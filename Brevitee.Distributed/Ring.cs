@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Brevitee.Distributed
 {
-    public abstract class Ring<T> : Ring where T: IRepositoryProvider
+    public abstract class Ring<T> : Ring where T: IDistributedRepository
     {
         public void AddSlot(T slotValue)
         {
@@ -89,7 +89,7 @@ namespace Brevitee.Distributed
 
         public abstract int GetRepositoryKey(object value);
 
-        protected abstract Slot FindSlot(int key);
+        protected abstract Slot FindSlotByKey(int key);
 
         /// <summary>
         /// When implemented by a derived class should 
@@ -136,6 +136,7 @@ namespace Brevitee.Distributed
             SlotSize = keysPerSlot;
             slots.Each((s, i) =>
             {
+				s.Index = i;
                 s.Parent = this;
                 s.Keyspace = new Keyspace(startKey, endKey);
                 startKey = endKey + 1;

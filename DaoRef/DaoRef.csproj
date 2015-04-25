@@ -44,22 +44,100 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="generated\DaoReferenceObject.cs" />
-    <Compile Include="generated\DaoReferenceObjectCollection.cs" />
-    <Compile Include="generated\DaoReferenceObjectColumns.cs" />
-    <Compile Include="generated\DaoReferenceObjectWithForeignKey.cs" />
-    <Compile Include="generated\DaoReferenceObjectWithForeignKeyCollection.cs" />
-    <Compile Include="generated\DaoReferenceObjectWithForeignKeyColumns.cs" />
-    <Compile Include="generated\Qi\DaoReferenceObject.cs" />
-    <Compile Include="generated\Qi\DaoReferenceObjectWithForeignKey.cs" />
-    <Compile Include="generated\Qi\TestFkTable.cs" />
-    <Compile Include="generated\Qi\TestTable.cs" />
-    <Compile Include="generated\TestFkTable.cs" />
-    <Compile Include="generated\TestFkTableCollection.cs" />
-    <Compile Include="generated\TestFkTableColumns.cs" />
-    <Compile Include="generated\TestTable.cs" />
-    <Compile Include="generated\TestTableCollection.cs" />
-    <Compile Include="generated\TestTableColumns.cs" />
+    <Compile Include="daoref_Generated\DaoRefContext.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\DaoReferenceObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\DaoReferenceObjectCollection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\DaoReferenceObjectColumns.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\DaoReferenceObjectWithForeignKey.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\DaoReferenceObjectWithForeignKeyCollection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\DaoReferenceObjectWithForeignKeyColumns.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\Left.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\LeftCollection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\LeftColumns.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\LeftRight.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\LeftRightCollection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\LeftRightColumns.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\Qi\DaoReferenceObject.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\Qi\DaoReferenceObjectWithForeignKey.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\Qi\Left.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\Qi\LeftRight.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\Qi\Right.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\Qi\TestFkTable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\Qi\TestTable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\Right.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\RightCollection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\RightColumns.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\TestFkTable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\TestFkTableCollection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\TestFkTableColumns.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\TestTable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\TestTableCollection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="daoref_Generated\TestTableColumns.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Partials\DaoReferenceObject.cs" />
+    <Compile Include="Partials\DaoReferenceObjectWithForeignKey.cs" />
+    <Compile Include="Partials\Left.cs" />
+    <Compile Include="Partials\LeftRight.cs" />
+    <Compile Include="Partials\Right.cs" />
+    <Compile Include="Partials\TestFkTable.cs" />
+    <Compile Include="Partials\TestTable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -71,6 +149,9 @@
       <Project>{8794c09d-d72c-420c-812f-bfda251b64c9}</Project>
       <Name>Brevitee</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="daoref.db.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

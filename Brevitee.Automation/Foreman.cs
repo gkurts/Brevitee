@@ -9,7 +9,6 @@ using Brevitee.Profiguration;
 using Brevitee.ServiceProxy;
 using Brevitee.Data;
 using Brevitee.Analytics;
-using Brevitee.Analytics.Metrics;
 using Brevitee.Logging;
 using Brevitee.Configuration;
 using System.Threading;
@@ -86,7 +85,7 @@ namespace Brevitee.Automation
         {
             get
             {
-                return _messageRootLock.DoubleCheckLock(ref _messageRoot, () => new IpcMessageRoot(Path.Combine(JobsDirectory, "Suspended")));
+                return _messageRootLock.DoubleCheckLock(ref _messageRoot, () => new IpcMessageRoot(System.IO.Path.Combine(JobsDirectory, "Suspended")));
             }
         }
 
@@ -96,7 +95,7 @@ namespace Brevitee.Automation
         {
             get
             {
-                return _profigurationSetLock.DoubleCheckLock(ref _profigurationSet, () => new ProfigurationSet(Path.Combine(JobsDirectory, "ProfigurationSet")));
+				return _profigurationSetLock.DoubleCheckLock(ref _profigurationSet, () => new ProfigurationSet(System.IO.Path.Combine(JobsDirectory, "ProfigurationSet")));
             }
         }
 
@@ -270,7 +269,7 @@ namespace Brevitee.Automation
         }
         protected internal bool JobExists(string name, out string jobDirectoryPath)
         {
-            jobDirectoryPath = Path.Combine(JobsDirectory, name);
+			jobDirectoryPath = System.IO.Path.Combine(JobsDirectory, name);
             return Directory.Exists(jobDirectoryPath);
         }
 
@@ -408,7 +407,7 @@ namespace Brevitee.Automation
 
         protected string GetJobDirectoryPath(string name)
         {
-            return Path.Combine(JobsDirectory, name);
+			return System.IO.Path.Combine(JobsDirectory, name);
         }
     }
 }

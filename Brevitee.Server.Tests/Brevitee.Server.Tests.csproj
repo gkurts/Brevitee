@@ -77,13 +77,16 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\EcmaScript.Net.1.0.1.0\lib\net20\EcmaScript.NET.dll</HintPath>
     </Reference>
-    <Reference Include="FakeItEasy">
+    <Reference Include="FakeItEasy, Version=1.18.0.0, Culture=neutral, PublicKeyToken=eff28e2146d5fd2c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\FakeItEasy.1.18.0\lib\net40\FakeItEasy.dll</HintPath>
     </Reference>
-    <Reference Include="Ionic.Zip">
+    <Reference Include="Ionic.Zip, Version=1.9.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\DotNetZip.1.9.2\lib\net20\Ionic.Zip.dll</HintPath>
     </Reference>
-    <Reference Include="Moq">
+    <Reference Include="Moq, Version=4.2.1312.1622, Culture=neutral, PublicKeyToken=69f491c39445e920, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Moq.4.2.1312.1622\lib\net40\Moq.dll</HintPath>
     </Reference>
     <Reference Include="System" />
@@ -165,6 +168,10 @@
     <ProjectReference Include="..\Brevitee.Logging\Brevitee.Logging.csproj">
       <Project>{15e91407-00d6-4edf-b75c-bc817a75c8ad}</Project>
       <Name>Brevitee.Logging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Management\Brevitee.Management.csproj">
+      <Project>{4dd9e087-886b-4f74-9529-1aca3ebf4006}</Project>
+      <Name>Brevitee.Management</Name>
     </ProjectReference>
     <ProjectReference Include="..\Brevitee.Server\Brevitee.Server.csproj">
       <Project>{6cd8ffb4-35ca-44ac-803d-cb9d4cb524a0}</Project>

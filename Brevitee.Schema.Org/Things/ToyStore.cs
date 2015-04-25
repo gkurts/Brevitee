@@ -2,7 +2,7 @@ using System;
 
 namespace Brevitee.Schema.Org
 {
-	///<summary>A toystore.</summary>
+	///<summary>A toy store.</summary>
 	public class ToyStore: Store
 	{
 	}

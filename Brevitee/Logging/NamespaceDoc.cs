@@ -6,7 +6,7 @@ using System.Text;
 namespace Brevitee.Logging
 {
     /// <summary>
-    ///The Brevitee.Logging namespace contains classes, interfaces and value types used to aide
+    /// The Brevitee.Logging namespace contains classes, interfaces and value types used to aide
     /// in log management.
     /// </summary>
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

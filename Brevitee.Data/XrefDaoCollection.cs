@@ -9,12 +9,12 @@ using Brevitee;
 namespace Brevitee.Data
 {
     /// <summary>
-    /// 
+    /// A collection that represents a cross reference between its
+	/// parents and the table represented by L.
     /// </summary>
-    /// <typeparam name="P">The parent type</typeparam>
     /// <typeparam name="X">The Xref type</typeparam>
     /// <typeparam name="L">The list type</typeparam>
-    public class XrefDaoCollection<X, L>: PagedEnumerator<L>, IEnumerable<L>, ICommittable, IHasDataTable
+    public class XrefDaoCollection<X, L>: PagedEnumerator<L>, IEnumerable<L>, ILoadable, IHasDataTable, IAddable
         where X: Dao, new()
         where L : Dao, new()            
     {
@@ -26,9 +26,10 @@ namespace Brevitee.Data
             this.Parent = parent;
             this._values = new List<L>();
             this._book = new Book<L>();
+
             if (load)
             {
-                Load();
+                Load(parent.Database);
             }
         }
 
@@ -75,8 +76,32 @@ namespace Brevitee.Data
             Load();
         }
 
+		Database _database;
+		public Database Database
+		{
+			get
+			{
+				if (_database == null)
+				{
+					_database = Db.For<L>();
+				}
+
+				return _database;
+			}
+			set
+			{
+				_database = value;
+				SetEachDatabase(_database);
+			}
+		}
+
+		public void Load()
+		{
+			Load(Database);
+		}
+
         object _loadLock = new object();
-        public void Load()
+        public void Load(Database db)
         {
             if (!_loaded)
             {
@@ -84,7 +109,6 @@ namespace Brevitee.Data
                 {
                     if (!_loaded)
                     {
-                        Database db = Db.For<L>();
                         XrefsByListId = new Dictionary<long, X>();
 
                         QuerySet q = Dao.GetQuerySet(db);
@@ -98,7 +122,7 @@ namespace Brevitee.Data
                             
                             foreach (DataRow row in q.Results[0].DataTable.Rows)
                             {
-                                long id = (long)row[ListColumnName];
+								long id = Convert.ToInt64(row[ListColumnName]);//(long)row[ListColumnName];
                                 ids.Add(id);
                                 X xref = new X();
                                 xref.DataRow = row;                                
@@ -107,7 +131,7 @@ namespace Brevitee.Data
 
                             QuerySet q2 = Dao.GetQuerySet(db);                          
                             QueryFilter filter = new QueryFilter(Dao.GetKeyColumnName<L>());
-                            filter.In(ids.ToArray());
+                            filter.In(ids.ToArray(), db.ParameterPrefix);
                             q2.Select<L>().Where(filter);
                             
                             q2.Execute(db);
@@ -152,6 +176,14 @@ namespace Brevitee.Data
             _book = new Book<L>(_values);
         }
 
+		public L this[int index]
+		{
+			get
+			{
+				return _values[index];
+			}
+		}
+
         /// <summary>
         /// Removes the specified item from this collection, deletes the xref entry but
         /// does not delete the item from the database
@@ -190,6 +222,7 @@ namespace Brevitee.Data
             foreach (DataRow row in table.Rows)
             {
                 L dao = (L)_ctor.Invoke(new object[] { row });
+				dao.Database = Database;
                 _values.Add(dao);
             }
             _book = new Book<L>(_values);
@@ -218,28 +251,35 @@ namespace Brevitee.Data
 
         #region ICommittable Members
         
-        public void Commit()
+		public void Commit()
+		{
+			Commit(Database);
+		}
+
+        public void Commit(Database db = null)
         {
-            Database db = Db.For<L>();
+			db = db ?? Database;
             SqlStringBuilder sql = db.ServiceProvider.Get<SqlStringBuilder>();
             WriteCommit(sql);
 
             sql.Execute(db);
         }
 
-        public void WriteCommit(SqlStringBuilder sql)
+        public void WriteCommit(SqlStringBuilder sql, Database db = null)
         {
+			db = db ?? Database;
             foreach (L item in this._values)
             {
-                EnsureXref(item);
-                item.WriteCommit(sql);
+                EnsureXref(item, db);
+                item.WriteCommit(sql, db);
 
                 sql.Go();
             }
         }
 
-        private X EnsureXref(L item)
+        private X EnsureXref(L item, Database db = null)
         {
+			db = db ?? Database;
             if (item.IdValue != null && XrefsByListId.ContainsKey(item.IdValue.Value))
             {
                 return XrefsByListId[item.IdValue.Value];
@@ -248,13 +288,12 @@ namespace Brevitee.Data
             {
                 if (item.IsNew)
                 {
-                    item.Save();
+                    item.Save(db);
                 }
 
                 X result = null;
-                QuerySet q = new QuerySet();
+				QuerySet q = Dao.GetQuerySet(db);//db.ServiceProvider.Get<QuerySet>();//new QuerySet();
                 q.Select<X>().Where(new QueryFilter(ListColumnName) == item.IdValue.Value && new QueryFilter(ParentColumnName) == Parent.IdValue);
-                Database db = Db.For<X>();
 
                 q.Execute(db);
                 if (q.Results[0].DataTable.Rows.Count > 0)
@@ -267,7 +306,7 @@ namespace Brevitee.Data
                     result = new X();
                     result.SetValue(string.Format("{0}Id", Parent.GetType().Name), Parent.IdValue);
                     result.SetValue(string.Format("{0}Id", typeof(L).Name), item.IdValue);
-                    result.Save();                    
+                    result.Save(db);                    
 
                     XrefsByListId.Add(item.IdValue.Value, result);
                 }
@@ -353,5 +392,23 @@ namespace Brevitee.Data
 
             return results;
         }
-    }
+
+		#region IAddable Members
+
+		public void Add(object value)
+		{
+			this.Add((L)value);
+		}
+
+
+		#endregion
+		
+		private void SetEachDatabase(Database db)
+		{
+			foreach (Dao dao in this)
+			{
+				dao.Database = db;
+			}
+		}
+	}
 }

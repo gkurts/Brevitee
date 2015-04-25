@@ -11,10 +11,10 @@ namespace Brevitee.Schema.Org
 		public Text AddressLocality {get; set;}
 		///<summary>The region. For example, CA.</summary>
 		public Text AddressRegion {get; set;}
+		///<summary>The post office box number for PO box addresses.</summary>
+		public Text PostOfficeBoxNumber {get; set;}
 		///<summary>The postal code. For example, 94043.</summary>
 		public Text PostalCode {get; set;}
-		///<summary>The post offce box number for PO box addresses.</summary>
-		public Text PostOfficeBoxNumber {get; set;}
 		///<summary>The street address. For example, 1600 Amphitheatre Pkwy.</summary>
 		public Text StreetAddress {get; set;}
 	}

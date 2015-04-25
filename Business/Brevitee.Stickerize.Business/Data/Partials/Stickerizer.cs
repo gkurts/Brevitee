@@ -79,11 +79,11 @@ namespace Brevitee.Stickerize.Business.Data
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static Stickerizer Create(string name)
+        public static Stickerizer Create(string name, Database db = null)
         {
             lock (_createLock)
             {
-                Stickerizer result = Stickerizer.OneWhere(c => c.Name == name);
+                Stickerizer result = Stickerizer.OneWhere(c => c.Name == name, db);
                 if (result == null)
                 {
                     result = new Stickerizer();
@@ -91,7 +91,7 @@ namespace Brevitee.Stickerize.Business.Data
                     result.DisplayName = name;
                     result.UserName = name;
                     result.Created = DateTime.UtcNow.Date;
-                    result.Save();
+                    result.Save(db);
                 }
 
                 return result;

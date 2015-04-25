@@ -7,7 +7,7 @@ using System.IO;
 
 namespace Brevitee.Server.Renderers
 {
-    public class Base64Renderer: RendererBase
+    public class Base64Renderer: Renderer
     {
         public Base64Renderer()
             : base("text/plain; charset=utf-8")

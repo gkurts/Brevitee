@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Reflection;
+using System.IO;
 using Brevitee.Logging;
 using Brevitee.CommandLine;
 using Brevitee.Configuration;
@@ -17,83 +18,90 @@ namespace Brevitee.Testing
         {
             InitLogger();
         }
-    
+
         public const string UnitTestAttribute = "UnitTestAttribute";
 
         protected static ILogger logger;
-        public static LogEntryAddedListener MessageToConsole;
+		public static LogEntryAddedListener MessageToConsole { get; set; }
         protected static bool interactive;
 
         protected static MethodInfo DefaultMethod { get; set; }
 
-        protected static void Initialize(string[] args)
-        {
-            ArgsParsedError += delegate(ParsedArguments a)
-            {
-                throw new ArgumentException(a.Message);
-            };
+		protected static void Initialize(string[] args)
+		{
+			ArgsParsedError += delegate(ParsedArguments a)
+			{
+				throw new ArgumentException(a.Message);
+			};
 
-            ArgsParsed += new ConsoleArgsParsedDelegate(ArgumentParsingComplete);
+			ArgsParsed += new ConsoleArgsParsedDelegate(ArgumentParsingComplete);
 
-            interactive = false;
+			interactive = false;
 
-            AddValidArgument("i", true, "Run interactively");
-            AddValidArgument("?", true, "Show usage");
+			AddValidArgument("i", true, "Run interactively");
+			AddValidArgument("?", true, "Show usage");
+			AddValidArgument("t", true, "Run all tests");
 
-            ParseArgs(args);
-            int? exitCode = 0;
-            TestFailed += (o, t) =>
-            {
-                Out("Test Failed: " + t.ConsoleInvokeableMethod.Information + "\r\n", ConsoleColor.Red);
-                Out(t.Exception.Message, ConsoleColor.Magenta);
-                Out();
-                Out(t.Exception.StackTrace, ConsoleColor.Red);
-                Out("---", ConsoleColor.Red);
-                Out();
-                exitCode = 1;
-            };
+			ParseArgs(args);
+			int? exitCode = 0;
+			TestFailed += (o, t) =>
+			{
+				Out("Test Failed: " + t.ConsoleInvokeableMethod.Information + "\r\n", ConsoleColor.Red);
+				Out(t.Exception.Message, ConsoleColor.Magenta);
+				Out();
+				Out(t.Exception.StackTrace, ConsoleColor.Red);
+				Out("---", ConsoleColor.Red);
+				Out();
+				exitCode = 1;
+			};
 
-            if (Arguments.Contains("?"))
-            {
-                Usage(Assembly.GetEntryAssembly());
-                Exit(exitCode.Value);
-            }
-            else if (!Arguments.Contains("i"))
-            {
-                if (DefaultMethod != null)
-                {
-                    Expect.IsTrue(DefaultMethod.IsStatic, "DefaultMethod must be static.");
-                    if (DefaultMethod.GetParameters().Length > 0)
-                    {
-                        DefaultMethod.Invoke(null, new object[] { Arguments });
-                    }
-                    else
-                    {
-                        DefaultMethod.Invoke(null, null);
-                    }
-                    return;
-                }
-                else
-                {
-                    RunAllTests(Assembly.GetEntryAssembly());
-                    return;
-                }
-            }
-
-            Interactive();
-        }
+			if (Arguments.Contains("?"))
+			{
+				Usage(Assembly.GetEntryAssembly());
+				Exit(exitCode.Value);
+			}
+			else if (Arguments.Contains("i"))
+			{
+				Interactive();
+			}
+			else
+			{
+				if (DefaultMethod != null)
+				{
+					Expect.IsTrue(DefaultMethod.IsStatic, "DefaultMethod must be static.");
+					if (DefaultMethod.GetParameters().Length > 0)
+					{
+						DefaultMethod.Invoke(null, new object[] { Arguments });
+					}
+					else
+					{
+						DefaultMethod.Invoke(null, null);
+					}
+					return;
+				}
+				else if (Arguments.Contains("t"))
+				{
+					RunAllTests(Assembly.GetEntryAssembly());
+					return;
+				}
+			}
+		}
 
         protected static void InitLogger()
         {
             logger = Log.CreateLogger(typeof(ConsoleLogger));
             ((ConsoleLogger)logger).UseColors = true;
+			logger.StartLoggingThread();
             logger.EntryAdded += new LogEntryAddedListener(logger_EntryAdded);
         }
 
+		protected static bool IsInteractive { get; set; }
+
         protected static void Interactive()
         {
+			IsInteractive = true;
             AddMenu(Assembly.GetEntryAssembly(), "Main", 'm', new ConsoleMenuDelegate(ShowMenu));
-            AddMenu(Assembly.GetEntryAssembly(), "Test", 't', new ConsoleMenuDelegate(TestMenu));
+            AddMenu(Assembly.GetEntryAssembly(), "Test", 't', new ConsoleMenuDelegate(UnitTestMenu));
 
             ShowMenu(Assembly.GetEntryAssembly(), OtherMenus.ToArray(), "Main");
         }
@@ -122,10 +130,10 @@ namespace Brevitee.Testing
             OutLineFormat("{0}:Passed", ConsoleColor.Green, text);
         }
 
-        public static void TestMenu(Assembly assemblyToAnalyze, ConsoleMenu[] otherMenus, string header)
+        public static void UnitTestMenu(Assembly assemblyToAnalyze, ConsoleMenu[] otherMenus, string header)
         {
             Console.WriteLine(header);
-            List<ConsoleInvokeableMethod> tests = GetTests(assemblyToAnalyze);
+            List<ConsoleInvokeableMethod> tests = GetUnitTests(assemblyToAnalyze);
             ShowActions(tests);
             Console.WriteLine();
             Console.WriteLine("Q to quit\ttype all to run all tests.");
@@ -186,7 +194,7 @@ namespace Brevitee.Testing
 
             if (Confirm("Return to the Test menu? [y][N]"))
             {
-                TestMenu(assemblyToAnalyze, otherMenus, header);
+                UnitTestMenu(assemblyToAnalyze, otherMenus, header);
             }
             else
             {
@@ -210,7 +218,6 @@ namespace Brevitee.Testing
                     header.AppendFormat("******* Starting Test {0} ********\r\n", testName);
                     StringBuilder footer = new StringBuilder();
                     footer.AppendFormat("******* Finished Test {0} ********\r\n", testName);
-
                     InvokeSelection(tests, header.ToString(), footer.ToString(), selectedNumber);
                 }
                 else
@@ -227,7 +234,7 @@ namespace Brevitee.Testing
             }            
         }
 
-        protected static void RunAllTests(Assembly assemblyToAnalyze)
+        public static void RunAllTests(Assembly assemblyToAnalyze)
         {
             RunAllTests(assemblyToAnalyze, true);
         }
@@ -244,48 +251,58 @@ namespace Brevitee.Testing
 
 	    public static event EventHandler<ConsoleInvokeableMethod> TestPassed;
 
-        protected static void RunAllTests(Assembly assemblyToAnalyze, bool generateParameters)
-        {
-            List<ConsoleInvokeableMethod> tests = GetTests(assemblyToAnalyze);
-            if (tests.Count == 0)
-            {
-                Info("No tests were found in {0}", assemblyToAnalyze.FullName);
-                return;
-            }
+		protected internal static void RunAllTests(Assembly assemblyToAnalyze, bool generateParameters, bool finalOut = true)
+		{
+			List<ConsoleInvokeableMethod> tests = GetUnitTests(assemblyToAnalyze);
+			string assemblyName = assemblyToAnalyze.FullName;
+			if (tests.Count == 0)
+			{
+				OutLineFormat("No tests were found in {0}", ConsoleColor.Yellow, assemblyName);
+				return;
+			}
 
-            Info("Running all tests in {0}", assemblyToAnalyze.FullName);
-            int passedCount = 0;
-            int failedCount = 0;
-            foreach (ConsoleInvokeableMethod consoleMethod in tests)
-            {
-                try
-                {
-                    InvokeTest(consoleMethod, generateParameters);
-                    Pass(consoleMethod.Method.Name.PascalSplit(" "));
-                    passedCount++;
-                }
-                catch (Exception ex)
-                {
-                    if (ex.InnerException != null)
-                        ex = ex.InnerException;
+			OutLineFormat("Running all tests in {0}", ConsoleColor.Green, assemblyName);
+			OutLineFormat("\tFound {0} tests", ConsoleColor.Cyan, tests.Count);
+			RunAllTests(generateParameters, finalOut, tests);
+		}
+		
+		private static void RunAllTests(bool generateParameters, bool finalOut, List<ConsoleInvokeableMethod> tests)
+		{
+			int passedCount = 0;
+			int failedCount = 0;
+			foreach (ConsoleInvokeableMethod consoleMethod in tests)
+			{
+				try
+				{
+					InvokeTest(consoleMethod, generateParameters);
+					Pass(consoleMethod.Method.Name.PascalSplit(" "));
+					passedCount++;
+				}
+				catch (Exception ex)
+				{
+					if (ex.InnerException != null)
+						ex = ex.InnerException;
 
-                    OnTestFailed(consoleMethod, ex);
-                    failedCount++;
-                }
-            }
-            Out();
-            OutLine("********");
-            if (failedCount > 0)
-            {
-                OutLineFormat("({0}) tests passed", ConsoleColor.Green, passedCount);
-                OutLineFormat("({0}) tests failed", ConsoleColor.Red, failedCount);
-            }
-            else
-            {
-                OutLineFormat("All ({0}) tests passed", ConsoleColor.Green, passedCount);
-            }
-            OutLine("********");
-        }
+					OnTestFailed(consoleMethod, ex);
+					failedCount++;
+				}
+			}
+			if (finalOut)
+			{
+				Out();
+				OutLine("********");
+				if (failedCount > 0)
+				{
+					OutLineFormat("({0}) tests passed", ConsoleColor.Green, passedCount);
+					OutLineFormat("({0}) tests failed", ConsoleColor.Red, failedCount);
+				}
+				else
+				{
+					OutLineFormat("All ({0}) tests passed", ConsoleColor.Green, passedCount);
+				}
+				OutLine("********");
+			}
+		}
 
 	    private static void OnTestPassed(ConsoleInvokeableMethod consoleMethod) 
 		{
@@ -303,7 +320,7 @@ namespace Brevitee.Testing
 
         private static void InvokeTest(ConsoleInvokeableMethod consoleMethod)
         {
-            InvokeTest(consoleMethod, false);
+            InvokeTest(consoleMethod, true);
         }
 
         private static void InvokeTest(ConsoleInvokeableMethod consoleMethod, bool generateParameters)
@@ -312,7 +329,14 @@ namespace Brevitee.Testing
             MethodInfo invoke = typeof(ConsoleInvokeableMethod).GetMethod("Invoke");
             if (consoleMethod.Method.IsStatic)
             {
-                InvokeInSeparateAppDomain(invoke, consoleMethod);           
+				if(IsolateMethodCalls)
+				{
+					InvokeInSeparateAppDomain(invoke, consoleMethod);
+				}
+				else
+				{
+					InvokeInCurrentAppDomain(invoke, consoleMethod);
+				}
             }
             else
             {
@@ -325,7 +349,14 @@ namespace Brevitee.Testing
                 Expect.IsNotNull(instance, string.Format("Unable to instantiate declaring type {0} of method {1}", typeName, consoleMethod.Method.Name));
 
                 consoleMethod.Provider = instance;
-                InvokeInSeparateAppDomain(invoke, consoleMethod);
+				if(IsolateMethodCalls)
+				{
+					InvokeInSeparateAppDomain(invoke, consoleMethod);
+				}
+				else
+				{
+					InvokeInCurrentAppDomain(invoke, consoleMethod);
+				}
             }
         }
 
@@ -340,32 +371,21 @@ namespace Brevitee.Testing
             }
         }
 
-        public static List<ConsoleInvokeableMethod> GetTests(Assembly assemblyToAnalyze )
+        public static List<ConsoleInvokeableMethod> GetUnitTests(Assembly assemblyToAnalyze )
         {
-            Type[] testMethodAttributes = GetTestMethodAttributeTypes();
             List<ConsoleInvokeableMethod> tests =  new List<ConsoleInvokeableMethod>();
-            foreach (Type testMethodAttribute in testMethodAttributes)
-            {
-                 tests.AddRange(GetActions(assemblyToAnalyze, testMethodAttribute));
-            }
+			tests.AddRange(GetConsoleInvokeableMethods(assemblyToAnalyze, typeof(UnitTest)));
             tests.Sort((l, r) => l.Information.CompareTo(r.Information));
             return tests;
         }
-
-        private static Type[] GetTestMethodAttributeTypes()
-        {
-            List<Type> returnValues = new List<Type>();
-            returnValues.Add(typeof(UnitTest));
-
-            string attrName = DefaultConfiguration.GetAppSetting(UnitTestAttribute);
-            Type fromConfig = Type.GetType(attrName);
-            if (fromConfig != null)
-            {
-                returnValues.Add(fromConfig);
-            }
-            
-            return returnValues.ToArray();
-        }
+		
+		public static List<ConsoleInvokeableMethod> GetUnitTests(Type unitTestContainingClass)
+		{
+			List<ConsoleInvokeableMethod> tests = new List<ConsoleInvokeableMethod>();
+			tests.AddRange(GetConsoleInvokeableMethods(unitTestContainingClass, typeof(UnitTest)));
+			tests.Sort((l, r) => l.Information.CompareTo(r.Information));
+			return tests;
+		}
 
         public static void Info(string message)
         {
@@ -377,7 +397,6 @@ namespace Brevitee.Testing
         /// <param name="message">The message text to output.</param>
         public static void Info(string messageSignature, params object[] signatureVariableValues)
         {
-            //List<string> variableValues = ToStringArray(signatureVariableValues);
             logger.AddEntry(messageSignature, ToStringArray(signatureVariableValues));
         }
 

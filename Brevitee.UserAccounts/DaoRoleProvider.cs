@@ -146,9 +146,10 @@ namespace Brevitee.UserAccounts
             bool result = false;
             if (role != null)
             {
-                if (throwOnPopulatedRole && role.Users.Count > 0)
-                {
-                    throw new InvalidOperationException("({0}) Role is populated:\r\n{1}"._Format(roleName, role.Users.ToArray().ToDelimited(u => u.UserName, ", ")));
+                if (throwOnPopulatedRole && role.Users.Count > 0) 
+				{
+	                string[] userNames = role.Users.Select(u => u.UserName).ToArray();
+                    throw new InvalidOperationException("({0}) Role is populated:\r\n{1}"._Format(roleName, userNames.ToDelimited(u => u, ", ")));
                 }
                 else
                 {

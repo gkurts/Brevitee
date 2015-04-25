@@ -32,8 +32,26 @@ namespace Brevitee.Data.Schema
         public ForeignKeyColumn(string name, string tableName, string referencedTable)
             : this(new Column(name, tableName), referencedTable)
         {
-
         }
+
+		DataTypes _type;
+		public override DataTypes Type
+		{
+			get
+			{
+				if(_type != DataTypes.Int &&
+					_type != DataTypes.Long)
+				{
+					_type = DataTypes.Long;
+				}
+
+				return _type;
+			}
+			set
+			{
+				_type = value;
+			}
+		}
 
         string referenceName;
         public string ReferenceName

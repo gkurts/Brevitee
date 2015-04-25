@@ -2,36 +2,30 @@ using System;
 
 namespace Brevitee.Schema.Org
 {
-	///<summary>A television series.</summary>
-	public class TVSeries: CreativeWork
+	///<summary>Series dedicated to TV broadcast and associated online delivery.</summary>
+	public class TVSeries: Series
 	{
-		///<summary>A cast member of the movie, TV series, season, or episode, or video.</summary>
+		///<summary>A cast member of the movie, tv/radio series, season, episode, or video. Supersedes actors.</summary>
 		public Person Actor {get; set;}
-		///<summary>A cast member of the movie, TV series, season, or episode, or video. (legacy spelling; see singular form, actor)</summary>
-		public Person Actors {get; set;}
-		///<summary>The director of the movie, TV episode, or series.</summary>
+		///<summary>The director of the movie, tv/radio episode or series. Supersedes directors.</summary>
 		public Person Director {get; set;}
-		///<summary>The end date and time of the event (in ISO 8601 date format).</summary>
+		///<summary>The end date and time of the role, event or item (in ISO 8601 date format).</summary>
 		public Date EndDate {get; set;}
-		///<summary>An episode of a TV series or season.</summary>
-		public TVEpisode Episode {get; set;}
-		///<summary>The episode of a TV series or season (legacy spelling; see singular form, episode).</summary>
-		public TVEpisode Episodes {get; set;}
-		///<summary>The composer of the movie or TV soundtrack.</summary>
-		public ThisOrThat<MusicGroup, Person> MusicBy {get; set;}
+		///<summary>An episode of a TV/radio series or season Supersedes episodes.</summary>
+		public Episode Episode {get; set;}
+		///<summary>The composer of the movie or TV/radio soundtrack.</summary>
+		public ThisOrThat<MusicGroup , Person> MusicBy {get; set;}
 		///<summary>The number of episodes in this season or series.</summary>
 		public Number NumberOfEpisodes {get; set;}
-		///<summary>The producer of the movie, TV series, season, or episode, or video.</summary>
+		///<summary>The producer of the movie, tv/radio series, season, or episode, or video.</summary>
 		public Person Producer {get; set;}
-		///<summary>The production company or studio that made the movie, TV series, season, or episode, or video.</summary>
+		///<summary>The production company or studio that made the movie, tv/radio series, season, or episode, or media object.</summary>
 		public Organization ProductionCompany {get; set;}
-		///<summary>A season of a TV series.</summary>
-		public TVSeason Season {get; set;}
-		///<summary>The seasons of the TV series (legacy spelling; see singular form, season).</summary>
-		public TVSeason Seasons {get; set;}
-		///<summary>The start date and time of the event (in ISO 8601 date format).</summary>
+		///<summary>A season in a tv/radio series. Supersedes seasons.</summary>
+		public Season Season {get; set;}
+		///<summary>The start date and time of the event, role or item (in ISO 8601 date format).</summary>
 		public Date StartDate {get; set;}
-		///<summary>The trailer of the movie or TV series, season, or episode.</summary>
+		///<summary>The trailer of a movie or tv/radio series, season, or episode.</summary>
 		public VideoObject Trailer {get; set;}
 	}
 }

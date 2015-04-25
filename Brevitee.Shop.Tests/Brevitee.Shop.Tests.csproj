@@ -14,6 +14,8 @@
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
     <FileAlignment>512</FileAlignment>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -71,6 +73,10 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FakeItEasy, Version=1.24.0.0, Culture=neutral, PublicKeyToken=eff28e2146d5fd2c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\FakeItEasy.1.24.0\lib\net40\FakeItEasy.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -86,9 +92,29 @@
     <Compile Include="UnitTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Brevitee.Data.Model\Brevitee.Data.Model.csproj">
+      <Project>{26216f9a-dc1a-475d-a355-568e350c3690}</Project>
+      <Name>Brevitee.Data.Model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Data.SQLite\Brevitee.Data.SQLite.csproj">
+      <Project>{42339dbf-9389-42f8-9d28-4c523caa7b01}</Project>
+      <Name>Brevitee.Data.SQLite</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Data\Brevitee.Data.csproj">
+      <Project>{3b52b739-58fd-4b49-b815-6b317e701520}</Project>
+      <Name>Brevitee.Data</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Brevitee.Incubation\Brevitee.Incubation.csproj">
       <Project>{AA186331-A0D0-4F77-BEA2-E7B7650D3FF5}</Project>
       <Name>Brevitee.Incubation</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.ServiceProxy\Brevitee.ServiceProxy.csproj">
+      <Project>{8987d8c8-033b-4993-99f0-8dd5a4d6dd0d}</Project>
+      <Name>Brevitee.ServiceProxy</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Shop\Brevitee.Shop.csproj">
+      <Project>{32587940-9b33-4d08-8080-1a3075db62d1}</Project>
+      <Name>Brevitee.Shop</Name>
     </ProjectReference>
     <ProjectReference Include="..\Brevitee.Testing\Brevitee.Testing.csproj">
       <Project>{85212881-c676-4b40-b311-37c2d1706042}</Project>
@@ -105,8 +131,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

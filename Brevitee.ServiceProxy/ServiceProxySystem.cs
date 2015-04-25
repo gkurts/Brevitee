@@ -269,6 +269,13 @@ namespace Brevitee.ServiceProxy
             return new ServiceProxyClient<T>(baseAddress);
         }
 
+		/// <summary>
+		/// Get the MethodInfos for the specified type that will
+		/// be proxied if the specified type is registered as 
+		/// a service proxy.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <returns></returns>
         public static MethodInfo[] GetProxiedMethods(Type type)
         {
             List<MethodInfo> results = new List<MethodInfo>();

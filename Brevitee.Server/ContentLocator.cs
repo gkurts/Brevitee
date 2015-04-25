@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using Brevitee.Management;
 using Brevitee.Logging;
 
 namespace Brevitee.Server
@@ -19,38 +20,42 @@ namespace Brevitee.Server
         private ContentLocator(Fs rootToCheck)
             : this()
         {
-            this.RootToCheck = rootToCheck;
+            this.ContentRoot = rootToCheck;
         }
 
         public bool Locate(string path, out string outPath, out string[] checkedPaths)
         {
+			if (!path.StartsWith(Path.DirectorySeparatorChar.ToString()))
+			{
+				path = "{0}{1}"._Format(Path.DirectorySeparatorChar.ToString(), path);
+			}
             string ext = Path.GetExtension(path).ToLowerInvariant();
             string foundPath = string.Empty;
-            string checkNext = "~" + path;
-            Fs fs = RootToCheck;
+			string checkNext = Fs.CleanPath("~" + path);
+            Fs fs = ContentRoot;
             List<string> pathsChecked = new List<string>();
             pathsChecked.Add(checkNext);
 
-            if(fs.FileExists(checkNext))
+            if(!fs.FileExists(checkNext, out foundPath))
             {
-                foundPath = checkNext;
-            }
-            else
-            {
+				foundPath = string.Empty;
                 SearchRule[] extRules = _searchRules.Where(sr => sr.Ext.ToLowerInvariant().Equals(ext)).ToArray();
                 extRules.Each(rule =>
                 {
                     rule.SearchDirectories.Each(dir =>
                     {
-                        string subPath = path.StartsWith("/") ? path.TruncateFront(1) : path;
-                        checkNext = Path.Combine(dir, subPath).Replace("\\", "/");
+						string subPath = path.StartsWith(Path.DirectorySeparatorChar.ToString()) ? path.TruncateFront(1) : path;
+						checkNext = Fs.CleanPath(Path.Combine(dir, subPath));
                         pathsChecked.Add(checkNext);
 
-                        if (fs.FileExists(checkNext))
-                        {
-                            foundPath = checkNext;                            
+						if (fs.FileExists(checkNext, out foundPath))
+                        {                         
                             return false; // stop the each loop
-                        }
+						}
+						else
+						{
+							foundPath = string.Empty;
+						}
 
                         return true; // continue the each loop
                     });
@@ -69,7 +74,7 @@ namespace Brevitee.Server
             return !string.IsNullOrEmpty(foundPath);
         }
 
-        protected Fs RootToCheck
+        public Fs ContentRoot
         {
             get;
             set;
@@ -78,7 +83,7 @@ namespace Brevitee.Server
         public void Save()
         {
             string json = this.ToJson(true);
-            RootToCheck.WriteFile(FileName, json);
+            ContentRoot.WriteFile(FileName, json);
         }
 
         public static ContentLocator Load(AppContentResponder appContent)
@@ -87,6 +92,11 @@ namespace Brevitee.Server
             locator.AppName = appContent.AppConf.Name;
             return locator;
         }
+
+		public static ContentLocator Load(string rootToCheck)
+		{
+			return Load(new Fs(new DirectoryInfo(rootToCheck)));
+		}
 
         public static ContentLocator Load(Fs rootToCheck)
         {            
@@ -111,10 +121,13 @@ namespace Brevitee.Server
                 string[] cssDirs = new string[] { "~/css" };
                 locator.AddSearchRule(".css", cssDirs);
 
+				string[] jsDirs = new string[] { "~/js", "~/3rdParty", "~/common" };
+				locator.AddSearchRule(".js", jsDirs);
+
                 locator.Save();
             }
 
-            locator.RootToCheck = rootToCheck;
+            locator.ContentRoot = rootToCheck;
             return locator;
         }
 

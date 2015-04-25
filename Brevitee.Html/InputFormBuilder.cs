@@ -221,6 +221,10 @@ namespace Brevitee.Html
 			return MethodForm(type, "fieldset", methodName, null, out ignore);
 		}
 
+		public TagBuilder MethodForm(Type type, string wrapperTagName, string methodName, Dictionary<string, object> defaults, out int paramCount)
+		{
+			return MethodForm(type, wrapperTagName, methodName, defaults, false, out paramCount);
+		}
         /// <summary>
         /// Build a form to be used as parameters for the specified method
         /// </summary>
@@ -229,10 +233,13 @@ namespace Brevitee.Html
         /// <param name="defaults"></param>
         /// <param name="paramCount"></param>
         /// <returns></returns>
-        public TagBuilder MethodForm(Type type, string wrapperTagName, string methodName, Dictionary<string, object> defaults, out int paramCount)
+        public TagBuilder MethodForm(Type type, string wrapperTagName, string methodName, Dictionary<string, object> defaults, bool registerProxy, out int paramCount)
         {
             Args.ThrowIfNull(type, "InvocationType");
-            ServiceProxySystem.Register(type);
+			if(registerProxy)
+			{
+				ServiceProxySystem.Register(type);
+			}
 
             MethodInfo method = type.GetMethod(methodName);
         
@@ -367,6 +374,12 @@ namespace Brevitee.Html
             return FieldsetFor(paramType, defaultValues, name, 0);
         }
 
+		/// <summary>
+		/// Get a form to input the properties of the specified instance
+		/// </summary>
+		/// <param name="param"></param>
+		/// <param name="name"></param>
+		/// <returns></returns>
         public TagBuilder FieldsetFor(object param, string name = null)
         {
             if (param is Type)

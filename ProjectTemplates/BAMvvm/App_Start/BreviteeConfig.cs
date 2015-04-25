@@ -10,7 +10,7 @@ using Brevitee.ServiceProxy;
 using Brevitee.DaoRef;
 using Brevitee.Data.Schema;
 using LD = Brevitee.Logging.Data;
-using Brevitee.Analytics.Crawlers;
+using Brevitee.Analytics;
 using Brevitee.Profiguration;
 using Brevitee.Management;
 

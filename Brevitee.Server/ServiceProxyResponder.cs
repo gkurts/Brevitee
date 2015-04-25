@@ -13,11 +13,15 @@ using Brevitee.ServiceProxy;
 using Brevitee.ServiceProxy.Secure;
 using Brevitee.Web;
 using Brevitee.Server.Renderers;
+using Brevitee.Html;
+using System.Web.Mvc;
 
 namespace Brevitee.Server
 {
     public class ServiceProxyResponder: ResponderBase, IInitialize<ServiceProxyResponder>
     {
+		const string ServiceProxyRelativePath = "~/bin";
+		const string MethodFormPrefixFormat = "/{0}/MethodForm";
         static Dictionary<string, IRenderer> _renderers;
 
         static ServiceProxyResponder()
@@ -25,8 +29,8 @@ namespace Brevitee.Server
             
         }
 
-        public ServiceProxyResponder(BreviteeConf conf, ILogger logger, RequestHandler requestHandler)
-            : base(conf, logger, requestHandler)
+        public ServiceProxyResponder(BreviteeConf conf, ILogger logger)
+            : base(conf, logger)
         {
             this._commonServiceProvider = new Incubator();
             this._appServiceProviders = new Dictionary<string, Incubator>();
@@ -64,6 +68,12 @@ namespace Brevitee.Server
             private set;
         }
 
+		public ContentResponder ContentResponder
+		{
+			get;
+			set;
+		}
+	
         Incubator _commonServiceProvider;
         public Incubator CommonServiceProvider
         {
@@ -275,7 +285,7 @@ namespace Brevitee.Server
 
         public void RegisterProxiedClasses()
         {
-            string serviceProxyRelativePath = "~/bin";
+            string serviceProxyRelativePath = ServiceProxyRelativePath;
             List<string> registered = new List<string>();
             ForEachProxiedClass((type) =>
             {
@@ -290,11 +300,14 @@ namespace Brevitee.Server
                 AppServiceProviders[name] = new Incubator();
                 
                 DirectoryInfo appServicesDir = new DirectoryInfo(appConf.AppRoot.GetAbsolutePath(serviceProxyRelativePath));
-                ForEachProxiedClass(appServicesDir, (type) =>
+				Action<Type> serviceAdder = (type) =>
                 {
-                    this.AddAppService(appConf.Name, type.Construct());
-                });
-
+					object instance = type.Construct();
+					SubscribeIfLoggable(instance);
+                    this.AddAppService(appConf.Name, instance);
+                };
+                ForEachProxiedClass(appServicesDir, serviceAdder);
+				ForEachProxiedClass(appConf, appServicesDir, serviceAdder);
                 AddConfiguredServiceProxyTypes(appConf);
             });
         }
@@ -309,16 +322,26 @@ namespace Brevitee.Server
                     object instance = null;
                     if (type.TryConstruct(out instance))
                     {
+						SubscribeIfLoggable(instance);
                         this.AddAppService(appConf.Name, instance);
                     }
                 }
             });
         }
 
+		private void SubscribeIfLoggable(object instance)
+		{
+			Loggable loggable = instance as Loggable;
+			if (loggable != null)
+			{
+				loggable.Subscribe(Logger);
+			}
+		}
+
         private void ForEachProxiedClass(Action<Type> doForEachProxiedType)
         {   
-            string serviceProxyRelativePath = "~/bin";
-            DirectoryInfo ctrlrDir = new DirectoryInfo(Fs.GetAbsolutePath(serviceProxyRelativePath));
+            string serviceProxyRelativePath = ServiceProxyRelativePath;
+            DirectoryInfo ctrlrDir = new DirectoryInfo(ServerRoot.GetAbsolutePath(serviceProxyRelativePath));
             if(ctrlrDir.Exists)
             {
                 ForEachProxiedClass(ctrlrDir, doForEachProxiedType);
@@ -329,11 +352,27 @@ namespace Brevitee.Server
             }
         }
 
-        private void ForEachProxiedClass(DirectoryInfo ctrlrDir, Action<Type> doForEachProxiedType)
+		private void ForEachProxiedClass(AppConf appConf, DirectoryInfo ctrlrDir, Action<Type> doForEachProxiedType)
+		{
+			foreach (string searchPattern in appConf.ServiceProxySearchPatterns)
+			{
+				ForEachProxiedClass(searchPattern, ctrlrDir, doForEachProxiedType);
+			}
+		}
+
+		private void ForEachProxiedClass(DirectoryInfo ctrlrDir, Action<Type> doForEachProxiedType)
+		{
+			foreach(string searchPattern in BreviteeConf.ServiceSearchPatterns)
+			{
+				ForEachProxiedClass(searchPattern, ctrlrDir, doForEachProxiedType);
+			}
+		}
+
+		private void ForEachProxiedClass(string searchPattern, DirectoryInfo ctrlrDir, Action<Type> doForEachProxiedType)
         {
             if (ctrlrDir.Exists)
             {
-                FileInfo[] files = ctrlrDir.GetFiles(BreviteeConf.ServiceSearchPattern);
+                FileInfo[] files = ctrlrDir.GetFiles(searchPattern);
                 int ol = files.Length;
                 for (int i = 0; i < ol; i++)
                 {
@@ -375,8 +414,6 @@ namespace Brevitee.Server
             return results.ToArray();
         }
 
-        #region IResponder Members
-
         protected virtual string[] ProxyFileNames
         {
             get
@@ -409,7 +446,7 @@ namespace Brevitee.Server
                 ResponseWrapper response = context.Response as ResponseWrapper;
                 string appName = AppConf.AppNameFromUri(request.Url);
 
-                bool returnValue = false;
+                bool responded = false;
 
                 if (request != null && response != null)
                 {
@@ -417,61 +454,31 @@ namespace Brevitee.Server
 
                     if (path.StartsWith("/{0}"._Format(ResponderSignificantName.ToLowerInvariant())))
                     {
-                        string[] split = path.DelimitSplit("/", ".");                       
-                        
-                        if (split.Length >= 2)
-                        {
-                            string fileName = Path.GetFileName(path);
-                            if (JsProxyFileNames.Contains(fileName))
-                            {
-                                SendJsProxyScript(request, response);
-                                returnValue = true;
-                            }
-                            else if (CsProxyFileNames.Contains(fileName))
-                            {
-                                SendCsProxyCode(request, response);
-                                returnValue = true;
-                            }
-                        }
+						if (path.StartsWith(MethodFormPrefixFormat._Format(ResponderSignificantName).ToLowerInvariant()))
+						{
+							responded = SendMethodForm(context, appName);
+						}
+						else
+						{
+							responded = SendProxyCode(request, response, path);
+						}
                     }
                     else
                     {
-                        Incubator temp = new Incubator();
-                        
-                        List<ProxyAlias> aliases = new List<ProxyAlias>(GetProxyAliases(ServiceProxySystem.Incubator));
-                        temp.CopyFrom(ServiceProxySystem.Incubator, true);
-
-                        aliases.AddRange(GetProxyAliases(CommonServiceProvider));                        
-                        temp.CopyFrom(CommonServiceProvider, true);
-
-                        if (AppServiceProviders.ContainsKey(appName))
+						ExecutionRequest execRequest = CreateExecutionRequest(context, appName);
+						using (StreamReader sr = new StreamReader(request.InputStream))
+						{
+							execRequest.InputString = sr.ReadToEnd();
+						}
+                        responded = execRequest.Execute();
+                        if (responded)
                         {
-                            Incubator appIncubator = AppServiceProviders[appName];
-                            aliases.AddRange(GetProxyAliases(appIncubator));
-                            temp.CopyFrom(appIncubator, true);
-                        }
-
-                        ExecutionRequest execRequest = new ExecutionRequest(context, aliases.ToArray(), temp);                        
-
-                        returnValue = execRequest.Execute();
-                        if (returnValue)
-                        {
-                            string ext = Path.GetExtension(path).ToLowerInvariant();
-                            if (string.IsNullOrEmpty(ext))
-                            {
-                                AppConf appConf = this.BreviteeConf[appName];
-                                LayoutConf pageConf = new LayoutConf(appConf);
-                                string fileName = Path.GetFileName(path);
-                                string json = pageConf.ToJson(true);
-                                appConf.AppRoot.WriteFile("~/pages/{0}.ba"._Format(fileName), json);
-                            }
-
-                            SmartRenderer.Respond(execRequest, RequestHandler.Content);
+							RenderResult(appName, path, execRequest);
                         }
                     }
                 }            
 
-                return returnValue;
+                return responded;
             }
             catch (Exception ex)
             {
@@ -480,7 +487,60 @@ namespace Brevitee.Server
             }
         }
 
-        #endregion
+		private bool SendMethodForm(IHttpContext context, string appName)
+		{
+			bool result = false;
+			IRequest request = context.Request;
+			string path = request.Url.AbsolutePath;
+			string prefix = MethodFormPrefixFormat._Format(ResponderSignificantName.ToLowerInvariant());
+			string partsICareAbout = path.TruncateFront(prefix.Length);			
+			string[] segments = partsICareAbout.DelimitSplit("/", "\\");
+			//if(segments.Length == 0)
+			//{
+			//	Incubator providers;
+			//	List<ProxyAlias> aliases;
+			//	GetServiceProxies(appName, out providers, out aliases);
+			//	ITemplateRenderer renderer = BreviteeConf.Server.ContentResponder.CommonTemplateRenderer;
+			//	LayoutModel layout = GetLayoutModel(appName);
+			//	renderer.Render()
+			//}
+			//else 
+				if (segments.Length == 2)			
+			{
+				Incubator providers;
+				List<ProxyAlias> aliases;
+				GetServiceProxies(appName, out providers, out aliases);
+				string className = segments[0];
+				string methodName = segments[1];
+				Type type = providers[className];
+				if (type == null)
+				{
+					ProxyAlias alias = aliases.FirstOrDefault(a => a.Alias.Equals(className));
+					if (alias != null)
+					{
+						type = providers[alias.ClassName];
+					}
+				}
+
+				if (type != null)
+				{
+					InputFormBuilder builder = new InputFormBuilder(type);					
+					QueryStringParameter[] parameters = request.Url.Query.DelimitSplit("?", "&").ToQueryStringParameters();
+					Dictionary<string, object> defaults = new Dictionary<string,object>();
+					foreach(QueryStringParameter param in parameters)
+					{
+						defaults.Add(param.Name, param.Value);
+					}
+					TagBuilder form = builder.MethodForm(methodName, defaults);
+					LayoutModel layoutModel = GetLayoutModel(appName);
+					layoutModel.PageContent = form.ToMvcHtml().ToString();
+					ContentResponder.CommonTemplateRenderer.RenderLayout(layoutModel, context.Response.OutputStream);
+					result = true;
+				}
+			}
+
+			return result;
+		}
 
         protected void SendJsProxyScript(IRequest request, IResponse response)
         {
@@ -551,11 +611,16 @@ namespace Brevitee.Server
         public void Initialize()
         {
             OnInitializing();
-            lock (_initializeLock)
-            {
-                AddCommonService(new BreviteeApplicationManager(BreviteeConf));                               
-                RegisterProxiedClasses();
-            }
+
+			if (!IsInitialized)
+			{
+				IsInitialized = true;
+				lock (_initializeLock)
+				{
+					AddCommonService(new BreviteeApplicationManager(BreviteeConf));
+					RegisterProxiedClasses();
+				}
+			}
             OnInitialized();
         }
         List<ILogger> _subscribers = new List<ILogger>();
@@ -602,5 +667,78 @@ namespace Brevitee.Server
                 };
             }
         }
+
+		private void RenderResult(string appName, string path, ExecutionRequest execRequest)
+		{
+			string ext = Path.GetExtension(path).ToLowerInvariant();
+			if (string.IsNullOrEmpty(ext))
+			{
+				AppConf appConf = this.BreviteeConf[appName];
+				LayoutConf pageConf = new LayoutConf(appConf);
+				string fileName = Path.GetFileName(path);
+				string json = pageConf.ToJson(true);
+				appConf.AppRoot.WriteFile("~/pages/{0}.layout"._Format(fileName), json);
+			}
+
+			SmartRenderer.Respond(execRequest, ContentResponder);
+		}
+
+		private ExecutionRequest CreateExecutionRequest(IHttpContext context, string appName)
+		{
+			Incubator proxiedClasses;
+			List<ProxyAlias> aliases;
+			GetServiceProxies(appName, out proxiedClasses, out aliases);
+
+			ExecutionRequest execRequest = new ExecutionRequest(context, aliases.ToArray(), proxiedClasses);
+			return execRequest;
+		}
+
+		private void GetServiceProxies(string appName, out Incubator proxiedClasses, out List<ProxyAlias> aliases)
+		{
+			proxiedClasses = new Incubator();
+
+			aliases = new List<ProxyAlias>(GetProxyAliases(ServiceProxySystem.Incubator));
+			proxiedClasses.CopyFrom(ServiceProxySystem.Incubator, true);
+
+			aliases.AddRange(GetProxyAliases(CommonServiceProvider));
+			proxiedClasses.CopyFrom(CommonServiceProvider, true);
+
+			if (AppServiceProviders.ContainsKey(appName))
+			{
+				Incubator appIncubator = AppServiceProviders[appName];
+				aliases.AddRange(GetProxyAliases(appIncubator));
+				proxiedClasses.CopyFrom(appIncubator, true);
+			}
+		}
+
+		private bool SendProxyCode(RequestWrapper request, ResponseWrapper response, string path)
+		{
+			bool result = false;
+			string[] split = path.DelimitSplit("/", ".");
+
+			if (split.Length >= 2)
+			{
+				string fileName = Path.GetFileName(path);
+				if (JsProxyFileNames.Contains(fileName))
+				{
+					SendJsProxyScript(request, response);
+					result = true;
+				}
+				else if (CsProxyFileNames.Contains(fileName))
+				{
+					SendCsProxyCode(request, response);
+					result = true;
+				}
+			}
+			return result;
+		}
+		
+		private LayoutModel GetLayoutModel(string appName)
+		{
+			AppConf conf = BreviteeConf.AppConfigs.FirstOrDefault(c => c.Name.Equals(appName));
+			LayoutConf defaultLayoutConf = new LayoutConf(conf);
+			LayoutModel layoutModel = defaultLayoutConf.CreateLayoutModel();
+			return layoutModel;
+		}
     }
 }

@@ -26,9 +26,10 @@ namespace Brevitee.BattleStickers.Business.Data.Tests
             Db.TryEnsureSchema<Battle>();
         }
 
-        [UnitTest("First", "", "")]
+        [UnitTest]
         public void BattleLoop()
         {
+			First();
             PlayerSelections playerOneSelections = Program.CreatePlayerOneSelections();
             PlayerSelections playerTwoSelections = Program.CreatePlayerTwoSelections();
             Battle battle = Program.StartTestBattle();

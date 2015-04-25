@@ -110,10 +110,7 @@ namespace Brevitee.ServiceProxy.Secure
             Args.ThrowIfNull(request, "request");
             ApiKeyResolver resolver = request.ApiKeyResolver;
             ValidateResolver(resolver);
-
-            IApplicationNameProvider nameProvider = request.ApiKeyResolver.ApplicationNameProvider;
-            IApiKeyProvider keyProvider = request.ApiKeyResolver.ApiKeyProvider;
-
+			
             string className = request.ClassName;
             string methodName = request.MethodName;
             string stringToHash = ApiParameters.GetStringToHash(className, methodName, request.JsonParams);

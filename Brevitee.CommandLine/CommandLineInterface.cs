@@ -7,11 +7,12 @@ using System.IO;
 using Brevitee;
 using System.Diagnostics;
 using Brevitee.Logging;
+using Brevitee.Configuration;
 
 namespace Brevitee.CommandLine
 {
     [Serializable]
-    public abstract class CommandLineInterface
+    public abstract class CommandLineInterface: MarshalByRefObject
     {
         static event ExitDelegate Exiting;
         static event ExitDelegate Exited;
@@ -215,14 +216,15 @@ namespace Brevitee.CommandLine
 		public static string[] ArrayPrompt(string message, IEnumerable<string> quitters)
 		{
 			List<string> results = new List<string>();
-			string entry = Prompt(message);
-			while (!quitters.Contains(entry))
+			string entry = string.Empty;
+			do
 			{
-				if (!results.Contains(entry) && !string.IsNullOrEmpty(entry))
+				entry = Prompt(message);
+				if (!quitters.Contains(entry) && !results.Contains(entry) && !string.IsNullOrEmpty(entry))
 				{
 					results.Add(entry);
 				}
-			}
+			} while (!quitters.Contains(entry));
 
 			return results.ToArray();
 		}
@@ -269,18 +271,39 @@ namespace Brevitee.CommandLine
 
         public static string Prompt(string message, string promptTxt, ConsoleColorCombo colors, bool allowQuit)
         {
-            Out(message, colors);
-            Console.Write(promptTxt);
-            string answer = Console.ReadLine();
-            //answer = answer.TruncateFront(message.Length + promptTxt.Length);
-
-            if (allowQuit && answer.ToLowerInvariant().Equals("q"))
-            {
-                Environment.Exit(0);
-            }
-
-            return answer;
+			return PromptProvider(message, promptTxt, colors, allowQuit);
         }
+
+		static Func<string, string, ConsoleColorCombo, bool, string> _promptProvider;
+		public static Func<string, string, ConsoleColorCombo, bool, string> PromptProvider
+		{
+			get
+			{
+				if (_promptProvider == null)
+				{
+					_promptProvider = (message, promptTxt, colors, allowQuit) =>
+					{
+						Out(message, colors);
+						Console.Write(promptTxt);
+						string answer = Console.ReadLine();
+						//answer = answer.TruncateFront(message.Length + promptTxt.Length);
+
+						if (allowQuit && answer.ToLowerInvariant().Equals("q"))
+						{
+							Environment.Exit(0);
+						}
+
+						return answer;
+					};
+				}
+
+				return _promptProvider;
+			}
+			set
+			{
+				_promptProvider = value;
+			}
+		}
 
         public static void Clear()
         {
@@ -362,23 +385,36 @@ namespace Brevitee.CommandLine
 
         protected static void ShowMenu(Assembly assemblyToAnalyze, ConsoleMenu[] otherMenus, string headerText)
         {
-            List<ConsoleInvokeableMethod> actions = GetActions<ConsoleAction>(assemblyToAnalyze);
+            List<ConsoleInvokeableMethod> actions = GetConsoleInvokeableMethods<ConsoleAction>(assemblyToAnalyze);
             ShowMenu(otherMenus, headerText, actions);
         }
 
         protected static void ShowMenu<TAttribute, TType>(string headerText) where TAttribute : Attribute, new()
         {
-            List<ConsoleInvokeableMethod> actions = GetActions<TAttribute, TType>();
+            List<ConsoleInvokeableMethod> actions = GetConsoleInvokeableMethods<TAttribute, TType>();
             ShowMenu(OtherMenus.ToArray(), headerText, actions);
         }
 
         protected static void ShowMenu<TAttribute, TType>(ConsoleMenu[] otherMenus, string headerText)
             where TAttribute : Attribute, new()
         {
-            List<ConsoleInvokeableMethod> actions = GetActions<TAttribute, TType>();
+            List<ConsoleInvokeableMethod> actions = GetConsoleInvokeableMethods<TAttribute, TType>();
             ShowMenu(otherMenus, headerText, actions);
         }
-        
+
+		/// <summary>
+		/// Reads all keys in the appSettings section of the default configuration
+		/// file and adds them all as valid arguments so that they may be 
+		/// specified on the command line.
+		/// </summary>
+		protected static void AddConfigurationSwitches()
+		{
+			DefaultConfiguration.GetAppSettings().AllKeys.Each(key =>
+			{
+				AddValidArgument(key);
+			});
+		}
+
         private static void ShowMenu(ConsoleMenu[] otherMenus, string headerText, List<ConsoleInvokeableMethod> actions)
         {
             Console.WriteLine(headerText);
@@ -464,13 +500,35 @@ namespace Brevitee.CommandLine
             Out();
         }
 
+		static Action _outProvider;
+		public static Action OutProvider
+		{
+			get
+			{
+				if (_outProvider == null)
+				{
+					_outProvider = () =>
+					{
+						Console.WriteLine();
+					};
+				}
+
+				return _outProvider;
+			}
+			set
+			{
+				_outProvider = value;
+			}
+		}
+
         /// <summary>
         /// Writes a newline character to the console using Console.WriteLine()
         /// </summary>
         public static void Out()
         {
-            Console.WriteLine();
+			OutProvider();
         }
+
         public static void OutLineFormat(string message, params object[] formatArgs)
         {
             OutLine(string.Format(message, formatArgs));
@@ -533,19 +591,59 @@ namespace Brevitee.CommandLine
             Out(message, ConsoleColor.Gray);
         }
 
+		static Action<string, ConsoleColor> _coloredMessageProvider;
+		public static Action<string, ConsoleColor> ColoredMessageProvider
+		{
+			get
+			{
+				if (_coloredMessageProvider == null)
+				{
+					_coloredMessageProvider = (s, c) =>
+					{
+						Console.ForegroundColor = c;
+						Console.Write(s);
+						Console.ResetColor();
+					};
+				}
+				return _coloredMessageProvider;
+			}
+			set
+			{
+				_coloredMessageProvider = value;
+			}
+		}
+
         public static void Out(string message, ConsoleColor color)
         {
-            Console.ForegroundColor = color;
-            Console.Write(message);
-            Console.ResetColor();         
+			ColoredMessageProvider(message, color);
         }
+
+		static Action<string, ConsoleColorCombo> _colorBackgroundMessageProvider;
+		public static Action<string, ConsoleColorCombo> ColoredBackgroundMessageProvider
+		{
+			get
+			{
+				if (_colorBackgroundMessageProvider== null)
+				{
+					_colorBackgroundMessageProvider = (s, c) =>
+					{
+						Console.BackgroundColor = c.BackgroundColor;
+						Console.ForegroundColor = c.ForegroundColor;
+						Console.Write(s);
+						Console.ResetColor();
+					};
+				}
+				return _colorBackgroundMessageProvider;
+			}
+			set
+			{
+				_colorBackgroundMessageProvider = value;
+			}
+		}
 
         public static void Out(string message, ConsoleColorCombo colors)
         {
-            Console.BackgroundColor = colors.BackgroundColor;
-            Console.ForegroundColor = colors.ForegroundColor;
-            Console.Write(message);
-            Console.ResetColor();
+			ColoredBackgroundMessageProvider(message, colors);
         }
 
         public static void OutLine(string message)
@@ -610,7 +708,11 @@ namespace Brevitee.CommandLine
             InvokeMethod();
         }
 		
-        protected internal static void InvokeInSeparateAppDomain(MethodInfo method, object instance, object[] ps = null)
+		protected internal static void InvokeInSeparateAppDomain(MethodInfo method, object instance, object[] ps = null)
+		{
+			InvokeInSeparateAppDomain(method, instance, null, ps);
+		}
+        protected internal static void InvokeInSeparateAppDomain(MethodInfo method, object instance, object state, object[] ps = null)
         {
             AppDomain isolationDomain = AppDomain.CreateDomain("TestAppDomain");
             _methodToInvoke = method;
@@ -620,8 +722,15 @@ namespace Brevitee.CommandLine
             isolationDomain.SetData("Method", method);
             isolationDomain.SetData("Instance", instance);
             isolationDomain.SetData("Parameters", parameters);
+			isolationDomain.SetData("State", state);
             isolationDomain.DoCallBack(InvokeMethod);
+			AppDomain.Unload(isolationDomain);
         }
+
+		protected internal static T PopState<T>()
+		{
+			return (T)AppDomain.CurrentDomain.GetData("State");
+		}
 
         protected internal static void InvokeSelection(List<ConsoleInvokeableMethod> actions, string answer, string header, string footer, out int selectedNumber)
         {
@@ -684,13 +793,20 @@ namespace Brevitee.CommandLine
             }
             catch (Exception ex)
             {
-                if (ex.InnerException != null)
-                    throw ex.InnerException;
-                else
-                    throw;
+				if (ex.InnerException != null)
+				{
+					throw ex.InnerException;
+				}
+				else
+				{
+					throw;
+				}
             }
-            if (!string.IsNullOrEmpty(footer))
-                Out(footer, ConsoleColor.White);
+			if (!string.IsNullOrEmpty(footer))
+			{
+				Out(footer, ConsoleColor.White);
+			}
+
             return selectedNumber;
         }
 
@@ -704,45 +820,45 @@ namespace Brevitee.CommandLine
             }           
         }
 
-        protected static List<ConsoleInvokeableMethod> GetActions(Assembly assemblyToAnalyze)
+        protected static List<ConsoleInvokeableMethod> GetConsoleInvokeableMethods(Assembly assemblyToAnalyze)
         {
-            return GetActions<ConsoleAction>(assemblyToAnalyze);
+            return GetConsoleInvokeableMethods<ConsoleAction>(assemblyToAnalyze);
         }
 
-        protected static List<ConsoleInvokeableMethod> GetActions<TAttribute, TType>() where TAttribute : Attribute, new()
+        protected static List<ConsoleInvokeableMethod> GetConsoleInvokeableMethods<TAttribute, TType>() where TAttribute : Attribute, new()
         {
-            return GetActions(typeof(TAttribute), typeof(TType));
+			return GetConsoleInvokeableMethods(typeof(TType), typeof(TAttribute));
         }
 
-        protected static List<ConsoleInvokeableMethod> GetActions<TAttribute>(Type typeWhoseAssemblyWillBeAnalyzed) where TAttribute : Attribute, new()
+        protected static List<ConsoleInvokeableMethod> GetConsoleInvokeableMethods<TAttribute>(Type typeWhoseAssemblyWillBeAnalyzed) where TAttribute : Attribute, new()
         {
-            return GetActions<TAttribute>(typeWhoseAssemblyWillBeAnalyzed.Assembly);
+            return GetConsoleInvokeableMethods<TAttribute>(typeWhoseAssemblyWillBeAnalyzed.Assembly);
         }
 
-        protected static List<ConsoleInvokeableMethod> GetActions<TAttribute>(Assembly assemblyToAnalyze) where TAttribute : Attribute, new()
+        protected static List<ConsoleInvokeableMethod> GetConsoleInvokeableMethods<TAttribute>(Assembly assemblyToAnalyze) where TAttribute : Attribute, new()
         {
-            return GetActions(assemblyToAnalyze, typeof(TAttribute));
+            return GetConsoleInvokeableMethods(assemblyToAnalyze, typeof(TAttribute));
         }
 
-        protected static List<ConsoleInvokeableMethod> GetActions(Assembly assemblyToAnalyze, Type attrType)
+        protected static List<ConsoleInvokeableMethod> GetConsoleInvokeableMethods(Assembly assemblyToAnalyze, Type attrType)
         {
             List<ConsoleInvokeableMethod> actions = new List<ConsoleInvokeableMethod>();
             Type[] types = assemblyToAnalyze.GetTypes();
             foreach (Type type in types)
             {
-                actions.AddRange(GetActions(attrType, type));
+				actions.AddRange(GetConsoleInvokeableMethods(type, attrType));
             }
             return actions;
         }
 
-        protected static List<ConsoleInvokeableMethod> GetActions(Type attrType, Type type)
+		protected static List<ConsoleInvokeableMethod> GetConsoleInvokeableMethods(Type typeToAnalyze, Type attributeAddorningMethod)
         {
             List<ConsoleInvokeableMethod> actions = new List<ConsoleInvokeableMethod>();
-            MethodInfo[] methods = type.GetMethods();
+            MethodInfo[] methods = typeToAnalyze.GetMethods();
             foreach (MethodInfo method in methods)
             {
                 object action = null;
-                if (method.HasCustomAttributeOfType(attrType, out action)) //HasCustomAttributeOfType(method, out action))
+                if (method.HasCustomAttributeOfType(attributeAddorningMethod, false, out action)) //HasCustomAttributeOfType(method, out action))
                 {
                     actions.Add(new ConsoleInvokeableMethod(method, (Attribute)action));
                 }

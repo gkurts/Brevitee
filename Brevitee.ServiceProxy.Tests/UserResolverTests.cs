@@ -62,6 +62,9 @@ namespace Brevitee.ServiceProxy.Tests
         [UnitTest]
         public void UserResolver_ShouldResolveToTheSameAsUserUtil()
         {
+			UserResolvers.Default.Clear();
+			UserResolvers.Default.AddResolver(new DefaultWebUserResolver());
+
             string user = UserUtil.GetCurrentWebUserName();
             string resolved = UserResolvers.Default.GetCurrentUser();
 

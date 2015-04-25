@@ -35,6 +35,10 @@
     <DocumentationFile>..\BUILD\BreviteeToolkit\bam.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="CsQuery, Version=1.3.3.249, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\CsQuery.1.3.4\lib\net40\CsQuery.dll</HintPath>
+    </Reference>
     <Reference Include="dotless.Core, Version=1.4.1.0, Culture=neutral, PublicKeyToken=96b446c9e63eae34, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\dotless.1.4.1.0\lib\dotless.Core.dll</HintPath>
@@ -52,15 +56,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BamConfig.cs" />
+    <Compile Include="UtilityActions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ManagementActions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="bryantoolkit_files.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="README.txt" />
   </ItemGroup>
   <ItemGroup>
@@ -79,6 +87,10 @@
     <ProjectReference Include="..\..\Brevitee.Javascript\Brevitee.Javascript.csproj">
       <Project>{34c5016d-5265-4394-a9ba-cb2f70d8e93b}</Project>
       <Name>Brevitee.Javascript</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Brevitee.Management\Brevitee.Management.csproj">
+      <Project>{4dd9e087-886b-4f74-9529-1aca3ebf4006}</Project>
+      <Name>Brevitee.Management</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Brevitee.Server\Brevitee.Server.csproj">
       <Project>{6cd8ffb4-35ca-44ac-803d-cb9d4cb524a0}</Project>

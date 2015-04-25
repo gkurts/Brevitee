@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Brevitee;
 using Brevitee.Drawing;
+using Brevitee.Management;
 using Brevitee.Yaml;
 using System.Drawing;
 using System.Drawing.Drawing2D;

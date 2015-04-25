@@ -7,9 +7,7 @@ namespace Brevitee.Schema.Org
 	{
 		///<summary>The number of tracks in this album or playlist.</summary>
 		public Integer NumTracks {get; set;}
-		///<summary>A music recording (track)—usually a single song.</summary>
+		///<summary>A music recording (track)—usually a single song. Supersedes tracks.</summary>
 		public MusicRecording Track {get; set;}
-		///<summary>A music recording (track)—usually a single song (legacy spelling; see singular form, track).</summary>
-		public MusicRecording Tracks {get; set;}
 	}
 }

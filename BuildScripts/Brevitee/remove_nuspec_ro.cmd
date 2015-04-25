@@ -3,6 +3,7 @@ attrib -R .\Brevitee.Analytics\Brevitee.Analytics.nuspec
 attrib -R .\Brevitee.Automation\Brevitee.Automation.nuspec
 attrib -R .\Brevitee.CommandLine\Brevitee.CommandLine.nuspec
 attrib -R .\Brevitee.Data\Brevitee.Data.nuspec
+attrib -R .\Brevitee.Data.Repositories\Brevitee.Data.Repositories.nuspec
 attrib -R .\Brevitee.Distributed\Brevitee.Distributed.nuspec
 attrib -R .\Brevitee.Drawing\Brevitee.Drawing.nuspec
 attrib -R .\Brevitee.Dust\Brevitee.Dust.nuspec

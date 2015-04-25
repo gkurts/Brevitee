@@ -15,9 +15,7 @@ using Brevitee;
 using Brevitee.Testing;
 using Brevitee.Encryption;
 using Brevitee.Data;
-using Brevitee.Analytics.Crawlers;
-using Brevitee.Analytics.Data;
-using Brevitee.Analytics.Classification;
+using Brevitee.Analytics;
 
 namespace Brevitee.Analytics.Crawlers.Tests
 {
@@ -52,7 +50,21 @@ namespace Brevitee.Analytics.Crawlers.Tests
 
             // the arguments protected member is not available in PreInit() (this method)
             #endregion
+			AddValidArgument("t", true, "run all tests");
+	        DefaultMethod = typeof (Program).GetMethod("Start");
         }
+
+	    public static void Start() 
+		{
+		    if (Arguments.Contains("t")) 
+			{
+			    RunAllTests(typeof(Program).Assembly);
+		    } 
+			else
+			{
+				Interactive();
+		    }
+	    }
 
         [ConsoleAction("Crawl For Images")]
         public void CrawlForImages()
@@ -147,32 +159,35 @@ namespace Brevitee.Analytics.Crawlers.Tests
             SQLiteRegistrar.Register(Dao.ConnectionName(typeof(Url)));
             Db.TryEnsureSchema<Url>();
 
-            Url funnycatpix = Url.FromUri("http://www.funnycatpix.com/");
-
+	        string uri = "http://www.funnycatpix.com/";
+            Url funnycatpix = Url.FromUri(uri, true);
+	        Url check = Url.FromUri(uri, true);
+			Expect.AreEqual(funnycatpix, check);
+			Expect.AreEqual(funnycatpix.Id, check.Id);
         }
 
         [UnitTest]
         public void TestUriPieces()
         {
             Uri uri = new Uri("http://www.monkey.com/this/is/the/path?and=thisTheQueryString&some=more");
-            OutFormat("Port: {0}", uri.Port);
-            OutFormat("Host (Domain): {0}", uri.Host);
-            OutFormat("Path: {0}", uri.PathAndQuery.Split(new string[] { "?" }, StringSplitOptions.RemoveEmptyEntries)[0]);
-            OutFormat("Query: {0}", uri.Query);
+            OutLineFormat("Port: {0}", uri.Port);
+			OutLineFormat("Host (Domain): {0}", uri.Host);
+			OutLineFormat("Path: {0}", uri.PathAndQuery.Split(new string[] { "?" }, StringSplitOptions.RemoveEmptyEntries)[0]);
+			OutLineFormat("Query: {0}", uri.Query);
 
-            OutFormat("No Query: {0}", new Uri("http://test.com/path").Query);
-            OutFormat("No Query w/ Question Mark: {0}", new Uri("http://test.com/path?").Query);
+			OutLineFormat("No Query: {0}", new Uri("http://test.com/path").Query);
+			OutLineFormat("No Query w/ Question Mark: {0}", new Uri("http://test.com/path?").Query);
 
         }
         
         List<string> _srcs;
-        [UnitTest]
-        public void CrawlTest()
+        [ConsoleAction]
+        public void Crawl()
         {
             Init();
             _srcs = new List<string>();
             string connectionString = Db.For<Image>().ConnectionString;
-            OutFormat("Connection String: {0}", ConsoleColor.Cyan, connectionString);
+			OutLineFormat("Connection String: {0}", ConsoleColor.Cyan, connectionString);
 
             try
             {
@@ -198,8 +213,6 @@ namespace Brevitee.Analytics.Crawlers.Tests
         {
             SQLiteRegistrar.Register<Url>();
             Db.TryEnsureSchema<Url>();
-            //SqlClientRegistrar.Register<Url>();
-            //_.TryEnsureSchema<Url>();
         }
 
         [UnitTest]
@@ -209,7 +222,7 @@ namespace Brevitee.Analytics.Crawlers.Tests
             UrlCollection all = Url.Where(c => c.Id != null);
             foreach (Url u in all)
             {
-                Out(u.ToString());
+                OutLine(u.ToString());
             }
         }
 

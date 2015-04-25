@@ -21,7 +21,22 @@ namespace Brevitee.Automation.Tests
     {
         static void Main(string[] args)
         {
-            Initialize(args);
-        }
+			AddValidArgument("t", true, "run all tests");
+			DefaultMethod = typeof(Program).GetMethod("Start");
+
+			Initialize(args);
+		}
+
+		public static void Start()
+		{
+			if (Arguments.Contains("t"))
+			{
+				RunAllTests(typeof(Program).Assembly);
+			}
+			else
+			{
+				Interactive();
+			}
+		}
     }
 }

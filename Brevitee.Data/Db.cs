@@ -30,6 +30,13 @@ namespace Brevitee.Data
             return DefaultContainer[type];
         }
 
+		/// <summary>
+		/// Gets the Database for the specified connectionName.  If
+		/// a database is provided then the value is set and returned.
+		/// </summary>
+		/// <param name="connectionName"></param>
+		/// <param name="database"></param>
+		/// <returns></returns>
         public static Database For(string connectionName, Database database = null)
         {
             if (database != null)
@@ -55,10 +62,10 @@ namespace Brevitee.Data
         {
             Database original = db;
             DaoTransaction tx = new DaoTransaction(original);
-            Db.For(db.ConnectionName, tx.Database);//_.Db[db.ConnectionName] = tx.Database;
+            Db.For(db.ConnectionName, tx.Database);
             tx.Disposed += (o, a) =>
             {
-                Db.For(db.ConnectionName, original);//_.Db[db.ConnectionName] = original;
+                Db.For(db.ConnectionName, original);
             };
 
             return tx;
@@ -191,22 +198,8 @@ namespace Brevitee.Data
         /// <param name="type"></param>
         public static void EnsureSchema(Type type, Database database = null)
         {
-            lock (_ensureLock)
-            {
-                string connectionName = Dao.ConnectionName(type);
-                if (_ensuredSchemas.Contains(connectionName))
-                {
-                    return;
-                }
-
-                _ensuredSchemas.Add(connectionName);
-
-                Database db = database ?? Db.For(type);
-                SchemaWriter schema = db.ServiceProvider.Get<SchemaWriter>();
-                schema.WriteSchemaScript(type);
-
-                db.ExecuteSql(schema, db.ServiceProvider.Get<IParameterBuilder>());
-            }
+			Database db = database ?? Db.For(type);
+			db.TryEnsureSchema(type);
         }
 
         public static ColumnAttribute[] GetColumns<T>() where T : Dao

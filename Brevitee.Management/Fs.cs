@@ -14,26 +14,31 @@ using System.Web;
 namespace Brevitee.Management
 {
     [Proxy("fs")]
-    //[RoleRequired("Admin", "Administrator", "Root", "SuperUser")]
+    [RoleRequired("Admin")]
     public class Fs
     {
+		public Fs()
+		{
+			var x = new { };
+		}
         public Fs(HttpServerUtilityBase server, string appName)
         {
-            string root = server.MapPath("~/bam/apps/{appName}/".NamedFormat(new { appName = appName }));
+            string root = server.MapPath("~/apps/{appName}/".NamedFormat(new { appName = appName }));
             this.RootDir = new DirectoryInfo(root);
             this.AppName = appName;
         }
 
         public Fs(HttpServerUtility server, string appName)
         {
-            string root = server.MapPath("~/bam/apps/{appName}/".NamedFormat(new { appName = appName }));
+            string root = server.MapPath("~/apps/{appName}/".NamedFormat(new { appName = appName }));
             this.RootDir = new DirectoryInfo(root);
             this.AppName = appName;
         }
 
         public Fs(string appName)
-            : this(HttpContext.Current.Server, appName)
         {
+			this.RootDir = new DirectoryInfo(appName);
+			this.AppName = appName;
         }
 
         public Fs(DirectoryInfo rootDir)
@@ -70,14 +75,12 @@ namespace Brevitee.Management
         {
             get
             {
-                string val = RootDir.FullName.Replace("\\", "/");
-                if (!val.EndsWith("/"))
-                {
-                    val = string.Format("{0}/", val);
-                }
-
-                return val;
+                return CleanPath(RootDir.FullName) + Path.DirectorySeparatorChar;
             }
+			set
+			{
+				this.RootDir = new DirectoryInfo(value);
+			}
         }
 
         string _currentDirectory;
@@ -169,7 +172,10 @@ namespace Brevitee.Management
             string path = GetAbsolutePath(EnsureRelative(relativeFilePath));
             return File.ReadAllBytes(path);
         }
-
+		public string ReadAllText(params string[] pathSegments)
+		{
+			return ReadAllText(Path.Combine(pathSegments));
+		}
         public string ReadAllText(string relativeFilePath)
         {
             string path = GetAbsolutePath(EnsureRelative(relativeFilePath));
@@ -183,12 +189,23 @@ namespace Brevitee.Management
 
             OnFileAppendedTo(path);
         }
-        
-        public bool FileExists(string relativePath)
+
+		public bool FileExists(params string[] pathSegmentsToCombine)
+		{
+			return FileExists(Path.Combine(pathSegmentsToCombine));
+		}
+
+		public bool FileExists(string relativePath)
+		{
+			string ignore;
+			return FileExists(relativePath, out ignore);
+		}
+
+        public bool FileExists(string relativePath, out string absolutPath)
         {
             relativePath = EnsureRelative(relativePath);
-
-            return File.Exists(GetAbsolutePath(relativePath));
+			absolutPath = GetAbsolutePath(relativePath);
+            return File.Exists(absolutPath);
         }
 
         public void MoveFile(string src, string dest)
@@ -224,14 +241,54 @@ namespace Brevitee.Management
             DirectoryInfo dir = new DirectoryInfo(GetAbsolutePath(relativePath));
             return dir.GetDirectories().Select(d => d.Name).ToArray();
         }
+		public DirectoryInfo GetDirectory(string relativePath)
+		{
+			relativePath = EnsureRelative(relativePath);
 
-        public string[] GetFiles(string relativePath, string searchPattern = "*")
-        {
-            relativePath = EnsureRelative(relativePath);
+			return new DirectoryInfo(GetAbsolutePath(relativePath));
+		}
 
-            DirectoryInfo dir = new DirectoryInfo(GetAbsolutePath(relativePath));
-            return dir.GetFiles(searchPattern).Select(f => f.Name).ToArray();
-        }
+		public FileInfo[] GetFiles(string relativePath, string searchPattern = "*")
+		{
+			relativePath = EnsureRelative(relativePath);
+
+			DirectoryInfo dir = new DirectoryInfo(GetAbsolutePath(relativePath));
+			if (dir.Exists)
+			{
+				return dir.GetFiles(searchPattern);
+			}
+			else
+			{
+				return new FileInfo[] { };
+			}
+		}
+		public FileInfo GetFile(string relativePath)
+		{
+			relativePath = EnsureRelative(relativePath);
+
+			return new FileInfo(GetAbsolutePath(relativePath));
+		}
+		public void WriteFile(string relativeFilePath, string contentToWrite, bool overwrite = true)
+		{
+			string path = GetAbsolutePath(EnsureRelative(relativeFilePath));
+			FileInfo file = new FileInfo(path);
+			if (!file.Directory.Exists)
+			{
+				file.Directory.Create();
+			}
+
+			path.SafeWriteFile(contentToWrite, overwrite);
+
+			OnFileWritten(path);
+		}
+
+		[Exclude]
+		public string GetAbsolutePath(params string[] pathSegments)
+		{
+			string path = Path.Combine(pathSegments);
+			return GetAbsolutePath(path);
+		}
+
 
         [Exclude]
         public string GetAbsolutePath(string relativePath)
@@ -252,8 +309,18 @@ namespace Brevitee.Management
                 result = relativePath;
             }
 
-            return result;
+            return CleanPath(result);
         }
+		public static string CleanPath(string path)
+		{
+			string[] pathSegments = path.Split('\\', '/');
+			if (pathSegments[0].EndsWith(":")) // C:
+			{
+				pathSegments[0] = pathSegments[0] + Path.DirectorySeparatorChar;
+			}
+
+			return Path.Combine(pathSegments);			
+		}
     }
 
 }

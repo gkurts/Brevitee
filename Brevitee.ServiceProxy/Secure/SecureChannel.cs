@@ -30,7 +30,7 @@ namespace Brevitee.ServiceProxy.Secure
     {
         static SecureChannel()
         {
-            EnsureRepository();
+            InitializeDatabase();
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace Brevitee.ServiceProxy.Secure
         /// using the specified logger to output messages
         /// </summary>
         /// <param name="logger"></param>
-        protected internal static void EnsureRepository(ILogger logger = null)
+        protected internal static void InitializeDatabase(ILogger logger = null)
         {
             if (logger == null)
             {

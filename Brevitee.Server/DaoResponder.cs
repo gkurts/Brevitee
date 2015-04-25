@@ -14,6 +14,7 @@ using Brevitee.Incubation;
 using Brevitee.Javascript;
 using Brevitee.ServiceProxy;
 using Brevitee.Server.Renderers;
+using Brevitee.Management;
 using Yahoo.Yui.Compressor;
 
 using System.Reflection;
@@ -27,6 +28,7 @@ namespace Brevitee.Server
     /// </summary>
     public class DaoResponder : ResponderBase, IInitialize<DaoResponder>
     {
+		const string ViewsRelativePath = "~/dao/views";
         Dictionary<string, Func<string, bool, string>> _dynamicResponders;
 
         Incubator _serviceProvider;
@@ -37,8 +39,8 @@ namespace Brevitee.Server
             Init();
         }
 
-        public DaoResponder(BreviteeConf conf, ILogger logger, RequestHandler requestHandler)
-            : base(conf, logger, requestHandler)
+        public DaoResponder(BreviteeConf conf, ILogger logger)
+            : base(conf, logger)
         {
             Init();
         }
@@ -72,8 +74,8 @@ namespace Brevitee.Server
                 else
                 {
                     // templates are in ~s:/dao/dust and ~a:/dao/dust
-                    string dustRelativePath = "~/dao/dust";
-                    DirectoryInfo commonTemplateDir = new DirectoryInfo(Fs.GetAbsolutePath(dustRelativePath));
+                    string dustRelativePath = ViewsRelativePath;
+                    DirectoryInfo commonTemplateDir = new DirectoryInfo(ServerRoot.GetAbsolutePath(dustRelativePath));
                     Fs appFs = AppFs(appName);
                     DirectoryInfo appTemplateDir = new DirectoryInfo(appFs.GetAbsolutePath(dustRelativePath));
 

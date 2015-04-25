@@ -36,6 +36,8 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <PlatformTarget>x86</PlatformTarget>
@@ -62,7 +64,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <Prefer32Bit>false</Prefer32Bit>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -77,6 +79,10 @@
     <Reference Include="MySql.Data, Version=6.3.5.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Assemblies\MySql.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Newtonsoft.Json.6.0.5\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.configuration" />
@@ -105,7 +111,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DaoCollectionTests.cs" />
+    <Compile Include="ConsoleActions.cs" />
     <Compile Include="SchemaExtractorTests.cs" />
     <Compile Include="RazorEngineDaoGeneratorTests.cs" />
     <Compile Include="DaoGeneratorTests.cs" />
@@ -119,6 +125,7 @@
     <None Include="Dao.tmpl">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Brevitee.CommandLine\Brevitee.CommandLine.csproj">
@@ -128,6 +135,10 @@
     <ProjectReference Include="..\Brevitee.Data.MSSql\Brevitee.Data.MsSql.csproj">
       <Project>{F373EAF9-B69C-4322-9659-A53A8FB7D43F}</Project>
       <Name>Brevitee.Data.MsSql</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Data.Oracle\Brevitee.Data.Oracle.csproj">
+      <Project>{296d4f9e-09f3-48c1-9968-d161c9666756}</Project>
+      <Name>Brevitee.Data.Oracle</Name>
     </ProjectReference>
     <ProjectReference Include="..\Brevitee.Data.Schema\Brevitee.Data.Schema.csproj">
       <Project>{D2C2B1C0-1047-4211-92FC-37F332861161}</Project>
@@ -141,6 +152,10 @@
       <Project>{AA186331-A0D0-4F77-BEA2-E7B7650D3FF5}</Project>
       <Name>Brevitee.Incubation</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Javascript\Brevitee.Javascript.csproj">
+      <Project>{34c5016d-5265-4394-a9ba-cb2f70d8e93b}</Project>
+      <Name>Brevitee.Javascript</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Brevitee.ServiceProxy\Brevitee.ServiceProxy.csproj">
       <Project>{8987d8c8-033b-4993-99f0-8dd5a4d6dd0d}</Project>
       <Name>Brevitee.ServiceProxy</Name>
@@ -153,9 +168,6 @@
       <Project>{8794C09D-D72C-420C-812F-BFDA251B64C9}</Project>
       <Name>Brevitee</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.0">
@@ -180,6 +192,13 @@
     </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

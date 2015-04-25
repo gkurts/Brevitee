@@ -35,8 +35,15 @@ namespace Brevitee
         public void AddType(string name, DynamicTypeInfo info)
         {
             lock (accessLock)
-            {
-                this.dynamicTypeStore.Add(name, info);
+			{
+				if (this.dynamicTypeStore.ContainsKey(name))
+				{
+					this.dynamicTypeStore[name] = info;
+				}
+				else
+				{
+					this.dynamicTypeStore.Add(name, info);
+				}
             }
         }
 

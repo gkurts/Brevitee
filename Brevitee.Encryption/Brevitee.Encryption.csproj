@@ -33,12 +33,17 @@
     <DocumentationFile>bin\Release\Brevitee.Encryption.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BouncyCastle.Crypto">
+    <Reference Include="BouncyCastle.Crypto, Version=1.7.4137.9688, Culture=neutral, PublicKeyToken=a4292a325f69b123, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Web.Mvc, Version=4.0.0.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Microsoft.AspNet.Mvc.5.0.0\lib\net45\System.Web.Mvc.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -54,37 +59,20 @@
     <Compile Include="Encrypted.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Encryption_Generated\EncryptionContext.cs" />
+    <Compile Include="Encryption_Generated\Qi\Vault.cs" />
+    <Compile Include="Encryption_Generated\Qi\VaultItem.cs" />
+    <Compile Include="Encryption_Generated\Qi\VaultKey.cs" />
+    <Compile Include="Encryption_Generated\Vault.cs" />
+    <Compile Include="Encryption_Generated\VaultCollection.cs" />
+    <Compile Include="Encryption_Generated\VaultColumns.cs" />
+    <Compile Include="Encryption_Generated\VaultItem.cs" />
+    <Compile Include="Encryption_Generated\VaultItemCollection.cs" />
+    <Compile Include="Encryption_Generated\VaultItemColumns.cs" />
+    <Compile Include="Encryption_Generated\VaultKey.cs" />
+    <Compile Include="Encryption_Generated\VaultKeyCollection.cs" />
+    <Compile Include="Encryption_Generated\VaultKeyColumns.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="Generated\EncryptionContext.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\Vault.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\VaultCollection.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\VaultColumns.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\VaultItem.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\VaultItemCollection.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\VaultItemColumns.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\VaultKey.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\VaultKeyCollection.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Generated\VaultKeyColumns.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Partials\Vault.cs" />
     <Compile Include="Partials\VaultItem.cs" />
     <Compile Include="Partials\VaultKey.cs" />
@@ -97,9 +85,6 @@
     <Compile Include="RsaKeyLength.cs" />
     <Compile Include="VaultDatabaseInitializer.cs" />
     <Compile Include="VaultInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Encryption.db.js" />
@@ -121,6 +106,9 @@
       <Project>{8794c09d-d72c-420c-812f-bfda251b64c9}</Project>
       <Name>Brevitee</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

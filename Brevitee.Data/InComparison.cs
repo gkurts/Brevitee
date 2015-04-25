@@ -19,9 +19,12 @@ namespace Brevitee.Data
             {
                 this.Number = number;
                 this.Value = value;
+				this.ColumnNameFormatter = (c) => c;
+				this.ParameterPrefix = "@";
             }
             #region IParameterInfo Members
-
+			public Func<string, string> ColumnNameFormatter { get; set; }
+			public string ParameterPrefix { get; set; }
             public string ColumnName
             {
                 get { return "P"; }
@@ -64,16 +67,18 @@ namespace Brevitee.Data
             #endregion
         }
 
-        public InComparison(string columnName, object[] values)
+        public InComparison(string columnName, object[] values, string parameterPrefix = "@")
             :base(columnName, " IN ", values)
         {
             Args.ThrowIf<InvalidOperationException>(values.Length == 0, "At least one value must be specified");
             ThrowIfNullOrEmpty(values, "values");
             this.Values = values;
-            this.numbers = new int[] { };
+			this.ParameterPrefix = parameterPrefix;
+
+			this.numbers = new int[] { };			
         }
 
-        public InComparison(string columnName, long[] values)
+        public InComparison(string columnName, long[] values, string parameterPrefix = "@")
             :base(columnName, " IN ", values)
         {
             Args.ThrowIf<InvalidOperationException>(values.Length == 0, "At least one value must be specified for 'InComparison'");
@@ -83,16 +88,19 @@ namespace Brevitee.Data
             {
                 this.Values[i] = values[i];
             }
+			this.ParameterPrefix = parameterPrefix;
 
             this.numbers = new int[] { };
         }
 
-        public InComparison(string columnName, string[] values)
+        public InComparison(string columnName, string[] values, string parameterPrefix = "@")
             : base(columnName, " IN ", values)
         {
             Args.ThrowIf<InvalidOperationException>(values.Length == 0, "At least one value must be specified for 'InComparison'");
             ThrowIfNullOrEmpty(values, "values");
             this.Values = values;
+			this.ParameterPrefix = parameterPrefix;
+
             this.numbers = new int[] { };
         }
         
@@ -139,10 +147,10 @@ namespace Brevitee.Data
             List<string> paramNames = new List<string>();
             foreach(int i in numbers)
             {
-                paramNames.Add(string.Format("@P{0}", i));
+                paramNames.Add(string.Format("{0}P{1}", ParameterPrefix, i));
             }
 
-            return string.Format("{0} IN ({1})", ColumnName, paramNames.ToArray().ToDelimited(s => s));
+            return string.Format("{0} IN ({1})", ColumnNameFormatter(ColumnName), paramNames.ToArray().ToDelimited(s => s));
         }
 
         private void ThrowIfNullOrEmpty(IEnumerable values, string name)

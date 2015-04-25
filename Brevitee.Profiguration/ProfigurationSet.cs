@@ -164,7 +164,7 @@ namespace Brevitee.Profiguration
         public ZipFile Pack(string saveToPath)
         {
             ZipFile zip;
-            RootDirectory.Zip(saveToPath, out zip);
+            RootDirectory.ZipAndSave(saveToPath, out zip);
             return zip;
         }
 

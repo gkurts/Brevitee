@@ -26,7 +26,9 @@ namespace Brevitee.Stickerize.Data.Tests
     [Serializable]
     public class Program : CommandLineTestInterface
     {
-
+		static Program()
+		{
+		}
         static void Main(string[] args)
         {
             PreInit();
@@ -73,16 +75,11 @@ namespace Brevitee.Stickerize.Data.Tests
                 Interactive();
             }
         }
-
+		
         [UnitTest]
-        public void LookAtInitSchemaAsItRuns()
-        {
-            InitSchemas();
-        }
-
-        [UnitTest("InitSchemas", true)]
         public void ShouldOnlyHaveOneStickerizationPerDayPerStickerizable()
         {
+			InitSchemas();
             DateTime now = DateTime.UtcNow;
             Stickerizee ee = Stickerizee.Create("Test Stickerizee");
             Stickerization zation = Stickerization.Create(now, Sticker.Default.Id.Value, Stickerizable.Default.Id.Value, ee.Id.Value);
@@ -90,9 +87,10 @@ namespace Brevitee.Stickerize.Data.Tests
             Expect.AreEqual(check.Id, zation.Id);
         }
 
-        [UnitTest("InitSchemas", true)]
+        [UnitTest]
         public void IsUndoneShouldBehaveCorrectlyAsBooleanInSqlite()
         {
+			InitSchemas();
             CreateResult<object> result = StickerizeMe.Default.Stickerize(DateTime.Now, Stickerizable.Default.Id.Value, Stickerizee.Default.Id.Value);
 
             Type resultType = result.Result.GetType();
@@ -101,7 +99,7 @@ namespace Brevitee.Stickerize.Data.Tests
             Out(val.GetType().Name);
         }
 
-        [UnitTest("InitSchemas", true)]
+        [UnitTest]
         public void DaoCollectionAddNewShouldIncrementCount()
         {
             StickerizableList list = new StickerizableList();
@@ -114,9 +112,10 @@ namespace Brevitee.Stickerize.Data.Tests
         }
                 
 
-        [UnitTest("InitSchemas", true)]
+        [UnitTest]
         public void SaveParentShouldSaveChildren()
         {
+			InitSchemas();
             StickerizableList list = new StickerizableList();
             list.Name = "Test_".RandomLetters(4);
             list.Public = true;
@@ -130,9 +129,10 @@ namespace Brevitee.Stickerize.Data.Tests
             Expect.IsTrue(list.SubSectionsByStickerizableListId.Contains(section));
         }
 
-        [UnitTest("InitSchemas", true)]
+        [UnitTest]
         public void ShouldBeAbleToAddSubSectionToList()
         {
+			InitSchemas();
             StickerizableList list = new StickerizableList();        
             list.Public = true;
             list.Name = "Test_".RandomLetters(4);
@@ -144,9 +144,10 @@ namespace Brevitee.Stickerize.Data.Tests
             Expect.IsTrue(list.SubSectionsByStickerizableListId.Count == 1);
         }
 
-		[UnitTest("InitSchemas", "", "")]
+		[UnitTest]
 		public void ShouldBeAbleToAddSubSectionToListThroughTopLevelProvider()
 		{
+			InitSchemas();
 			string listName = "Test_List_".RandomLetters(5);
 			string stickerizableName = "The Name ".RandomLetters(5);
 			string stickerizableFor = "For ".RandomLetters(5);
@@ -171,9 +172,10 @@ namespace Brevitee.Stickerize.Data.Tests
 		}
 
 
-        [UnitTest("InitSchemas", true)]
+        [UnitTest]
         public void StickerizerShouldGetCorrectUserIfLoggedIn()
         {
+			InitSchemas();
             string userName = MethodBase.GetCurrentMethod().Name;
             IHttpContext context;
             LoginResponse result;
@@ -185,9 +187,10 @@ namespace Brevitee.Stickerize.Data.Tests
             Expect.IsFalse(stickerizer.UserName.Equals(Stickerizer.Anonymous.UserName), "Stickerizer was anonymous");
         }
 
-		[UnitTest("InitSchemas", true)]
+		[UnitTest]
 		public void StickerizeMeGetStickerizableListsShouldGetPublicAndOwnLists()
 		{
+			InitSchemas();
 			StickerizableListCollection all = StickerizableList.LoadAll();
 			all.Delete();
 
@@ -222,9 +225,10 @@ namespace Brevitee.Stickerize.Data.Tests
 			return list;
 		}
 
-		[UnitTest("InitSchemas", true)]
+		[UnitTest]
 		public void CreateListShouldSetCorrectCreator()
-		{	
+		{
+			InitSchemas();
 			string userName = MethodBase.GetCurrentMethod().Name;
 			IHttpContext context;
 			LoginResponse result;
@@ -239,7 +243,7 @@ namespace Brevitee.Stickerize.Data.Tests
 			Expect.AreEqual(stickerizer.Id, check.CreatorId);
 		}
 
-        [UnitTest("InitSchemas", true)]
+        [UnitTest]
         public void ShouldBeAbleToAddStickerizableToSubSection()
         {
             StickerizableList list = new StickerizableList();
@@ -253,9 +257,10 @@ namespace Brevitee.Stickerize.Data.Tests
             Expect.IsTrue(section.Stickerizables.Contains(stickerizable));
         }
 		
-        [UnitTest("InitSchemas", true)]
+        [UnitTest]
         public void AddSubSectionShouldntDuplicate()
         {
+			InitSchemas();
             string subSectionName = "Sub Test_".RandomLetters(4);
             string listName = "Test_".RandomLetters(4);
             StickerizableList list = StickerizableList.GetOrCreate(listName);
@@ -266,9 +271,10 @@ namespace Brevitee.Stickerize.Data.Tests
             Expect.AreEqual(1, list.SubSectionsByStickerizableListId.Count);
         }
 
-        [UnitTest("InitSchemas", true)]
+        [UnitTest]
         public void AddStickerizableToSectionShouldntDuplicate()
         {
+			InitSchemas();
             string subSectionName = "Sub Test_".RandomLetters(4);
             string listName = "Test_".RandomLetters(4);
             string izableName = "Test_".RandomLetters(4);
@@ -284,6 +290,7 @@ namespace Brevitee.Stickerize.Data.Tests
         [UnitTest]
         public void SelectAllTest()
         {
+			InitSchemas();
             SqlStringBuilder sql = new SqlStringBuilder();
             sql.Select<StickerizableList>();
             Out(sql.ToString(), ConsoleColor.Yellow);
@@ -372,9 +379,10 @@ namespace Brevitee.Stickerize.Data.Tests
         }
 
 
-        [UnitTest("InitSchemas", "", "")]
+        [UnitTest]
         public void CreateStickerizeeShouldCreateForCurrentStickerizer()
         {
+			InitSchemas();
             Sticker sticker = Sticker.Default;
             Stickerizer er = Stickerizer.Get(null);
             string name = "test ee ({0})"._Format("".RandomLetters(4));
@@ -385,9 +393,10 @@ namespace Brevitee.Stickerize.Data.Tests
             Expect.IsTrue(er.Stickerizees.Contains(created));
         }
 
-		[UnitTest("InitSchemas", "", "")]
+		[UnitTest]
 		public void ShouldBeAbleToCreateStickerizableWithoutException()
 		{
+			InitSchemas();
 			string listName = "TestList_".RandomLetters(5);
 			long? id = StickerizeMe.Default.AddList(listName).Id;
 			StickerizableList created = StickerizableList.OneWhere(c => c.Id == id);
@@ -396,23 +405,26 @@ namespace Brevitee.Stickerize.Data.Tests
 		}
 
 	
-        [UnitTest("InitSchemas", "", "")]
+        [UnitTest]
         public void CurrentUserShouldBeAnonymous()
         {
+			InitSchemas();
             User current = User.GetCurrent(null);
             Expect.IsTrue(current == User.Anonymous);
         }
 
-        [UnitTest("InitSchemas", "", "")]
+        [UnitTest]
         public void CurrentStickerizerShouldBeAnonymous()
         {
+			InitSchemas();
             Stickerizer current = Stickerizer.Get(null);
             Expect.IsTrue(current.Equals(Stickerizer.Anonymous));
         }
 
-        [UnitTest("InitSchemas", "", "")]
+        [UnitTest]
         public void StickerizerCreateShouldNotCreateDuplicates()
         {
+			InitSchemas();
             string userName = "".RandomLetters(6);
             Stickerizer izer = Stickerizer.OneWhere(c => c.Name == userName);
 
@@ -430,9 +442,10 @@ namespace Brevitee.Stickerize.Data.Tests
             Expect.AreEqual(1, ers.Count, "Multiple records were created and that shouldn't be");
         }
 
-        [UnitTest("InitSchemas", "","")]
+        [UnitTest]
         public void ShouldBeAbleToAddSameStickerizee()
         {
+			InitSchemas();
             Stickerizer mom;
             Stickerizer dad;
             Stickerizee johnny;
@@ -445,36 +458,7 @@ namespace Brevitee.Stickerize.Data.Tests
 
             OutFormat("there are {0} Johnny entries", check.Count);
 
-            bool? found = false;
-            check.Each(ee =>
-            {
-                if (ee.Id == johnny.Id)
-                {
-                    found = true;
-                }
-            });
-
-            Expect.IsTrue(found.Value);
-        }
-
-        private static void CreateFamily(out Stickerizer mom, out Stickerizer dad, out Stickerizee johnny)
-        {
-            Stickerizee ignore;
-            CreateFamily(out mom, out dad, out johnny, out ignore);
-        }
-        private static void CreateFamily(out Stickerizer mom, out Stickerizer dad, out Stickerizee johnny, out Stickerizee jane)
-        {
-            StickerizerCollection allStickerizers = Stickerizer.LoadAll();
-            allStickerizers.Delete();
-            StickerizeeCollection allStickerizees = Stickerizee.LoadAll();
-            allStickerizees.Delete();
-
-            mom = Stickerizer.Create("Mom");
-            dad = Stickerizer.Create("Dad");
-            johnny = mom.AddStickerizee("John Quincy Adams", Gender.Male, "Johnny");
-            jane = mom.AddStickerizee("Jane Quincy Adams", Gender.Female, "Jane");
-            dad.AddStickerizee(johnny);
-            dad.AddStickerizee(jane);
+            Expect.IsTrue(check.Contains(johnny));
         }
 
         [UnitTest()]
@@ -483,9 +467,10 @@ namespace Brevitee.Stickerize.Data.Tests
             Out(typeof(SqlClientFactory).AssemblyQualifiedName);
         }
 
-        [UnitTest("InitSchemas", "", "")]
+        [UnitTest]
         public void ShouldBeAbleToRetrieveStickerizations()
         {
+			InitSchemas();
             Stickerizer mom;
             Stickerizer dad;
             Stickerizee johnny;
@@ -500,9 +485,10 @@ namespace Brevitee.Stickerize.Data.Tests
         }
 
 
-        [UnitTest("InitSchemas", "", "")]
+        [UnitTest]
         public void ShouldBeAbleToStickerizeThroughSystem()
         {
+			InitSchemas();
             Stickerizer mom;
             Stickerizer dad;
             Stickerizee johnny;
@@ -568,20 +554,30 @@ namespace Brevitee.Stickerize.Data.Tests
             test2.Save();
 
             StickerizeeCollection check = Stickerizee.Where(c => c.Name.DoesntStartWith("B"));
-            Expect.IsTrue(check.Count > 0);
-            bool? found = false;
-            check.Each(s =>
-            {
-                if (s.Id == test2.Id)
-                {
-                    found = true;
-                }
-            });
-            Expect.IsTrue(found.Value);
+            Expect.IsTrue(check.Count > 0);            
+            Expect.IsTrue(check.Contains(test2));
         }
 
-        
+		private static void CreateFamily(out Stickerizer mom, out Stickerizer dad, out Stickerizee johnny)
+		{
+			Stickerizee ignore;
+			CreateFamily(out mom, out dad, out johnny, out ignore);
+		}
 
+		private static void CreateFamily(out Stickerizer mom, out Stickerizer dad, out Stickerizee johnny, out Stickerizee jane)
+		{
+			StickerizerCollection allStickerizers = Stickerizer.LoadAll();
+			allStickerizers.Delete();
+			StickerizeeCollection allStickerizees = Stickerizee.LoadAll();
+			allStickerizees.Delete();
+
+			mom = Stickerizer.Create("Mom");
+			dad = Stickerizer.Create("Dad");
+			johnny = mom.AddStickerizee("John Quincy Adams", Gender.Male, "Johnny");
+			jane = mom.AddStickerizee("Jane Quincy Adams", Gender.Female, "Jane");
+			dad.AddStickerizee(johnny);
+			dad.AddStickerizee(jane);
+		}
     }
 
 }

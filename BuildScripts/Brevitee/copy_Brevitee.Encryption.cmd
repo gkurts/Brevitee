@@ -13,8 +13,8 @@ GOTO COPY
 
 :COPY
 MD Brevitee.Encryption\lib\%LIB%
-copy /Y .\BuildOutput\%VER%\Brevitee.Encryption.dll Brevitee.Encryption\lib\%LIB%\Brevitee.Encryption.dll
-copy /Y .\BuildOutput\%VER%\Brevitee.Encryption.xml Brevitee.Encryption\lib\%LIB%\Brevitee.Encryption.xml
+copy /Y .\BuildOutput\Release\%VER%\Brevitee.Encryption.dll Brevitee.Encryption\lib\%LIB%\Brevitee.Encryption.dll
+copy /Y .\BuildOutput\Release\%VER%\Brevitee.Encryption.xml Brevitee.Encryption\lib\%LIB%\Brevitee.Encryption.xml
 GOTO %NEXT%
 
 :END

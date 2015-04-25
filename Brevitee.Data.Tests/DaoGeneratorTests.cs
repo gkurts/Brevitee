@@ -192,45 +192,6 @@ namespace Brevitee.Data.Tests
             Expect.AreEqual("theQuickBrownFoxJumpsOverTheLazyDog", test.CamelCase(true, new string[] { " " }));
         }
 
-        [UnitTest]
-        public static void ShouldGenerateAndCompile()
-        {
-            string dir = ".\\GenTest\\";
-            FileInfo file = new FileInfo(".\\DaoTest.dll");
-            if (file.Exists)
-            {
-                file.Delete();
-            }
-
-            if (!Directory.Exists(dir))
-            {
-                Directory.CreateDirectory(dir);
-            }
-
-            DirectoryInfo dirInfo = new DirectoryInfo(dir);
-            DaoGenerator gen = new DaoGenerator("Brevitee.Data");
-            SchemaDefinition schema = SchemaExtractorTests.ExtractTestSchemaFromDaoRefConfig();
-            gen.Generate(schema, (className) => {
-                string fp = string.Format("{0}{1}.cs", dir, className);
-                FileInfo fi = new FileInfo(fp);
-                if(!fi.Directory.Exists)
-                {
-                    fi.Directory.Create();
-                }
-                return new FileStream(fp, FileMode.Create);
-            });
-
-            CompilerResults results = gen.Compile(dirInfo, file.FullName);
-
-            OutputCompilerErrors(results);
-
-            Expect.IsTrue(results.Errors.Count == 0);
-            file.Refresh();
-            Expect.IsTrue(file.Exists);
-            
-            //Directory.Delete(dir, true);
-        }
-
         private static void OutputCompilerErrors(CompilerResults results)
         {
             foreach (CompilerError error in results.Errors)

@@ -8,6 +8,14 @@ using System.Data.Common;
 
 namespace Brevitee.Data
 {
+	public static class Query
+	{
+		public static QueryFilter Where(string columnName)
+		{
+			return new QueryFilter(columnName);
+		}
+	}
+
     /// <summary>
     /// Convenience class for queries
     /// </summary>
@@ -38,6 +46,26 @@ namespace Brevitee.Data
             this.Database = db;
         }
 
+		Func<ColumnAttribute, string> _columnNameProvider;
+		public Func<ColumnAttribute, string> ColumnNameProvider
+		{
+			get
+			{
+				if (_columnNameProvider == null)
+				{
+					_columnNameProvider = (c) =>
+					{
+						return string.Format("[{0}]", c.Name);
+					};
+				}
+
+				return _columnNameProvider;
+			}
+			set
+			{
+				_columnNameProvider = value;
+			}
+		}
         protected internal Delegate FilterDelegate
         {
             get;
@@ -64,16 +92,16 @@ namespace Brevitee.Data
         public DataTable Where(Func<C, QueryFilter<C>> where, OrderBy<C> orderBy = null, Database db = null)
         {  
             Establish(where, orderBy, db);
-            SqlStringBuilder sql = GetFilteredQuery();
+            SqlStringBuilder sql = GetFilteredQuery(db);
             db = EstablishOrderAndDb(orderBy, db, sql);
 
             return GetDataTable(db, sql);
         }
-
+		
         public DataTable Where(WhereDelegate<C> where, OrderBy<C> orderBy = null, Database db = null)
         {
             Establish(where, orderBy, db);
-            SqlStringBuilder sql = GetFilteredQuery();
+            SqlStringBuilder sql = GetFilteredQuery(db);
             db = EstablishOrderAndDb(orderBy, db, sql);
 
             return GetDataTable(db, sql);
@@ -105,7 +133,7 @@ namespace Brevitee.Data
 
         public DataTable GetDataTable(Database database)
         {
-            SqlStringBuilder sql = GetFilteredQuery();
+            SqlStringBuilder sql = GetFilteredQuery(database);
             Database db = EstablishOrderAndDb(OrderBy, database, sql);
             return GetDataTable(db, sql);
         }
@@ -128,34 +156,38 @@ namespace Brevitee.Data
         
         private void Establish(Delegate where, OrderBy<C> orderBy = null, Database db = null)
         {
+			db = db ?? Db.For<T>();
             this.FilterDelegate = where;
             this.OrderBy = orderBy;
             this.Database = db;
         }
 
-        private SqlStringBuilder GetFilteredQuery()
+        private SqlStringBuilder GetFilteredQuery(Database db)
         {
             if (FilterDelegate == null)
             {
                 throw new ArgumentNullException("FilterDelegate was not set");
             }
-
+			
+			db = db ?? Db.For<T>();
             C columns = new C();
             IQueryFilter queryFilter = (IQueryFilter)FilterDelegate.DynamicInvoke(columns);
-            return GetSqlStringBuilder().Where(queryFilter);
+            return GetSqlStringBuilder(db).Where(queryFilter);
         }
 
         private static DataTable GetDataTable(Database db, SqlStringBuilder sql)
         {
+			db = db ?? Db.For<T>();
             IParameterBuilder parameterBuilder = db.ServiceProvider.Get<IParameterBuilder>();
             DbParameter[] parameters = parameterBuilder.GetParameters(sql);
             return db.GetDataTableFromSql(sql, System.Data.CommandType.Text, parameters);
         }
 
-        private SqlStringBuilder GetSqlStringBuilder()
+        private SqlStringBuilder GetSqlStringBuilder(Database db)
         {
-            SqlStringBuilder sql = new SqlStringBuilder();
-            sql.Select(Dao.TableName(typeof(T)), ColumnAttribute.GetColumns(typeof(T)).ToDelimited(c => string.Format("[{0}]", c.Name)));
+			db = db ?? Db.For<T>();
+			SqlStringBuilder sql = db == null ? new SqlStringBuilder(): db.ServiceProvider.Get<SqlStringBuilder>();
+            sql.Select(Dao.TableName(typeof(T)), ColumnAttribute.GetColumns(typeof(T)).ToDelimited(c => db.ColumnNameProvider(c)));
             return sql;
         }
 

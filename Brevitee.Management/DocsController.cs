@@ -5,6 +5,7 @@ using System.Text;
 using System.Web.Mvc;
 using System.Reflection;
 using System.Web;
+using Brevitee.Documentation;
 using Brevitee.ServiceProxy;
 using Brevitee;
 using Brevitee.Logging;

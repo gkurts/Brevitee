@@ -64,7 +64,7 @@ namespace Brevitee.Encryption
             try
             {
                 SchemaWriter schemaWriter = db.ServiceProvider.Get<SchemaWriter>();
-                schemaWriter.WriteSchemaScript(typeof(EncryptionContext), false);
+                schemaWriter.WriteSchemaScript(typeof(EncryptionContext));
                 db.ExecuteSql(schemaWriter);
                 result = true;
             }

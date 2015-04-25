@@ -10,6 +10,7 @@ namespace @Namespace
 {
 	// schema = @Schema.Name
 	// connection Name = @Model.ConnectionName
+	[Serializable]
 	[Brevitee.Data.Table("@Model.Name", "@Schema.Name")]
 	public partial class @Model.ClassName: Dao
 	{
@@ -78,13 +79,21 @@ namespace @Namespace
 		/// <summary>
 		/// Gets a query filter that should uniquely identify
 		/// the current instance.  The default implementation
-		/// compares the Id/key field to the current instance.
+		/// compares the Id/key field to the current instance's.
 		/// </summary> 
 		public override IQueryFilter GetUniqueFilter()
 		{
-			var colFilter = new @(Model.ClassName)Columns();
-			return (colFilter.KeyColumn == IdValue);
+			if(UniqueFilterProvider != null)
+			{
+				return UniqueFilterProvider();
+			}
+			else
+			{
+				var colFilter = new @(Model.ClassName)Columns();
+				return (colFilter.KeyColumn == IdValue);
+			}			
 		}
+
 		/// <summary>
 		/// Return every record in the @(Model.ClassName) table.
 		/// </summary>
@@ -101,6 +110,32 @@ namespace @Namespace
 			return results;
 		}
 
+		public static @(Model.ClassName) GetById(int id, Database database = null)
+		{
+			return GetById((long)id, database);
+		}
+
+		public static @(Model.ClassName) GetById(long id, Database database = null)
+		{
+			return OneWhere(c => c.KeyColumn == id, database);
+		}
+
+		public static @(Model.ClassName) GetByUuid(string uuid, Database database = null)
+		{
+			return OneWhere(c => c.Uuid == uuid, database);
+		}
+
+		public static @(Model.ClassName)Collection Query(QueryFilter filter, Database database = null)
+		{
+			return Where(filter, database);
+		}
+				
+		public static @(Model.ClassName)Collection Where(QueryFilter filter, Database database = null)
+		{
+			WhereDelegate<@(Model.ClassName)Columns> whereDelegate = (c) => filter;
+			return Where(whereDelegate, database);
+		}
+
 		/// <summary>
 		/// Execute a query and return the results. 
 		/// </summary>
@@ -109,9 +144,10 @@ namespace @Namespace
 		/// between @(Model.ClassName)Columns and other values
 		/// </param>
 		/// <param name="db"></param>
-		public static @(Model.ClassName)Collection Where(Func<@(Model.ClassName)Columns, QueryFilter<@(Model.ClassName)Columns>> where, OrderBy<@(Model.ClassName)Columns> orderBy = null)
+		public static @(Model.ClassName)Collection Where(Func<@(Model.ClassName)Columns, QueryFilter<@(Model.ClassName)Columns>> where, OrderBy<@(Model.ClassName)Columns> orderBy = null, Database database = null)
 		{
-			return new @(Model.ClassName)Collection(new Query<@(Model.ClassName)Columns, @(Model.ClassName)>(where, orderBy), true);
+			database = database ?? Db.For<@(Model.ClassName)>();
+			return new @(Model.ClassName)Collection(database.GetQuery<@(Model.ClassName)Columns, @(Model.ClassName)>(where, orderBy), true);
 		}
 		
 		/// <summary>
@@ -122,9 +158,10 @@ namespace @Namespace
 		/// between @(Model.ClassName)Columns and other values
 		/// </param>
 		/// <param name="db"></param>
-		public static @(Model.ClassName)Collection Where(WhereDelegate<@(Model.ClassName)Columns> where, Database db = null)
-		{
-			var results = new @(Model.ClassName)Collection(db, new Query<@(Model.ClassName)Columns, @(Model.ClassName)>(where, db), true);
+		public static @(Model.ClassName)Collection Where(WhereDelegate<@(Model.ClassName)Columns> where, Database database = null)
+		{		
+			database = database ?? Db.For<@(Model.ClassName)>();
+			var results = new @(Model.ClassName)Collection(database, database.GetQuery<@(Model.ClassName)Columns, @(Model.ClassName)>(where), true);
 			return results;
 		}
 		   
@@ -138,10 +175,11 @@ namespace @Namespace
 		/// <param name="orderBy">
 		/// Specifies what column and direction to order the results by
 		/// </param>
-		/// <param name="db"></param>
-		public static @(Model.ClassName)Collection Where(WhereDelegate<@(Model.ClassName)Columns> where, OrderBy<@(Model.ClassName)Columns> orderBy = null, Database db = null)
-		{
-			var results = new @(Model.ClassName)Collection(db, new Query<@(Model.ClassName)Columns, @(Model.ClassName)>(where, orderBy, db), true);
+		/// <param name="database"></param>
+		public static @(Model.ClassName)Collection Where(WhereDelegate<@(Model.ClassName)Columns> where, OrderBy<@(Model.ClassName)Columns> orderBy = null, Database database = null)
+		{		
+			database = database ?? Db.For<@(Model.ClassName)>();
+			var results = new @(Model.ClassName)Collection(database, database.GetQuery<@(Model.ClassName)Columns, @(Model.ClassName)>(where, orderBy), true);
 			return results;
 		}
 
@@ -152,11 +190,61 @@ namespace @Namespace
 		/// WhereDelegate<@(Model.ClassName)Columns>.
 		/// </summary>
 		/// <param name="where"></param>
-		/// <param name="db"></param>
-		public static @(Model.ClassName)Collection Where(QiQuery where, Database db = null)
+		/// <param name="database"></param>
+		public static @(Model.ClassName)Collection Where(QiQuery where, Database database = null)
 		{
-			var results = new @(Model.ClassName)Collection(db, Select<@(Model.ClassName)Columns>.From<@(Model.ClassName)>().Where(where, db));
+			var results = new @(Model.ClassName)Collection(database, Select<@(Model.ClassName)Columns>.From<@(Model.ClassName)>().Where(where, database));
 			return results;
+		}
+				
+		/// <summary>
+		/// Get one entry matching the specified filter.  If none exists 
+		/// one will be created; success will depend on the nullability
+		/// of the specified columns.
+		/// </summary>
+		public static @(Model.ClassName) GetOneWhere(QueryFilter where, Database database = null)
+		{
+			var result = OneWhere(where, database);
+			if(result == null)
+			{
+				result = CreateFromFilter(where, database);
+			}
+
+			return result;
+		}
+
+		/// <summary>
+		/// Execute a query that should return only one result.  If more
+		/// than one result is returned a MultipleEntriesFoundException will 
+		/// be thrown.  
+		/// </summary>
+		/// <param name="where"></param>
+		/// <param name="database"></param>
+		public static @(Model.ClassName) OneWhere(QueryFilter where, Database database = null)
+		{
+			WhereDelegate<@(Model.ClassName)Columns> whereDelegate = (c) => where;
+			var result = Top(1, whereDelegate, database);
+			return OneOrThrow(result);
+		}
+
+		/// <summary>
+		/// Get one entry matching the specified filter.  If none exists 
+		/// one will be created; success will depend on the nullability
+		/// of the specified columns.
+		/// </summary>
+		/// <param name="where"></param>
+		/// <param name="database"></param>
+		public static @(Model.ClassName) GetOneWhere(WhereDelegate<@(Model.ClassName)Columns> where, Database database = null)
+		{
+			var result = OneWhere(where, database);
+			if(result == null)
+			{
+				@(Model.ClassName)Columns c = new @(Model.ClassName)Columns();
+				IQueryFilter filter = where(c); 
+				result = CreateFromFilter(filter, database);
+			}
+
+			return result;
 		}
 
 		/// <summary>
@@ -169,13 +257,13 @@ namespace @Namespace
 		/// and returns a IQueryFilter which is the result of any comparisons
 		/// between @(Model.ClassName)Columns and other values
 		/// </param>
-		/// <param name="db"></param>
-		public static @(Model.ClassName) OneWhere(WhereDelegate<@(Model.ClassName)Columns> where, Database db = null)
+		/// <param name="database"></param>
+		public static @(Model.ClassName) OneWhere(WhereDelegate<@(Model.ClassName)Columns> where, Database database = null)
 		{
-			var results = new @(Model.ClassName)Collection(db, Select<@(Model.ClassName)Columns>.From<@(Model.ClassName)>().Where(where, db));
-			return OneOrThrow(results);
+			var result = Top(1, where, database);
+			return OneOrThrow(result);
 		}
-			 
+					 
 		/// <summary>
 		/// This method is intended to respond to client side Qi queries.
 		/// Use of this method from .Net should be avoided in favor of 
@@ -183,38 +271,69 @@ namespace @Namespace
 		/// WhereDelegate<@(Model.ClassName)Columns>.
 		/// </summary>
 		/// <param name="where"></param>
-		/// <param name="db"></param>
-		public static @(Model.ClassName) OneWhere(QiQuery where, Database db = null)
+		/// <param name="database"></param>
+		public static @(Model.ClassName) OneWhere(QiQuery where, Database database = null)
 		{
-			var results = new @(Model.ClassName)Collection(db, Select<@(Model.ClassName)Columns>.From<@(Model.ClassName)>().Where(where, db));
+			var results = Top(1, where, database);
 			return OneOrThrow(results);
 		}
 
-		private static @(Model.ClassName) OneOrThrow(@(Model.ClassName)Collection c)
-		{
-			if(c.Count == 1)
-			{
-				return c[0];
-			}
-			else if(c.Count > 1)
-			{
-				throw new MultipleEntriesFoundException();
-			}
-
-			return null;
-		}
-
 		/// <summary>
-		/// Execute a query and return the first result
+		/// Execute a query and return the first result.  This method will issue a sql TOP clause so only the 
+		/// specified number of values will be returned.
 		/// </summary>
 		/// <param name="where">A WhereDelegate that recieves a @(Model.ClassName)Columns 
 		/// and returns a IQueryFilter which is the result of any comparisons
 		/// between @(Model.ClassName)Columns and other values
 		/// </param>
-		/// <param name="db"></param>
-		public static @(Model.ClassName) FirstOneWhere(WhereDelegate<@(Model.ClassName)Columns> where, Database db = null)
+		/// <param name="database"></param>
+		public static @(Model.ClassName) FirstOneWhere(WhereDelegate<@(Model.ClassName)Columns> where, Database database = null)
 		{
-			var results = new @(Model.ClassName)Collection(db, Select<@(Model.ClassName)Columns>.From<@(Model.ClassName)>().Where(where, db));
+			var results = Top(1, where, database);
+			if(results.Count > 0)
+			{
+				return results[0];
+			}
+			else
+			{
+				return null;
+			}
+		}
+		
+		/// <summary>
+		/// Execute a query and return the first result.  This method will issue a sql TOP clause so only the 
+		/// specified number of values will be returned.
+		/// </summary>
+		/// <param name="where">A WhereDelegate that recieves a @(Model.ClassName)Columns 
+		/// and returns a IQueryFilter which is the result of any comparisons
+		/// between @(Model.ClassName)Columns and other values
+		/// </param>
+		/// <param name="database"></param>
+		public static @(Model.ClassName) FirstOneWhere(WhereDelegate<@(Model.ClassName)Columns> where, OrderBy<@(Model.ClassName)Columns> orderBy, Database database = null)
+		{
+			var results = Top(1, where, orderBy, database);
+			if(results.Count > 0)
+			{
+				return results[0];
+			}
+			else
+			{
+				return null;
+			}
+		}
+
+		/// <summary>
+		/// Shortcut for Top(1, where, orderBy, database)
+		/// </summary>
+		/// <param name="where">A WhereDelegate that recieves a @(Model.ClassName)Columns 
+		/// and returns a IQueryFilter which is the result of any comparisons
+		/// between @(Model.ClassName)Columns and other values
+		/// </param>
+		/// <param name="database"></param>
+		public static @(Model.ClassName) FirstOneWhere(QueryFilter where, OrderBy<@(Model.ClassName)Columns> orderBy = null, Database database = null)
+		{
+			WhereDelegate<@(Model.ClassName)Columns> whereDelegate = (c) => where;
+			var results = Top(1, whereDelegate, orderBy, database);
 			if(results.Count > 0)
 			{
 				return results[0];
@@ -227,7 +346,8 @@ namespace @Namespace
 
 		/// <summary>
 		/// Execute a query and return the specified number
-		/// of values
+		/// of values. This method will issue a sql TOP clause so only the 
+		/// specified number of values will be returned.
 		/// </summary>
 		/// <param name="count">The number of values to return.
 		/// This value is used in the sql query so no more than this 
@@ -237,14 +357,16 @@ namespace @Namespace
 		/// and returns a IQueryFilter which is the result of any comparisons
 		/// between @(Model.ClassName)Columns and other values
 		/// </param>
-		/// <param name="db"></param>
-		public static @(Model.ClassName)Collection Top(int count, WhereDelegate<@(Model.ClassName)Columns> where, Database db = null)
+		/// <param name="database"></param>
+		public static @(Model.ClassName)Collection Top(int count, WhereDelegate<@(Model.ClassName)Columns> where, Database database = null)
 		{
-			return Top(count, where, null, db);
+			return Top(count, where, null, database);
 		}
 
 		/// <summary>
-		/// Execute a query and return the specified count
+		/// Execute a query and return the specified number of values.  This method
+		/// will issue a sql TOP clause so only the specified number of values
+		/// will be returned.
 		/// of values
 		/// </summary>
 		/// <param name="count">The number of values to return.
@@ -258,13 +380,13 @@ namespace @Namespace
 		/// <param name="orderBy">
 		/// Specifies what column and direction to order the results by
 		/// </param>
-		/// <param name="db"></param>
+		/// <param name="database"></param>
 		public static @(Model.ClassName)Collection Top(int count, WhereDelegate<@(Model.ClassName)Columns> where, OrderBy<@(Model.ClassName)Columns> orderBy, Database database = null)
 		{
 			@(Model.ClassName)Columns c = new @(Model.ClassName)Columns();
 			IQueryFilter filter = where(c);         
 			
-			Database db = database == null ? Db.For<@(Model.ClassName)>(): database;
+			Database db = database ?? Db.For<@(Model.ClassName)>();
 			QuerySet query = GetQuerySet(db); 
 			query.Top<@(Model.ClassName)>(count);
 			query.Where(filter);
@@ -274,6 +396,70 @@ namespace @Namespace
 				query.OrderBy<@(Model.ClassName)Columns>(orderBy);
 			}
 
+			query.Execute(db);
+			var results = query.Results.As<@(Model.ClassName)Collection>(0);
+			results.Database = db;
+			return results;
+		}
+
+		/// <summary>
+		/// Execute a query and return the specified number of values.  This method
+		/// will issue a sql TOP clause so only the specified number of values
+		/// will be returned.
+		/// of values
+		/// </summary>
+		/// <param name="count">The number of values to return.
+		/// This value is used in the sql query so no more than this 
+		/// number of values will be returned by the database.
+		/// </param>
+		/// <param name="where">A QueryFilter used to filter the 
+		/// results
+		/// </param>
+		/// <param name="orderBy">
+		/// Specifies what column and direction to order the results by
+		/// </param>
+		/// <param name="db"></param>
+		public static @(Model.ClassName)Collection Top(int count, QueryFilter where, OrderBy<@(Model.ClassName)Columns> orderBy = null, Database database = null)
+		{
+			Database db = database ?? Db.For<@(Model.ClassName)>();
+			QuerySet query = GetQuerySet(db);
+			query.Top<@(Model.ClassName)>(count);
+			query.Where(where);
+
+			if(orderBy != null)
+			{
+				query.OrderBy<@(Model.ClassName)Columns>(orderBy);
+			}
+
+			query.Execute(db);
+			var results = query.Results.As<@(Model.ClassName)Collection>(0);
+			results.Database = db;
+			return results;
+		}
+
+		/// <summary>
+		/// Execute a query and return the specified number of values.  This method
+		/// will issue a sql TOP clause so only the specified number of values
+		/// will be returned.
+		/// of values
+		/// </summary>
+		/// <param name="count">The number of values to return.
+		/// This value is used in the sql query so no more than this 
+		/// number of values will be returned by the database.
+		/// </param>
+		/// <param name="where">A QueryFilter used to filter the 
+		/// results
+		/// </param>
+		/// <param name="orderBy">
+		/// Specifies what column and direction to order the results by
+		/// </param>
+		/// <param name="db"></param>
+		public static @(Model.ClassName)Collection Top(int count, QiQuery where, Database database = null)
+		{
+			Database db = database ?? Db.For<@(Model.ClassName)>();
+			QuerySet query = GetQuerySet(db);
+			query.Top<@(Model.ClassName)>(count);
+			query.Where(where);
 			query.Execute(db);
 			var results = query.Results.As<@(Model.ClassName)Collection>(0);
 			results.Database = db;
@@ -293,12 +479,39 @@ namespace @Namespace
 			@(Model.ClassName)Columns c = new @(Model.ClassName)Columns();
 			IQueryFilter filter = where(c) ;
 
-			Database db = database == null ? Db.For<@(Model.ClassName)>(): database;
+			Database db = database ?? Db.For<@(Model.ClassName)>();
 			QuerySet query = GetQuerySet(db);	 
 			query.Count<@(Model.ClassName)>();
 			query.Where(filter);	  
 			query.Execute(db);
 			return query.Results.As<CountResult>(0).Value;
 		}
+
+		private static @(Model.ClassName) CreateFromFilter(IQueryFilter filter, Database database = null)
+		{
+			Database db = database ?? Db.For<@(Model.ClassName)>();			
+			var dao = new @(Model.ClassName)();
+			filter.Parameters.Each(p=>
+			{
+				dao.Property(p.ColumnName, p.Value);
+			});
+			dao.Save(db);
+			return dao;
+		}
+		
+		private static @(Model.ClassName) OneOrThrow(@(Model.ClassName)Collection c)
+		{
+			if(c.Count == 1)
+			{
+				return c[0];
+			}
+			else if(c.Count > 1)
+			{
+				throw new MultipleEntriesFoundException();
+			}
+
+			return null;
+		}
+
 	}
 }																								

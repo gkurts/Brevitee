@@ -1,0 +1,7 @@
+1 - uninstall toolkit from control panel
+2 - get_build_install_test_latest: make sure it works
+3 - create_brevitee.cmd
+4 - show.cmd : check version, author and owner
+5 - set_nuspec_version.cmd: /major:<num> || /minor:<num> || /patch:<num>
+6 - pack.cmd
+7 - push.cmd

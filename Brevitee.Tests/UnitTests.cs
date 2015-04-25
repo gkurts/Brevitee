@@ -20,7 +20,7 @@ namespace Brevitee.Tests
     {
         class TestLoggable: Loggable
         {
-            [Verbosity(LogEventType.Custom, MessageFormat="Name={Name}")]
+            [Verbosity(VerbosityLevel.Custom, MessageFormat="Name={Name}")]
             public event EventHandler TestEvent;
 
             public string Name
@@ -159,5 +159,6 @@ namespace Brevitee.Tests
 
             Expect.IsFalse(thrown, "Remove attribute threw exception");
         }
+
     }
 }

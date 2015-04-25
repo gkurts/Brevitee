@@ -13,8 +13,8 @@ GOTO COPY
 
 :COPY
 MD Brevitee.Incubation\lib\%LIB%
-copy /Y .\BuildOutput\%VER%\Brevitee.Incubation.dll Brevitee.Incubation\lib\%LIB%\Brevitee.Incubation.dll
-copy /Y .\BuildOutput\%VER%\Brevitee.Incubation.xml Brevitee.Incubation\lib\%LIB%\Brevitee.Incubation.xml
+copy /Y .\BuildOutput\Release\%VER%\Brevitee.Incubation.dll Brevitee.Incubation\lib\%LIB%\Brevitee.Incubation.dll
+copy /Y .\BuildOutput\Release\%VER%\Brevitee.Incubation.xml Brevitee.Incubation\lib\%LIB%\Brevitee.Incubation.xml
 GOTO %NEXT%
 
 :END

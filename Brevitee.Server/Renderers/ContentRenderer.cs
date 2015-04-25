@@ -12,7 +12,7 @@ using System.Reflection;
 
 namespace Brevitee.Server.Renderers
 {
-    public abstract class ContentRenderer: RendererBase
+    public abstract class ContentRenderer: Renderer
     {
         public ContentRenderer(ExecutionRequest request, ContentResponder content, string contentType, params string[] extensions)
             :base(contentType, extensions)

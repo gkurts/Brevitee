@@ -15,23 +15,11 @@ namespace Brevitee.Data.Schema
     public class DaoGenerator
     {
         List<Stream> _resultStreams = new List<Stream>();
-        List<string> _referenceAssemblies = new List<string>();
         public DaoGenerator()
         {
             this.DisposeOnComplete = true;
             this.SubscribeToEvents();
-
-            this._referenceAssemblies.Add("System.dll");
-            this._referenceAssemblies.Add("System.Xml.dll");
-            this._referenceAssemblies.Add("System.Data.dll");
-            this._referenceAssemblies.Add("System.Web.Mvc.dll");
-            this._referenceAssemblies.Add("Brevitee.dll");
-            this._referenceAssemblies.Add("Brevitee.ServiceProxy.dll");
-            this._referenceAssemblies.Add("Brevitee.Data.dll");
-            this._referenceAssemblies.Add("Brevitee.Data.Schema.dll");
-            this._referenceAssemblies.Add("Brevitee.Data.dll");
-            this._referenceAssemblies.Add("Brevitee.Incubation.dll");
-
+			
             this.Namespace = "DaoGenerated";
         }
 
@@ -39,7 +27,7 @@ namespace Brevitee.Data.Schema
         {
             get
             {
-                return new DaoGenerator()._referenceAssemblies;
+				return new List<string>(AdHocCSharpCompiler.DefaultReferenceAssemblies);
             }
         }
 
@@ -506,6 +494,12 @@ namespace Brevitee.Data.Schema
         }
         #endregion events
 
+		/// <summary>
+		/// If the generator compiled generated files, this will be the FileInfo 
+		/// representing the compiled assembly
+		/// </summary>
+		public FileInfo DaoAssemblyFile { get; set; }
+
         public string Namespace { get; set; }
 
         public CompilerResults Compile(string directoryPath)
@@ -516,12 +510,12 @@ namespace Brevitee.Data.Schema
         public CompilerResults Compile(DirectoryInfo directory, string assemblyFileName = null)
         {
             assemblyFileName = assemblyFileName ?? directory.Name;
-            return Compile(directory, assemblyFileName, _referenceAssemblies.ToArray());
+			return Compile(directory, assemblyFileName, DefaultReferenceAssemblies.ToArray());
         }
 
         public CompilerResults Compile(DirectoryInfo[] directories, string assemblyFileName)
         {
-            return Compile(directories, assemblyFileName, _referenceAssemblies.ToArray());
+			return Compile(directories, assemblyFileName, DefaultReferenceAssemblies.ToArray());
         }
 
         public CompilerResults Compile(DirectoryInfo directory, string assemblyFileName, string[] referenceAssemblies = null, bool executable = false)
@@ -533,7 +527,7 @@ namespace Brevitee.Data.Schema
         {
             if (referenceAssemblies == null)
             {
-                referenceAssemblies = this._referenceAssemblies.ToArray();
+				referenceAssemblies = DefaultReferenceAssemblies.ToArray();
             }
             return AdHocCSharpCompiler.CompileDirectories(directories, assemblyFileName, referenceAssemblies, executable);        
         }

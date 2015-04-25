@@ -38,7 +38,14 @@ namespace Brevitee.ServiceProxy.Tests
         static Program()
         {
             FilesToDelete = new List<string>();
+
         }
+
+		public static void ClearAppsAndStopServers()
+		{
+			ClearApps();
+			StopServers();
+		}
 
         public static void CleanUp()
         {
@@ -58,17 +65,19 @@ namespace Brevitee.ServiceProxy.Tests
 
             ApplicationCollection all = Application.LoadAll();
             all.Delete();
+			ClearAppsAndStopServers();
         }
 
         public void EnsureRepository()
         {
             ConsoleLogger logger = new ConsoleLogger();
-            SecureChannel.EnsureRepository(logger);
+            SecureChannel.InitializeDatabase(logger);
         }
 
-        [UnitTest(Before="EnsureRepository", AlwaysAfter="CleanUp")]
+        [UnitTest]
         public void SecureExecutionRequest_ShouldExecute()
         {
+			EnsureRepository();
             IHttpContext context = CreateFakeContext(MethodInfo.GetCurrentMethod().Name);
 
             string input = "monkey";
@@ -90,6 +99,8 @@ namespace Brevitee.ServiceProxy.Tests
 
             string result = request.GetResultAs<string>();
             Expect.AreEqual(input, result);
+
+			CleanUp();
         }
 
         private static List<string> FilesToDelete

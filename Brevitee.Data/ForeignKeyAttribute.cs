@@ -11,14 +11,13 @@ namespace Brevitee.Data
             : base()
         {
             this.Suffix = string.Empty;
+			this.AllowNull = true;
         }
 
         public string ForeignKeyName
         {
             get
             {
-                // added Random to ensure uniqueness when reproducing schema
-                // this is less than ideal but it works.
                 return string.Format("FK_{0}_{1}{2}", Table, ReferencedTable, Suffix);
             }
         }

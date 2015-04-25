@@ -91,12 +91,16 @@ namespace Brevitee.CommandLine
 		{
 			return Run(startInfo, null, null, timeout);
 		}
+		public static ProcessOutput Run(this ProcessStartInfo startInfo, StringBuilder output = null, StringBuilder error = null, int timeout = 600000)
+		{
+			output = output ?? new StringBuilder();
+			error = error ?? new StringBuilder();
+			ProcessOutputCollector receiver = new ProcessOutputCollector(d => output.Append(d), e => error.Append(e));
+			return Run(startInfo, receiver, timeout);
+		}
 
-        public static ProcessOutput Run(this ProcessStartInfo startInfo, StringBuilder output = null, StringBuilder error = null, int timeout = 600000)
+        public static ProcessOutput Run(this ProcessStartInfo startInfo, ProcessOutputCollector output = null, int timeout = 600000)
         {
-            output = output ?? new StringBuilder();
-            error = error ?? new StringBuilder();
-
             int exitCode = -1;
             bool timedOut = false;
             using (Process process = new Process())
@@ -113,7 +117,8 @@ namespace Brevitee.CommandLine
                         }
                         else
                         {
-                            output.AppendLine(e.Data);
+                            output.StandardOutput.AppendLine(e.Data);
+							output.DataHandler(e.Data);
                         }
                     };
                     process.ErrorDataReceived += (sender, e) =>
@@ -124,7 +129,8 @@ namespace Brevitee.CommandLine
                         }
                         else
                         {
-                            error.AppendLine(e.Data);
+                            output.StandardError.AppendLine(e.Data);
+							output.ErrorHandler(e.Data);
                         }
                     };
 
@@ -137,17 +143,18 @@ namespace Brevitee.CommandLine
                         errorWaitHandle.WaitOne(timeout))
                     {
                         exitCode = process.ExitCode;
+						output.ExitCode = exitCode;
                     }
                     else
                     {
-                        error.AppendLine();
-                        error.AppendLine("Timeout elapsed prior to process completion");
+						output.StandardError.AppendLine();
+						output.StandardError.AppendLine("Timeout elapsed prior to process completion");
                         timedOut = true;
                     }
                 }
             }
 
-            return new ProcessOutput(output.ToString(), error.ToString(), exitCode, timedOut);
+			return new ProcessOutput(output.ToString(), output.StandardError.ToString(), exitCode, timedOut);
         }
         
         private static ProcessStartInfo CreateStartInfo(bool promptForAdmin)

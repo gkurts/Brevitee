@@ -7,7 +7,7 @@ using Brevitee;
 
 namespace Brevitee.Distributed
 {
-    public class Slot<T>: Slot where T: IRepositoryProvider
+    public class Slot<T>: Slot where T: IDistributedRepository
     {
         public Slot() : base() { }
         public Slot(T value)
@@ -24,14 +24,19 @@ namespace Brevitee.Distributed
 
     public class Slot
     {
-        public IRepositoryProvider Provider { get; set; }
+		public Slot()
+		{
+			this.Index = -1;
+		}
 
-        public T GetProvider<T>() where T: IRepositoryProvider
+        public IDistributedRepository Provider { get; set; }
+
+        public T GetProvider<T>() where T: IDistributedRepository
         {
             return (T)Provider;
         }
 
-        public void SetProvider(IRepositoryProvider provider)
+        public void SetProvider(IDistributedRepository provider)
         {
             this.Provider = provider;
         }
@@ -67,6 +72,38 @@ namespace Brevitee.Distributed
                 return Degrees * (Math.PI / 180);
             }
         }
+
+		public int Index { get; protected internal set; }
+
+		public Slot NeighborLast
+		{
+			get
+			{
+				if (Index == 0)
+				{
+					return Parent.Slots[Parent.Slots.Length - 1];
+				}
+				else
+				{
+					return Parent.Slots[Index - 1];
+				}
+			}
+		}
+
+		public Slot NeighborNext
+		{
+			get
+			{
+				if(Index == Parent.Slots.Length - 1)
+				{
+					return Parent.Slots[0];
+				}
+				else
+				{
+					return Parent.Slots[Index + 1];
+				}
+			}
+		}
 
         public Ring Parent { get; protected internal set; }
 

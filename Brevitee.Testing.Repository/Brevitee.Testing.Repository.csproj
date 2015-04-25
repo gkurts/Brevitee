@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{F3FB0127-5CB9-4D23-B3F5-07B16757E2F6}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Brevitee.Testing.Repository</RootNamespace>
+    <AssemblyName>Brevitee.Testing.Repository</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Data\RepoData.cs" />
+    <Compile Include="Responses\CreateStatus.cs" />
+    <Compile Include="Responses\RetrieveTestSummaryResponse.cs" />
+    <Compile Include="Responses\SaveTestExecutionResponse.cs" />
+    <Compile Include="Responses\SaveTestFailureResponse.cs" />
+    <Compile Include="Responses\SaveTestPassResponse.cs" />
+    <Compile Include="Responses\UpdateSuiteResponse.cs" />
+    <Compile Include="Data\TestExecution.cs" />
+    <Compile Include="Responses\DefineSuiteResponse.cs" />
+    <Compile Include="Responses\DefineTestResponse.cs" />
+    <Compile Include="Responses\RetrieveTestExecutionResponse.cs" />
+    <Compile Include="Data\SuiteDefinition.cs" />
+    <Compile Include="Data\TestDefinition.cs" />
+    <Compile Include="Data\TestPass.cs" />
+    <Compile Include="TestRepositoryServer.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Responses\SaveTestSummaryResponse.cs" />
+    <Compile Include="Data\TestFailure.cs" />
+    <Compile Include="Data\TestSummary.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Brevitee.Analytics\Brevitee.Analytics.csproj">
+      <Project>{67cca5a4-9b97-444c-9f4b-f464b2e04d6b}</Project>
+      <Name>Brevitee.Analytics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Automation\Brevitee.Automation.csproj">
+      <Project>{b65e4fcd-de50-4d9e-91d7-dddf80c25c47}</Project>
+      <Name>Brevitee.Automation</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Caching\Brevitee.Caching.csproj">
+      <Project>{06bae7ad-8657-4415-bbc0-dad16bb29361}</Project>
+      <Name>Brevitee.Caching</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.CommandLine\Brevitee.CommandLine.csproj">
+      <Project>{ea9863a9-8e0b-4497-b7fd-abf450a3e468}</Project>
+      <Name>Brevitee.CommandLine</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Data.Model\Brevitee.Data.Model.csproj">
+      <Project>{26216f9a-dc1a-475d-a355-568e350c3690}</Project>
+      <Name>Brevitee.Data.Model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Data.Repositories\Brevitee.Data.Repositories.csproj">
+      <Project>{222ef625-a115-49c7-8bdb-5879725a7d17}</Project>
+      <Name>Brevitee.Data.Repositories</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Data.Schema\Brevitee.Data.Schema.csproj">
+      <Project>{d2c2b1c0-1047-4211-92fc-37f332861161}</Project>
+      <Name>Brevitee.Data.Schema</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Data.SQLite\Brevitee.Data.SQLite.csproj">
+      <Project>{42339dbf-9389-42f8-9d28-4c523caa7b01}</Project>
+      <Name>Brevitee.Data.SQLite</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Data\Brevitee.Data.csproj">
+      <Project>{3b52b739-58fd-4b49-b815-6b317e701520}</Project>
+      <Name>Brevitee.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Distributed\Brevitee.Distributed.csproj">
+      <Project>{35cfb5c2-8456-4d5b-b421-9d91365f783a}</Project>
+      <Name>Brevitee.Distributed</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Documentation\Brevitee.Documentation.csproj">
+      <Project>{8febe7ea-4f1f-44e2-a694-52b9a33c2414}</Project>
+      <Name>Brevitee.Documentation</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Encryption\Brevitee.Encryption.csproj">
+      <Project>{f27dc9a6-e432-4d20-bcef-d10b0c2a657d}</Project>
+      <Name>Brevitee.Encryption</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Html\Brevitee.Html.csproj">
+      <Project>{795d5552-94d6-4373-b4f1-551b1d5bdafb}</Project>
+      <Name>Brevitee.Html</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Javascript\Brevitee.Javascript.csproj">
+      <Project>{34c5016d-5265-4394-a9ba-cb2f70d8e93b}</Project>
+      <Name>Brevitee.Javascript</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Logging\Brevitee.Logging.csproj">
+      <Project>{15e91407-00d6-4edf-b75c-bc817a75c8ad}</Project>
+      <Name>Brevitee.Logging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Management\Brevitee.Management.csproj">
+      <Project>{4dd9e087-886b-4f74-9529-1aca3ebf4006}</Project>
+      <Name>Brevitee.Management</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Messaging\Brevitee.Messaging.csproj">
+      <Project>{e330d601-62ea-439e-acd7-7236744562ff}</Project>
+      <Name>Brevitee.Messaging</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.ServiceProxy\Brevitee.ServiceProxy.csproj">
+      <Project>{8987d8c8-033b-4993-99f0-8dd5a4d6dd0d}</Project>
+      <Name>Brevitee.ServiceProxy</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Testing\Brevitee.Testing.csproj">
+      <Project>{85212881-c676-4b40-b311-37c2d1706042}</Project>
+      <Name>Brevitee.Testing</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.UserAccounts\Brevitee.UserAccounts.csproj">
+      <Project>{74d5a262-b0b9-40e6-a3fd-b120dc8e9f54}</Project>
+      <Name>Brevitee.UserAccounts</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Yaml\Brevitee.Yaml.csproj">
+      <Project>{1c5258ec-7579-4032-94ec-b016bdc1b876}</Project>
+      <Name>Brevitee.Yaml</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee\Brevitee.csproj">
+      <Project>{8794c09d-d72c-420c-812f-bfda251b64c9}</Project>
+      <Name>Brevitee</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>copy $(TargetPath) c:\BreviteeContentRoot\apps\hugh\bin\</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

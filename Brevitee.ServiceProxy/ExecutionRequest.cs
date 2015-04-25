@@ -353,12 +353,6 @@ namespace Brevitee.ServiceProxy
             }
         }
 
-        private void Reset()
-        {
-            IsInitialized = false;
-            Result = null;
-        }
-
         /// <summary>
         /// Should be set to an array of strings stringified twice.  Parsing as Json will return an array of strings,
         /// each string can be individually parsed into separate objects
@@ -550,6 +544,48 @@ namespace Brevitee.ServiceProxy
             return new { Success = false, Message = message };
         }
 
+		public bool HasCallback
+		{
+			get
+			{
+				return !string.IsNullOrEmpty(Request.QueryString["callback"]);
+			}
+		}
+
+		string _callBack;
+		object _callBackLock = new object();
+		public string Callback
+		{
+			get
+			{
+				if (string.IsNullOrEmpty(_callBack))
+				{
+					lock (_callBackLock)
+					{
+						if (string.IsNullOrEmpty(_callBack))
+						{
+							_callBack = "callback";
+							if (Request != null)
+							{
+								string qCb = Request.QueryString["callback"];
+								if (!string.IsNullOrEmpty(qCb))
+								{
+									_callBack = qCb;
+								}
+							}
+						}
+					}
+				}
+
+				return _callBack;
+			}
+			set
+			{
+				_callBack = value;
+			}
+		}
+		public string ViewName { get; set; }
+
         private string GetMessage(Exception ex, bool stack)
         {
             string st = stack ? ex.StackTrace : "";
@@ -726,47 +762,11 @@ namespace Brevitee.ServiceProxy
             return parameterValue;
         }
 
-        public bool HasCallback
-        {
-            get
-            {
-                return !string.IsNullOrEmpty(Request.QueryString["callback"]);
-            }
-        }
-
-        string _callBack;
-        object _callBackLock = new object();
-        public string Callback
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(_callBack))
-                {
-                    lock (_callBackLock)
-                    {
-                        if (string.IsNullOrEmpty(_callBack))
-                        {
-                            _callBack = "callback";
-                            if (Request != null)
-                            {
-                                string qCb = Request.QueryString["callback"];
-                                if (!string.IsNullOrEmpty(qCb))
-                                {
-                                    _callBack = qCb;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                return _callBack;
-            }
-            set
-            {
-                _callBack = value;
-            }
-        }
-        public string ViewName { get; set; }
+		private void Reset()
+		{
+			IsInitialized = false;
+			Result = null;
+		}
 
         protected internal IHttpContext Context
         {

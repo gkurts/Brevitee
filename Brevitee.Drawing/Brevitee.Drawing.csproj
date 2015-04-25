@@ -39,7 +39,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="BoneSoft.CSS">
-      <HintPath>..\Assemblies\BoneSoft.CSS.dll</HintPath>
+      <HintPath>..\packages\BoneSoft.CSS.1.0.0\lib\BoneSoft.CSS.dll</HintPath>
     </Reference>
     <Reference Include="CsQuery">
       <HintPath>..\Assemblies\CsQuery.dll</HintPath>
@@ -56,7 +56,8 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="YamlSerializer">
+    <Reference Include="YamlSerializer, Version=0.9.0.2, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\YamlSerializer.1.0\lib\Net35\YamlSerializer.dll</HintPath>
     </Reference>
   </ItemGroup>
@@ -74,17 +75,17 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Brevitee.Yaml\Brevitee.Yaml.csproj">
       <Project>{1c5258ec-7579-4032-94ec-b016bdc1b876}</Project>
       <Name>Brevitee.Yaml</Name>
     </ProjectReference>
     <ProjectReference Include="..\Brevitee\Brevitee.csproj">
-      <Project>{8794C09D-D72C-420C-812F-BFDA251B64C9}</Project>
+      <Project>{8794c09d-d72c-420c-812f-bfda251b64c9}</Project>
       <Name>Brevitee</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

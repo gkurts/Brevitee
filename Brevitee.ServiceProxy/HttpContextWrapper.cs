@@ -9,9 +9,15 @@ using Brevitee.ServiceProxy;
 
 namespace Brevitee.ServiceProxy
 {
-    public class HttpContextWrapper: IHttpContext
+    public class HttpContextWrapper: HttpContextBase, IHttpContext
     {
         public HttpContextWrapper() { }
+		public HttpContextWrapper(IHttpContext context)
+			: this(new RequestWrapper(context.Request), new ResponseWrapper(context.Response))
+		{
+			this.User = context.User;
+		}
+
         public HttpContextWrapper(HttpContextBase context)
             : this(new RequestWrapper(context.Request), new ResponseWrapper(context.Response))
         {
@@ -34,7 +40,7 @@ namespace Brevitee.ServiceProxy
             this.Request = request;
             this.Response = response;
         }
-
+		
         public IResponse Response { get; set; }
         public IRequest Request { get; set; }
 

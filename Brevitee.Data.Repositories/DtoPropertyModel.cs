@@ -1,0 +1,21 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Reflection;
+
+namespace Brevitee.Data.Repositories
+{
+	public class DtoPropertyModel
+	{
+		public DtoPropertyModel(PropertyInfo property)
+		{
+			this.PropertyName = property.Name;
+			this.PropertyType = property.PropertyType.Name;
+		}
+
+		public string PropertyName { get; set; }
+		public string PropertyType { get; set; }
+	}
+}

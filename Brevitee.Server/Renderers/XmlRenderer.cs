@@ -10,7 +10,7 @@ using Brevitee.Yaml;
 
 namespace Brevitee.Server.Renderers
 {
-    public class XmlRenderer: RendererBase
+    public class XmlRenderer: Renderer
     {
         public XmlRenderer()
             : base("application/xml", ".xml")

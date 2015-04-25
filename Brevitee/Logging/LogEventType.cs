@@ -5,7 +5,6 @@ using System.Text;
 
 namespace Brevitee.Logging
 {
-
     /// <summary>
     /// The same values as Verbosity level.
     /// Both exist for clarity in specific

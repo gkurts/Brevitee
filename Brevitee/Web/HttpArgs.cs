@@ -130,7 +130,7 @@ namespace Brevitee.Web
         }
 
         /// <summary>
-        /// Returns true if the current InputArgs instance
+        /// Returns true if the current HttpArgs instance
         /// has the specified key
         /// </summary>
         /// <param name="key">The key to look for</param>

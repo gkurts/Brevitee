@@ -1,0 +1,6 @@
+{
+  "Name": "stickerize.me",
+  "DefaultLayout": "basic",
+  "GenerateDao": true,
+  "CheckDaoHashes": true
+}

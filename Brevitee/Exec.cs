@@ -181,6 +181,23 @@ namespace Brevitee
             return tookTooLong.Value;
         }
 
+		/// <summary>
+		/// Execute the specified action and return a TimeSpan
+		/// representing how much time it took to execute
+		/// </summary>
+		/// <param name="action"></param>
+		/// <returns></returns>
+		public static TimeSpan TimeExecution(this Action action)
+		{
+			return Time(action);
+		}
+
+		/// <summary>
+		/// Execute the specified action and return a TimeSpan
+		/// representing how much time it took to execute
+		/// </summary>
+		/// <param name="action"></param>
+		/// <returns></returns>
         public static TimeSpan Time(this Action action)
         {
             DateTime start = DateTime.Now;
@@ -189,6 +206,14 @@ namespace Brevitee
             return end.Subtract(start);
         }
 
+		/// <summary>
+		/// Execute the specified Func and return a TimeSpan
+		/// representing how much time it took to execute
+		/// </summary>
+		/// <typeparam name="TResult"></typeparam>
+		/// <param name="func"></param>
+		/// <param name="result"></param>
+		/// <returns></returns>
         public static TimeSpan Time<TResult>(this Func<TResult> func, out TResult result)
         {
             return func.TimeExecution(out result);
@@ -211,22 +236,52 @@ namespace Brevitee
             return end.Subtract(start);
         }
 
+		public static TimeSpan TimeExecution<TInput, TResult>(this Func<TInput, TResult> func, TInput input, out TResult result)
+		{
+			DateTime start = DateTime.Now;
+			result = func(input);
+			DateTime end = DateTime.Now;
+			return end.Subtract(start);
+		}
+
         public static void InThread<TResult>(this Func<TResult> func, Func<TResult, TResult> callBack)
         {
             TakesTooLong<TResult>(func, callBack, 0);
         }
 
+		public static Thread ExecuteInThread(this Action action)
+		{
+			Thread thread = new Thread(() => action());
+			thread.IsBackground = true;
+			thread.Start();
+			return thread;
+		}
+
+		public static Thread ExecuteInThread(this Action<dynamic> action, dynamic argContext)
+		{
+			ParameterizedThreadStart method = (o)=>
+			{
+				action(o);
+			};
+			Thread thread = new Thread(method);
+			thread.IsBackground = true;
+			thread.Start(argContext);
+			return thread;
+		}
+
         public static Thread InThread(this ThreadStart method)
         {
             Thread thread = new Thread(method);
+			thread.IsBackground = true;
             thread.Start();
             return thread;
         }
 
-        public static Thread InThread(this ParameterizedThreadStart method)
+        public static Thread InThread(this ParameterizedThreadStart method, object parameter)
         {
             Thread thread = new Thread(method);
-            thread.Start();
+			thread.IsBackground = true;
+			thread.Start(parameter);
             return thread;
         }
     }

@@ -12,7 +12,7 @@ namespace Brevitee.Server.Renderers
     /// The renderer used to render the results of a 
     /// common (server level) dust template provided a given object
     /// </summary>
-    public class CommonDustRenderer: RendererBase
+    public class CommonDustRenderer: Renderer, ITemplateRenderer
     {
         public CommonDustRenderer(ContentResponder content)
             : base("text/html", ".htm", ".html")
@@ -26,14 +26,14 @@ namespace Brevitee.Server.Renderers
         /// Represents the compiled javascript result of doing dust.compile
         /// against all the files found in ~s:/dust.
         /// </summary>
-        public virtual string CompiledDustTemplates
+        public virtual string CompiledTemplates
         {
             get
             {
                 return _compiledDustTemplatesLock.DoubleCheckLock(ref _compiledDustTemplates, () =>
                 {
                     StringBuilder templates = new StringBuilder();
-                    DirectoryInfo commonDust = new DirectoryInfo(Path.Combine(ContentResponder.Root, "dust"));
+                    DirectoryInfo commonDust = new DirectoryInfo(Path.Combine(ContentResponder.Root, "views"));
 
                     string commonCompiledTemplates = DustScript.CompileDirectory(commonDust, "*.dust");
                     
@@ -56,7 +56,7 @@ namespace Brevitee.Server.Renderers
                 return _compiledLayoutTemplatesLock.DoubleCheckLock(ref _compiledLayoutTemplates, () =>
                 {
                     StringBuilder templates = new StringBuilder();
-                    DirectoryInfo layouts = new DirectoryInfo(Path.Combine(ContentResponder.Root, "dust", "layouts"));
+                    DirectoryInfo layouts = new DirectoryInfo(Path.Combine(ContentResponder.Root, "common", "views", "layouts"));
 
                     string compiledLayouts = DustScript.CompileDirectory(layouts, "*.dust");
 
@@ -79,7 +79,7 @@ namespace Brevitee.Server.Renderers
                 return _compiledCommonTemplatesLock.DoubleCheckLock(ref _compiledCommonTemplates, () =>
                 {
                     StringBuilder templates = new StringBuilder();
-                    DirectoryInfo common = new DirectoryInfo(Path.Combine(ContentResponder.Root, "dust"));
+                    DirectoryInfo common = new DirectoryInfo(Path.Combine(ContentResponder.Root, "common", "views"));
 
                     string compiledCommon = DustScript.CompileDirectory(common, "*.dust");
 
@@ -103,7 +103,7 @@ namespace Brevitee.Server.Renderers
 
         public virtual void Render(string templateName, object toRender, Stream output)
         {
-            string result = DustScript.Render(CompiledDustTemplates, templateName, toRender);
+            string result = DustScript.Render(CompiledTemplates, templateName, toRender);
 
             byte[] data = Encoding.UTF8.GetBytes(result);
             output.Write(data, 0, data.Length);

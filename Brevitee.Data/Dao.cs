@@ -50,25 +50,30 @@ namespace Brevitee.Data
             }
         }
 
-        Dictionary<string, ICommittable> _childCollections;
+        Dictionary<string, ILoadable> _childCollections;
 
         public Dao()
         {
-            this._childCollections = new Dictionary<string, ICommittable>();
+			this._childCollections = new Dictionary<string, ILoadable>();
             this._newValues = new Dictionary<string, object>();
             this.ServiceProvider = Incubator.Default;
             this.IsNew = true;
             this.DataRow = this.ToDataRow();
             this.AutoDeleteChildren = true;
-            this.EnsureUuid();
+			this.BeforeWriteCommit += (db, dao) =>
+			{
+				dao.EnsureUuid();
+			};
 
 			Type currentType = this.GetType();
 			if (PostConstructActions.ContainsKey(currentType))
 			{
 				PostConstructActions[currentType](this);
 			}
-        }
 
+			this.Initialize();
+        }
+		
         public Dao(DataRow row)
             : this()
         {
@@ -125,9 +130,82 @@ namespace Brevitee.Data
             }
         }
 
+		public Type[] GetSchemaTypes()
+		{
+			Type thisType = this.GetType();
+			return GetSchemaTypes(thisType);
+		}
+
+		public static Type[] GetSchemaTypes<T>()
+		{
+			return GetSchemaTypes(typeof(T));
+		}
+
+		public static Type[] GetSchemaTypes(Type daoType)
+		{
+			List<Type> results = new List<Type>();
+			results.Add(daoType);
+
+			results.AddRange(daoType.Assembly.GetTypes().Where(t => t.HasCustomAttributeOfType<TableAttribute>()));
+			return results.ToArray();
+		}
+
+		/// <summary>
+		/// An overridable method to provide constructor functionality since the constructors are generated.
+		/// </summary>
+		public virtual void Initialize()
+		{
+			// override if constructor functionality is required
+			Initializer(this);
+		}
+
+		Action<Dao> _initializer;
+		public Action<Dao> Initializer
+		{
+			get
+			{
+				if (_initializer == null)
+				{
+					return GlobalInitializer;
+				}
+				return _initializer;
+			}
+			set
+			{
+				_initializer = value;
+			}
+		}
+
+		static Action<Dao> _globalInitializer;
+		public static Action<Dao> GlobalInitializer
+		{
+			get
+			{
+				if (_globalInitializer == null)
+				{
+					return (dao) =>
+					{
+					};
+				}
+				return _globalInitializer;
+			}
+			set
+			{
+				_globalInitializer = value;
+			}
+		}
+
         public override int GetHashCode()
         {
-            return IdValue.GetValueOrDefault().GetHashCode();
+			long id = IdValue.GetValueOrDefault();
+			if (id > 0)
+			{
+				return id.GetHashCode();
+			}
+			else
+			{
+				return base.GetHashCode();
+			}
         }
 
         public override bool Equals(object obj)
@@ -159,7 +237,7 @@ namespace Brevitee.Data
 
         Database _database;
         object _databaseSync = new object();
-        protected internal Database Database
+        public Database Database
         {
             get
             {
@@ -178,7 +256,7 @@ namespace Brevitee.Data
         /// </summary>
         [Exclude]
         public bool AutoDeleteChildren { get; set; }
-
+		
         public event DaoDelegate BeforeWriteCommit;
         public static event DaoDelegate BeforeWriteCommitAny;
         protected void OnBeforeWriteCommit(Database db)
@@ -300,7 +378,7 @@ namespace Brevitee.Data
 
         }
 
-        protected Dictionary<string, ICommittable> ChildCollections
+        protected internal Dictionary<string, ILoadable> ChildCollections
         {
             get
             {
@@ -317,10 +395,49 @@ namespace Brevitee.Data
             _childCollections.Clear();
         }
         
-        public virtual ValidationResult IsValid()
+        public virtual ValidationResult Validate()
         {
-            return new ValidationResult();
+			return Validator(this);
         }
+
+		Func<Dao, ValidationResult> _validator;
+		public Func<Dao, ValidationResult> Validator
+		{
+			get
+			{
+				if (_validator == null)
+				{
+					return GlobalValidator;
+				}
+
+				return _validator;
+			}
+			set
+			{
+				_validator = value;
+			}
+		}
+
+		static Func<Dao, ValidationResult> _globalValidator;
+		public static Func<Dao, ValidationResult> GlobalValidator
+		{
+			get
+			{
+				if (_globalValidator == null)
+				{
+					return (dao) =>
+					{
+						return new ValidationResult();
+					};
+				}
+
+				return _globalValidator;
+			}
+			set
+			{
+				_globalValidator = value;
+			}
+		}
 
         /// <summary>
         /// Checks that every required column has a value.  Untested as of 05/09/2013 :b
@@ -350,59 +467,101 @@ namespace Brevitee.Data
             return messages.Length == 0;
         }
 
+		/// <summary>
+		/// Save the current instance.  If the Id is less than or
+		/// equal to 0 the current instance will be Inserted, otherwise
+		/// it will be Updated. Same as Commit
+		/// </summary>
         public void Save()
         {
             Commit();
         }
-
+		/// <summary>
+		/// Save the current instance.  If the Id is less than or
+		/// equal to 0 the current instance will be Inserted, otherwise
+		/// it will be Updated. Same as commit
+		/// </summary>
         public void Save(Database db)
         {
             Commit(db);
         }
-        
+		/// <summary>
+		/// Save the current instance.  If the Id is less than or
+		/// equal to 0 the current instance will be Inserted, otherwise
+		/// it will be Updated. Same as Save
+		/// </summary>
         public virtual void Commit()
         {
-            Database db = Database;//Db.For(this.GetType());
+            Database db = Database;
 
             Commit(db);
         }
-
+		/// <summary>
+		/// Save the current instance.  If the Id is less than or
+		/// equal to 0 the current instance will be Inserted, otherwise
+		/// it will be Updated. Same as Save
+		/// </summary>
         public virtual void Commit(DaoTransaction tx)
         {
             Commit(tx.Database);
         }
-        
-        private void Commit(Database db)
+		/// <summary>
+		/// Save the current instance.  If the Id is less than or
+		/// equal to 0 the current instance will be Inserted, otherwise
+		/// it will be Updated. Same as Save
+		/// </summary>
+        public void Commit(Database db)
         {
-            ValidationResult valid = this.IsValid();
-            if (!valid.Success)
-            {
-                throw new ValidationException(valid.Message, valid.Exception);
-            }            
+			db = db ?? Database;
+
+			ThrowIfInvalid();         
 
             QuerySet querySet = GetQuerySet(db);
 
             WriteCommit(querySet, db);
-            WriteChildCommits(querySet);
+            WriteChildCommits(querySet, db);
 
             if (!string.IsNullOrWhiteSpace(querySet.ToString()))
             {
-                OnBeforeCommit(db);
-                
-                querySet.Execute(db);             
-                this.IsNew = false;
-                this.ResetChildren();
-                this.Database = db;
-                OnAfterCommit(db);
+				ExecuteCommit(db, querySet);
             }
         }
 
-        protected void WriteChildCommits(SqlStringBuilder sql)
+		public void Update(Database db)
+		{
+			db = db ?? Database;
+
+			ThrowIfInvalid();
+
+			QuerySet querySet = GetQuerySet(db);
+
+			WriteUpdate(querySet);
+			if (!string.IsNullOrWhiteSpace(querySet.ToString()))
+			{
+				ExecuteCommit(db, querySet);
+			}
+		}
+
+		public void Insert(Database db)
+		{
+			db = db ?? Database;
+			ThrowIfInvalid();
+			QuerySet querySet = GetQuerySet(db);
+
+			WriteInsert(querySet);
+			if(!string.IsNullOrWhiteSpace(querySet.ToString()))
+			{
+				ExecuteCommit(db, querySet);
+			}
+		}
+
+        protected void WriteChildCommits(SqlStringBuilder sql, Database db = null)
         {
+			db = db ?? Database;
             foreach (string key in this.ChildCollections.Keys)
             {
                 ICommittable c = this.ChildCollections[key];
-                c.WriteCommit(sql);                
+                c.WriteCommit(sql, db);                
             }
 
             sql.Executed += (s, d) =>
@@ -440,6 +599,14 @@ namespace Brevitee.Data
             OnAfterDelete(db);
         }
 
+		public void PreLoadChildCollections() 
+		{
+			foreach (ILoadable loadable in ChildCollections.Values) 
+			{
+				loadable.Load(Database);
+			}
+		}
+
         protected virtual void Delete<C>(Func<C, IQueryFilter<C>> where) where C : IFilterToken, new()
         {
             C columns = new C();
@@ -470,7 +637,7 @@ namespace Brevitee.Data
         
         protected internal SqlStringBuilder GetSqlStringBuilder(out Database db)
         {
-            db = Database;// Db.For(this.GetType());
+            db = Database;
             return GetSqlStringBuilder(db);
         }
 
@@ -488,7 +655,7 @@ namespace Brevitee.Data
 
         protected internal QuerySet GetQuerySet(out Database db)
         {
-            db = Database;// Db.For(this.GetType());
+            db = Database;
             return GetQuerySet(db);
         }
 
@@ -500,9 +667,9 @@ namespace Brevitee.Data
 
         public virtual void WriteDelete(SqlStringBuilder sql)
         {
-            Database db = Database;//Db.For(this.GetType());
+            Database db = Database;
             OnBeforeWriteDelete(db);
-            sql.Delete(TableName()).Where(new AssignValue(KeyColumnName, IdValue));
+            sql.Delete(TableName()).Where(db.GetAssignment(KeyColumnName, IdValue));// new AssignValue(KeyColumnName, IdValue));
             OnAfterWriteDelete(db);
         }
 
@@ -518,47 +685,48 @@ namespace Brevitee.Data
         /// <param name="sqlStringBuilder"></param>
         public virtual void WriteCommit(SqlStringBuilder sqlStringBuilder)
         {
-            Database db = Database;// Db.For(this.GetType());
+            Database db = Database;
             WriteCommit(sqlStringBuilder, db);
         }
 
         public virtual void WriteCommit(SqlStringBuilder sqlStringBuilder, Database db)
         {
-            OnBeforeWriteCommit(db);            
+            OnBeforeWriteCommit(db);
             if (this._newValues.Count > 0)
             {
-                if (this.IsNew)
+                if (this.IsNew || this.ForceInsert)
                 {
-                    sqlStringBuilder
-                        .Insert(this)
-                        .Go();
+					WriteInsert(sqlStringBuilder);
                 }
                 else
                 {
-                    AssignValue[] valueAssignments = GetNewAssignValues();
-                    sqlStringBuilder
-                        .Update(this.TableName(), valueAssignments)
-                        .Where(this.GetUniqueFilter())
-                        .Go();
+					WriteUpdate(sqlStringBuilder);
                 }
             }
             OnAfterWriteCommit(db);
         }
 
-        private void EnsureUuid()
-        {
-            PropertyInfo uuid;
-            if (HasUuidProperty(out uuid))
-            {
-                string currentUuid = (string)uuid.GetValue(this);
-                if (string.IsNullOrEmpty(currentUuid))
-                {
-                    string uuidVal = Guid.NewGuid().ToString();
-                    uuid.SetValue(this, uuidVal);
-                }
-            }
-        }
+		public void WriteUpdate(SqlStringBuilder sqlStringBuilder)
+		{
+			AssignValue[] valueAssignments = GetNewAssignValues();
+			sqlStringBuilder
+				.Update(this.TableName(), valueAssignments)
+				.Where(this.GetUniqueFilter())
+				.Go();
+		}
 
+		public void WriteInsert(SqlStringBuilder sqlStringBuilder)
+		{
+			sqlStringBuilder
+				.Insert(this)
+				.Go();
+		}
+
+		/// <summary>
+		/// Undo any changes that have been made to the current instance
+		/// since it was loaded.
+		/// </summary>
+		/// <param name="db"></param>
         public virtual void Undo(Database db = null)
         {
             Type thisType = this.GetType();
@@ -581,6 +749,10 @@ namespace Brevitee.Data
             sql.Execute(db);
         }
 
+		/// <summary>
+		/// Re-insert the current instance after it has been deleted
+		/// </summary>
+		/// <param name="db"></param>
         public virtual void Undelete(Database db = null)
         {
             Type thisType = this.GetType();
@@ -651,16 +823,34 @@ namespace Brevitee.Data
         /// <returns></returns>
         public abstract IQueryFilter GetUniqueFilter();
 
+
+		public Func<IQueryFilter> UniqueFilterProvider
+		{
+			get;
+			set;
+		}
+
         public string ConnectionName()
         {
             return ConnectionName(this);
         }
 
+		/// <summary>
+		/// Returns the connection name for the specified Dao instance or the proxied
+		/// name if the connection name for the specified Dao instance has been proxied
+		/// </summary>
+		/// <param name="instance"></param>
+		/// <returns></returns>
         public static string ConnectionName(object instance)
         {
             Type type = instance.GetType();
             return ConnectionName(type);
         }
+
+		public static string ConnectionName<T>()
+		{
+			return ConnectionName(typeof(T));
+		}
 
         /// <summary>
         /// Returns the connection name for the specified type or the proxied
@@ -683,7 +873,7 @@ namespace Brevitee.Data
             }
         }
 
-        protected static string RealConnectionName(Type type)
+        protected internal static string RealConnectionName(Type type)
         {
             TableAttribute tableAttr = type.GetCustomAttributeOfType<TableAttribute>();
             string value = string.Empty;
@@ -865,16 +1055,45 @@ namespace Brevitee.Data
 		    KeyColumnName = name;
 	    }
 
+		bool _forceInsert;
+		[Exclude]
+		public bool ForceInsert
+		{
+			get
+			{
+				return _forceInsert;
+			}
+			set
+			{
+				_forceInsert = value;
+			}
+		}
+
+		[Exclude]
+		public bool ForceUpdate
+		{
+			get
+			{
+				return !_forceInsert;
+			}
+			set
+			{
+				_forceInsert = !value;
+			}
+		}
+
+
         bool _isNew;
         /// <summary>
         /// Returns true if the current instance hasn't been committed
+		/// as determined by whether the IdValue is greater than 0
         /// </summary>
         [Exclude]
         public bool IsNew
         {
             get
             {
-                if (IdValue != null && IdValue.HasValue)
+                if (IdValue != null && IdValue.HasValue && IdValue > 0)
                 {
                     _isNew = false;
                 }
@@ -905,22 +1124,7 @@ namespace Brevitee.Data
                 return instance.DataRow;
             }
 
-            Type instanceType = instance.GetType();
-            PropertyInfo[] properties = instanceType.GetProperties();
-
-            DataTable table = new DataTable(TableName(instance));
-            List<object> rowValues = new List<object>();
-            foreach (PropertyInfo property in properties)
-            {
-                ColumnAttribute column;
-                if (property.HasCustomAttributeOfType<ColumnAttribute>(true, out column))
-                {
-                    table.Columns.Add(column.Name);
-                    rowValues.Add(property.GetValue(instance, null));
-                }
-            }
-
-            return table.Rows.Add(rowValues.ToArray());
+			return ((object)instance).ToDataRow(TableName(instance));
         }
 
         internal Dictionary<string, object> NewValues
@@ -1092,5 +1296,38 @@ namespace Brevitee.Data
                 this._newValues.Add(columnName, value);
             }
         }
+
+		private void EnsureUuid()
+		{
+			PropertyInfo uuid;
+			if (HasUuidProperty(out uuid))
+			{
+				string currentUuid = (string)uuid.GetValue(this);
+				if (string.IsNullOrEmpty(currentUuid))
+				{
+					string uuidVal = Guid.NewGuid().ToString();
+					uuid.SetValue(this, uuidVal);
+				}
+			}
+		}
+		
+		private void ExecuteCommit(Database db, QuerySet querySet)
+		{
+			OnBeforeCommit(db);
+			querySet.Execute(db);
+			this.IsNew = false;
+			this.ResetChildren();
+			this.Database = db;
+			OnAfterCommit(db);
+		}
+
+		private void ThrowIfInvalid()
+		{
+			ValidationResult valid = this.Validate();
+			if (!valid.Success)
+			{
+				throw new ValidationException(valid.Message, valid.Exception);
+			}
+		}
     }
 }

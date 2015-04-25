@@ -21,7 +21,7 @@ namespace Brevitee.Automation
             this.InstanceId = Guid.NewGuid().ToString();
             this.IpcMessageRoot = messageRoot;
             IpcMessage message = messageRoot.GetMessage<Job>(this.InstanceId);
-            message.Write<Job>(job);
+            message.Write(job);
         }
 
         /// <summary>

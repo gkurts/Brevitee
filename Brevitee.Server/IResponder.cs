@@ -6,7 +6,7 @@ using Brevitee.ServiceProxy;
 
 namespace Brevitee.Server
 {
-    public interface IResponder
+    public interface IResponder: IInitialize
     {
         event ResponderEventHandler Responded;
         event ResponderEventHandler NotResponded;

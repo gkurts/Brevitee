@@ -1,7 +1,3 @@
-$(document).ready(function () {
-
-});
-
 (function ($, _, b, d) {
     "use strict";
 

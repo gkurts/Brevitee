@@ -9,6 +9,11 @@ namespace Brevitee
 {
     public class Args
     {
+		public static void ThrowIf(bool condition, string messageFormat, params object[] args)
+		{
+			ThrowIf<Exception>(condition, messageFormat, args);
+		}
+
         /// <summary>
         /// Throw an ArgumentNullException if the specified 
         /// param is null
@@ -50,7 +55,7 @@ namespace Brevitee
         {
             if(condition)
             {
-                throw Exception<E>(msgFormat, values);
+				Throw<E>(msgFormat, values);
             }
         }
 
@@ -109,5 +114,68 @@ namespace Brevitee
             ConstructorInfo ctor  = typeof(E).GetConstructor(new Type[] { typeof(string), typeof(Exception) });
             return (E)ctor.Invoke(new object[] { string.Format(msgFormat, values), innerException });
         }
+
+		public static string GetStackTrace()
+		{
+			StringBuilder message = new StringBuilder();
+			StringBuilder stackTrace = new StringBuilder();
+			SetMessageAndStackTrace(null, message, stackTrace);
+			return stackTrace.ToString();
+		}
+
+		public static string GetMessageAndStackTrace(Exception ex)
+		{
+			StringBuilder message = new StringBuilder();
+			StringBuilder stackTrace = new StringBuilder();
+			PopMessageAndStackTrace(ex, out message, out stackTrace);
+			return message.Append(stackTrace.ToString()).ToString();
+		}
+
+		/// <summary>
+		/// "Pop" out a StringBuilder for the message and stack trace for the specified 
+		/// Exception.
+		/// </summary>
+		/// <param name="ex"></param>
+		/// <param name="message"></param>
+		/// <param name="stackTrace"></param>
+		public static void PopMessageAndStackTrace(Exception ex, out StringBuilder message, out StringBuilder stackTrace)
+		{
+			message = new StringBuilder();
+			stackTrace = new StringBuilder();
+			SetMessageAndStackTrace(ex, message, stackTrace);
+		}
+
+		public static void SetMessageAndStackTrace(Exception ex, StringBuilder message, StringBuilder stack)
+		{
+			if (ex != null)
+			{
+				message.AppendFormat("\r\n{0}\r\n", ex.Message);
+				if (ex.StackTrace != null)
+				{
+					stack.AppendFormat("\r\n{0}\r\n", ex.StackTrace);
+				}
+				else
+				{
+					stack.AppendFormat("\r\n{0}\r\n", new System.Diagnostics.StackTrace(true).ToString());
+				}
+
+				if (ex.InnerException != null)
+				{
+					message.AppendFormat("\r\n{0}\r\n", ex.InnerException.Message);
+					if (ex.InnerException.StackTrace != null)
+					{
+						stack.AppendFormat("\r\n{0}\r\n", ex.InnerException.StackTrace);
+					}
+					else
+					{
+						stack.AppendFormat("\r\n{0}\r\n", new System.Diagnostics.StackTrace(true).ToString());
+					}
+				}
+			}
+			else
+			{
+				stack.AppendFormat("\r\n{0}\r\n", new System.Diagnostics.StackTrace(true).ToString());
+			}
+		}
     }
 }

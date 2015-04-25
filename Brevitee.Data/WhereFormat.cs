@@ -23,6 +23,8 @@ namespace Brevitee.Data
         public override string Parse()
         {
             AssignNumbers();
+			SetColumnNameFormatter();
+			SetParameterPrefixes();
             string value = string.Empty;
             if (Filter != null)
             {

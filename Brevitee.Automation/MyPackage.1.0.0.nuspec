@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
-  <metadata>
+  
+  
+<metadata>
     <version>1.0.0</version>
     <authors>You</authors>
     <owners />
@@ -8,6 +10,4 @@
     <title />
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>My package description.</description>
-  </metadata>
-  <files />
-</package>
+  </metadata><files /></package>

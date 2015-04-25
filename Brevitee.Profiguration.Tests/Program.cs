@@ -48,7 +48,21 @@ namespace Brevitee.Profiguration.Tests
 
             // the arguments protected member is not available in PreInit() (this method)
             #endregion
-        }
+			AddValidArgument("t", true, "run all tests");
+			DefaultMethod = typeof(Program).GetMethod("Start");
+		}
+
+		public static void Start()
+		{
+			if (Arguments.Contains("t"))
+			{
+				RunAllTests(typeof(Program).Assembly);
+			}
+			else
+			{
+				Interactive();
+			}
+		}
 
         [ConsoleAction("List .prof files")]
         public void ListProfFiles()

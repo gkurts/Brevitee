@@ -13,8 +13,8 @@ GOTO COPY
 
 :COPY
 MD Brevitee.Yaml\lib\%LIB%
-copy /Y .\BuildOutput\%VER%\Brevitee.Yaml.dll Brevitee.Yaml\lib\%LIB%\Brevitee.Yaml.dll
-copy /Y .\BuildOutput\%VER%\Brevitee.Yaml.xml Brevitee.Yaml\lib\%LIB%\Brevitee.Yaml.xml
+copy /Y .\BuildOutput\Release\%VER%\Brevitee.Yaml.dll Brevitee.Yaml\lib\%LIB%\Brevitee.Yaml.dll
+copy /Y .\BuildOutput\Release\%VER%\Brevitee.Yaml.xml Brevitee.Yaml\lib\%LIB%\Brevitee.Yaml.xml
 GOTO %NEXT%
 
 :END

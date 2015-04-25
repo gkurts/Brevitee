@@ -2,7 +2,7 @@ using System;
 
 namespace Brevitee.Schema.Org
 {
-	///<summary>Self-storage facility.</summary>
+	///<summary>A self-storage facility.</summary>
 	public class SelfStorage: LocalBusiness
 	{
 	}

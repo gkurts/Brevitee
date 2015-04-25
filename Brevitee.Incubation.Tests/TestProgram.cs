@@ -41,7 +41,21 @@ namespace CommandLineTests
 
             // the arguments protected member is not available in PreInit() (this method)
             #endregion
-        }
+			AddValidArgument("t", true, "run all tests");
+			DefaultMethod = typeof(TestProgram).GetMethod("Start");
+		}
+
+		public static void Start()
+		{
+			if (Arguments.Contains("t"))
+			{
+				RunAllTests(typeof(TestProgram).Assembly);
+			}
+			else
+			{
+				Interactive();
+			}
+		}
 
         /*
           * Methods addorned with the ConsoleAction attribute can be run

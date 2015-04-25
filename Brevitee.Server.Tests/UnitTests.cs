@@ -71,7 +71,7 @@ namespace Brevitee.Server.Tests
             string root = ".\\{0}_"._Format(MethodBase.GetCurrentMethod().Name).RandomLetters(4);
             server.ContentRoot = root;
             FileInfo validate = new FileInfo(root);
-            string valid = validate.FullName.Replace("\\", "/") + "/";
+            string valid = validate.FullName + Path.DirectorySeparatorChar;
             Expect.AreEqual(valid, server.ContentRoot);
             OutLine(server.ContentRoot);
         }
@@ -81,21 +81,16 @@ namespace Brevitee.Server.Tests
         {
             BreviteeServer server = new BreviteeServer(BreviteeConf.Load());//BreviteeServerFactory.Default.Create();
             server.ContentRoot = ".\\{0}_"._Format(MethodBase.GetCurrentMethod().Name).RandomLetters(4);
-            Expect.AreEqual(server.ContentRoot, server.RequestHandler.Content.Root);
+            Expect.AreEqual(server.ContentRoot, server.ContentResponder.Root);
         }
 
-        //[UnitTest]
-        //public void ShouldBeAbleToSetThePortAfterCreation()
-        //{
-        //    BreviteeServer server = new BreviteeServer(BreviteeConf.Load());
-        //    int port = server.Port;
-        //    OutLineFormat("port is currently {0}", ConsoleColor.Yellow, port);
-        //    int newPort = RandomNumber.Between(8000, 8900);
-        //    server.Port = newPort;
-        //    Expect.AreEqual(newPort, server.Port);
-        //    OutLineFormat("port is now {0}", ConsoleColor.Yellow, server.Port);
-        //    Expect.IsFalse(newPort.Equals(port));
-        //}
+		[UnitTest]
+		public void SettingContentRootShouldNotAddMoreThanOneContentResponder()
+		{
+			BreviteeServer server = new BreviteeServer(BreviteeConf.Load());
+			server.ContentRoot = "\\{0}"._Format(MethodBase.GetCurrentMethod().Name).RandomLetters(4);
+			Expect.AreEqual(1, server.Responders.Count(r => r.GetType().Equals(typeof(ContentResponder))));
+		}
 
         [UnitTest]
         public void StartShouldFireInitEvents()
@@ -125,44 +120,12 @@ namespace Brevitee.Server.Tests
         }
 
         [UnitTest]
-        public void RequestHandlerSetShouldFireOnStart()
-        {
-            BreviteeServer server = new BreviteeServer(BreviteeConf.Load());
-            //server.Port = 8989;
-            server.ContentRoot = ".\\{0}_"._Format(MethodBase.GetCurrentMethod().Name).RandomLetters(4);
-            server.Logger = new ConsoleLogger();
-
-            bool? handlerSet = false;
-            server.RequestHandlerSet += (handler) =>
-            {
-                handlerSet = true;
-            };
-
-            Expect.IsFalse(handlerSet.Value);
-            server.Start();
-            server.Stop();
-
-            Expect.IsTrue(handlerSet.Value, "handlerSet should have been true");
-        }
-
-        [UnitTest]
-        public void ConfigurationsShouldMatchBetweenServerAndRequestHandler()
-        {
-            BreviteeServer server = CreateServer(9090);
-            //Expect.AreEqual(server.Port, server.RequestHandler.BreviteeConf.Port, "Ports didn't match");
-            Expect.AreEqual(server.MaxThreads, server.RequestHandler.BreviteeConf.MaxThreads, "MaxThreads didn't match");
-            Expect.AreEqual(server.ContentRoot, server.RequestHandler.BreviteeConf.ContentRoot, "ContentRoot didn't match");
-
-            if (Directory.Exists(server.ContentRoot))
-            {
-                Directory.Delete(server.ContentRoot, true);
-            }
-        }
-
-        [UnitTest]
         public void FileSystemInitializationEventsShouldFireOnFirstRequest()
         {
-            BreviteeServer server = CreateServer(9092);
+			string testAppName = MethodBase.GetCurrentMethod().Name;
+			DirectoryInfo dir = new DirectoryInfo("C:\\temp\\{0}_"._Format(testAppName).RandomLetters(4));			
+			CreateTestRootAndSetDefaultConfig(dir);
+            BreviteeServer server = CreateServer(9092, dir.FullName);
             bool? ingFired = false;
             server.ContentResponder.FileSystemInitializing += (content) =>
             {
@@ -201,7 +164,10 @@ namespace Brevitee.Server.Tests
         [UnitTest]
         public void AppsInitializationEventsShouldFireOnFirstRequest()
         {
-            BreviteeServer server = CreateServer(9093);
+			string testAppName = MethodBase.GetCurrentMethod().Name;
+			DirectoryInfo dir = new DirectoryInfo("C:\\temp\\{0}_"._Format(testAppName).RandomLetters(4));
+			CreateTestRootAndSetDefaultConfig(dir);
+            BreviteeServer server = CreateServer(9093, dir.FullName);
             bool? ingFired = false;
             server.ContentResponder.AppContentRespondersInitializing += (content) =>
             {
@@ -241,7 +207,10 @@ namespace Brevitee.Server.Tests
         [UnitTest]
         public void TemplateInitializationEventsShouldFireOnFirstRequest()
         {
-            BreviteeServer server = CreateServer(9090);
+			string testAppName = MethodBase.GetCurrentMethod().Name;
+			DirectoryInfo dir = new DirectoryInfo("C:\\temp\\{0}_"._Format(testAppName).RandomLetters(4));
+			CreateTestRootAndSetDefaultConfig(dir);
+            BreviteeServer server = CreateServer(9090, dir.FullName);
             bool? ingFired = false;
             server.ContentResponder.CommonDustRendererInitializing += (content) =>
             {
@@ -435,7 +404,7 @@ namespace Brevitee.Server.Tests
         {
             DirectoryInfo root = new DirectoryInfo(".\\{0}_"._Format(MethodBase.GetCurrentMethod().Name).RandomLetters(5));
             ContentResponder content = GetTestContentResponder(root);
-            CommonDustTemplateRenderer renderer = new CommonDustTemplateRenderer(content);
+            CommonTemplateRenderer renderer = new CommonTemplateRenderer(content);
             Expect.IsNotNull(renderer.OutputStream);
             if (root.Exists)
             {
@@ -448,8 +417,8 @@ namespace Brevitee.Server.Tests
         {
             DirectoryInfo root = new DirectoryInfo(".\\{0}_"._Format(MethodBase.GetCurrentMethod().Name).RandomLetters(5));
             ContentResponder content = GetTestContentResponder(root);
-            DirectoryInfo dustRoot = new DirectoryInfo(Path.Combine(content.Root, "dust"));
-            CommonDustTemplateRenderer templateRenderer = new CommonDustTemplateRenderer(content);
+            DirectoryInfo dustRoot = new DirectoryInfo(Path.Combine(content.Root, "views"));
+            CommonTemplateRenderer templateRenderer = new CommonTemplateRenderer(content);
             TestMonkey monkey = new TestMonkey();
             
             Expect.IsFalse(File.Exists(Path.Combine(dustRoot.FullName, "TestMonkey.dust")), "Template was already there");
@@ -505,14 +474,13 @@ namespace Brevitee.Server.Tests
         {
             DirectoryInfo root = new DirectoryInfo(".\\{0}_"._Format(MethodBase.GetCurrentMethod().Name).RandomLetters(5));
             ContentResponder content = GetTestContentResponder(root);
-            DirectoryInfo dustRoot = new DirectoryInfo(Path.Combine(content.Root, "dust"));
-            CommonDustTemplateRenderer templateRenderer = new CommonDustTemplateRenderer(content);
+            CommonTemplateRenderer templateRenderer = new CommonTemplateRenderer(content);
             TestMonkey monkey = new TestMonkey();
             templateRenderer.Render(monkey);
             AppContentResponder appResponder = new AppContentResponder(content, "Test");
             CommonDustRenderer renderer = new CommonDustRenderer(appResponder);
-            Expect.IsTrue(!string.IsNullOrEmpty(renderer.CompiledDustTemplates));
-            OutLine(renderer.CompiledDustTemplates);
+            Expect.IsTrue(!string.IsNullOrEmpty(renderer.CompiledTemplates));
+            OutLine(renderer.CompiledTemplates);
 
             if (root.Exists)
             {
@@ -684,6 +652,25 @@ namespace Brevitee.Server.Tests
             Expect.IsNotNull(execRequest.ProxyAliases);
         }
         
+		[UnitTest]
+		public void ProxyAliasesShouldBeEqual()
+		{
+			ProxyAlias alias1 = new ProxyAlias("Alias", typeof(ProxyAlias));
+			ProxyAlias alias2 = new ProxyAlias("Alias", typeof(ProxyAlias));
+			Expect.IsTrue(alias1.Equals(alias2));
+			Expect.IsTrue(alias2.Equals(alias1));
+		}
+
+		[UnitTest]
+		public void ProxyAliasListShouldContain()
+		{
+			ProxyAlias alias1 = new ProxyAlias("Alias", typeof(ProxyAlias));
+			ProxyAlias alias2 = new ProxyAlias("Alias", typeof(ProxyAlias));
+			List<ProxyAlias> list = new List<ProxyAlias>();
+			list.Add(alias1);
+			Expect.IsTrue(list.Contains(alias2));
+		}
+
         [UnitTest]
         public void ExecutionRequestShouldResolveClassAlias()
         {
@@ -928,6 +915,25 @@ namespace Brevitee.Server.Tests
             OutLineFormat("Result: {0}", ConsoleColor.Yellow, Uri.EscapeUriString(queryString));
         }
 
+		[UnitTest]
+		public void UriProperties()
+		{
+			string fullUrl = "http://fake.cxm/monkey/doc.htm?gorilla=<div>baloney</div>&balls=tupac";
+			Uri uri = new Uri(fullUrl);
+			OutLineFormat("Raw: {0}", fullUrl, ConsoleColor.Cyan);
+			OutLineFormat("AbsolutePath", uri.AbsolutePath, ConsoleColor.DarkBlue);
+			OutLineFormat("AbsoluteUri: {0}", uri.AbsoluteUri, ConsoleColor.DarkCyan);
+			OutLineFormat("Fragment: {0}", uri.Fragment, ConsoleColor.DarkGray);
+			OutLineFormat("Query: {0}", uri.Query, ConsoleColor.White);
+			OutLineFormat("Authority: {0}", uri.Authority, ConsoleColor.DarkYellow);
+			OutLineFormat("Host: {0}", uri.Host, ConsoleColor.Gray);
+			OutLine("Segments:");
+			uri.Segments.Each(seg =>
+			{
+				OutLineFormat("\t{0}", seg);
+			});
+		}
+
         [UnitTest]
         public void GetPagesShouldIncludeSubdirectories()
         {
@@ -1017,9 +1023,12 @@ namespace Brevitee.Server.Tests
         [UnitTest]
         public void SettingLoggerShouldCauseServerToReinitializeIfItsRunning()
         {
+			string testAppName = MethodBase.GetCurrentMethod().Name;
+			DirectoryInfo dir = new DirectoryInfo("C:\\temp\\{0}_"._Format(testAppName).RandomLetters(4));
+			CreateTestRootAndSetDefaultConfig(dir);
             bool? stopped = false;
             bool? initialized = false;
-            BreviteeServer server = CreateServer(9578, MethodBase.GetCurrentMethod().Name);
+            BreviteeServer server = CreateServer(9578, dir.FullName);
             Expect.IsFalse(server.IsRunning);
             server.Stopped += (s) =>
             {
@@ -1041,7 +1050,10 @@ namespace Brevitee.Server.Tests
         [UnitTest]
         public void ServerShouldLoadConfOnInitialize()
         {
-            BreviteeServer server = CreateServer(8990, MethodBase.GetCurrentMethod().Name);
+			string testAppName = MethodBase.GetCurrentMethod().Name;
+			DirectoryInfo dir = new DirectoryInfo("C:\\temp\\{0}_"._Format(testAppName).RandomLetters(4));
+			CreateTestRootAndSetDefaultConfig(dir);
+            BreviteeServer server = CreateServer(8990, dir.FullName);
             bool? ingCalled = false;
             bool? edCalled = false;
             server.LoadingConf += (s, c) =>
@@ -1146,14 +1158,7 @@ namespace Brevitee.Server.Tests
         public void BreviteeConfShouldSaveJsonFileInPathSpecifiedInDefaultConfiguration()
         {
             DirectoryInfo dir = new DirectoryInfo(Path.Combine(MethodBase.GetCurrentMethod().Name, "TestSubDir_".RandomLetters(4)));
-            if (!dir.Exists)
-            {
-                dir.Create();
-            }
-
-            Dictionary<string, string> configOverrides = new Dictionary<string, string>();
-            configOverrides.Add(BreviteeConf.ContentRootConfigKey, dir.FullName);
-            DefaultConfiguration.SetAppSettings(configOverrides);
+			CreateTestRootAndSetDefaultConfig(dir);
 
             BreviteeConf conf = BreviteeConf.Load();
 
@@ -1172,13 +1177,70 @@ namespace Brevitee.Server.Tests
         [UnitTest]
         public void ConfigRootShouldBeCColonContentRoot()
         {
+			DefaultConfiguration.SetAppSettings();
             Expect.AreEqual("C:\\BreviteeTestContentRoot", DefaultConfiguration.GetAppSetting(BreviteeConf.ContentRootConfigKey, "bad"));
         }
+
+		[UnitTest]
+		public void AppContentResponderShouldCombineAppScriptsOnInitialize()
+		{
+			string testAppName = MethodBase.GetCurrentMethod().Name;
+			DirectoryInfo dir = new DirectoryInfo("C:\\temp\\{0}_"._Format(testAppName).RandomLetters(4));
+			CreateTestRootAndSetDefaultConfig(dir);
+			BreviteeServer server = CreateServer(9191, dir.FullName);
+			server.Initialize();
+			AppContentResponder appResponder = server.CreateApp(testAppName);
+			appResponder.Logger = new ConsoleLogger();
+			appResponder.Logger.StartLoggingThread();
+			string jsGuid = Guid.NewGuid().ToString().Replace("-", "");
+			string pageGuid = Guid.NewGuid().ToString().Replace("-", "");
+			string viewModelGuid = Guid.NewGuid().ToString().Replace("-", "");
+			
+			string testJsName = "testScript_{0}.js"._Format(jsGuid);
+			string testPageJsName = "testPageScript_{0}.js"._Format(pageGuid);
+			string testViewModelJsName = "testViewModelScript_{0}.js"._Format(viewModelGuid);
+
+			appResponder.AppRoot.WriteFile("~/js/{0}"._Format(testJsName), "function _" + jsGuid + "(){};");
+			appResponder.AppRoot.WriteFile("~/pages/{0}"._Format(testPageJsName), "function _" + pageGuid + "(){};");
+			appResponder.AppRoot.WriteFile("~/viewModels/{0}"._Format(testViewModelJsName), "function _" + viewModelGuid + "(){};");
+			appResponder.Initialize();
+			string scriptPath;
+			string minAppScriptPath;
+			Expect.IsTrue(appResponder.AppRoot.FileExists("~/{0}.js"._Format(testAppName), out scriptPath));
+			Expect.IsTrue(appResponder.AppRoot.FileExists("~/{0}.min.js"._Format(testAppName), out minAppScriptPath));
+			string script = File.ReadAllText(scriptPath);
+			string minScript = File.ReadAllText(minAppScriptPath);
+			Expect.IsTrue(script.Contains(jsGuid), "js guid wasn't in the script");
+			Expect.IsTrue(script.Contains(pageGuid), "page guid wasn't in the script");
+			Expect.IsTrue(script.Contains(viewModelGuid), "viewModel guid wasn't in the scirpt");
+
+			Expect.IsTrue(minScript.Contains(jsGuid), "js guid wasn't in the script");
+			Expect.IsTrue(minScript.Contains(pageGuid), "page guid wasn't in the script");
+			Expect.IsTrue(minScript.Contains(viewModelGuid), "viewModel guid wasn't in the scirpt");
+
+			dir.Delete(true);
+		}
 
         [UnitTest]
         public void OutputAssemblyLocation()
         {
             OutLineFormat(Assembly.GetExecutingAssembly().Location);
         }
+	
+		private static void CreateTestApp(DirectoryInfo appRoot)
+		{
+
+		}
+		private static void CreateTestRootAndSetDefaultConfig(DirectoryInfo dir)
+		{
+			if (!dir.Exists)
+			{
+				dir.Create();
+			}
+
+			Dictionary<string, string> configOverrides = new Dictionary<string, string>();
+			configOverrides.Add(BreviteeConf.ContentRootConfigKey, dir.FullName);
+			DefaultConfiguration.SetAppSettings(configOverrides);
+		}
     }
 }

@@ -32,7 +32,7 @@ namespace Brevitee.Server.Renderers
         /// All application compiled dust templates including Server level
         /// layouts, templates and app custom and type templates
         /// </summary>
-        public override string CompiledDustTemplates
+        public override string CompiledTemplates
         {
             get
             {
@@ -42,7 +42,7 @@ namespace Brevitee.Server.Renderers
                     templates.AppendLine(CompiledLayoutTemplates);
                     templates.AppendLine(CompiledCommonTemplates);
 
-                    DirectoryInfo appDust = new DirectoryInfo(Path.Combine(AppContentResponder.AppRoot.Root, "dust"));
+                    DirectoryInfo appDust = new DirectoryInfo(Path.Combine(AppContentResponder.AppRoot.Root, "views"));
                     string domAppName = AppConf.DomApplicationIdFromAppName(this.AppContentResponder.AppConf.Name);
                     string appCompiledTemplates = DustScript.CompileDirectory(appDust, "*.dust", SearchOption.AllDirectories, domAppName + ".");
 
@@ -54,7 +54,7 @@ namespace Brevitee.Server.Renderers
 
         protected internal bool TemplateExists(Type anyType, string templateFileNameWithoutExtension, out string fullPath)
         {
-            string relativeFilePath = "~/dust/{0}/{1}.dust"._Format(anyType.Name, templateFileNameWithoutExtension);
+            string relativeFilePath = "~/views/{0}/{1}.dust"._Format(anyType.Name, templateFileNameWithoutExtension);
             fullPath = AppContentResponder.AppRoot.GetAbsolutePath(relativeFilePath);
             return File.Exists(fullPath);
         }

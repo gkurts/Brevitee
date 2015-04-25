@@ -25,9 +25,28 @@ using Brevitee.CommandLine;
 using Brevitee.Data.Schema;
 using Microsoft.CSharp;
 using System.CodeDom.Compiler;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Reflection;
+using System.Data;
+using System.Data.Common;
+using System.Data.Sql;
+using System.Data.SqlClient;
+using System.IO;
+using Brevitee.CommandLine;
+using Brevitee;
+using Brevitee.Testing;
+using Brevitee.Encryption;
+using Newtonsoft.Json;
+using System.ComponentModel;
+using Brevitee.Javascript;
+using Brevitee.Data.Schema;
 
 namespace Brevitee.Data.Tests
 {
+	[Serializable]
     public class SchemaTests: CommandLineTestInterface
     {
         [UnitTest]
@@ -269,5 +288,88 @@ namespace Brevitee.Data.Tests
 
             Expect.IsTrue(thrown);
         }
+
+
+		[UnitTest]
+		public void SchemaShouldExistAfterSetSchema()
+		{
+			string schemaName = "XrefTest";
+			SchemaManager sm = new SchemaManager();
+			sm.SetSchema(schemaName);
+
+			Expect.IsTrue(SchemaManager.SchemaExists(schemaName));
+		}
+
+		[UnitTest]
+		public void GetTableShouldReturnTable()
+		{
+			string table = "TableName";
+			SchemaManager sm = new SchemaManager();
+			sm.SetSchema("test_schema".RandomString(4));
+
+			sm.AddTable(table);
+
+			Table t = sm.GetTable(table);
+			Expect.IsNotNull(t);
+			Expect.AreEqual(t.Name, table);
+		}
+
+		[UnitTest]
+		public void SetAndGetXrefTableTest()
+		{
+			string table = "TableName".RandomString(4);
+			SchemaManager sm = new SchemaManager();
+			sm.SetSchema("test_schema".RandomString(4));
+
+			sm.AddXref("Left", "Right");
+
+			Table t = sm.GetXref("LeftRight");
+			Expect.IsNotNull(t);
+			Expect.AreEqual("LeftRight", t.Name);
+		}
+
+		[UnitTest]
+		public void SetAndGetXrefTableShouldBeXrefTableType()
+		{
+			string table = "TableName".RandomString(4);
+			SchemaManager sm = new SchemaManager();
+			sm.SetSchema("test_schema".RandomString(4));
+
+			sm.AddXref("Left", "Right");
+
+			Table t = sm.GetXref("LeftRight");
+			Expect.IsNotNull(t);
+			Expect.AreEqual("LeftRight", t.Name);
+			Expect.IsInstanceOfType<XrefTable>(t);
+		}
+
+		[UnitTest]
+		public void SetAndGetXrefTableAsXrefTableType()
+		{
+			string table = "TableName".RandomString(4);
+			SchemaManager sm = new SchemaManager();
+			sm.SetSchema("test_schema".RandomString(4));
+
+			sm.AddXref("Left", "Right");
+
+			SchemaManager sm2 = new SchemaManager();
+			sm2.SetSchema(sm.CurrentSchema.Name);
+
+			Table t = sm2.GetXref("LeftRight");
+			Expect.IsNotNull(t);
+			XrefTable x = t as XrefTable;
+			Expect.IsNotNull(x);
+			Expect.AreEqual("Left", x.Left);
+			Expect.AreEqual("Right", x.Right);
+		}
+
+
+
+		[UnitTest]
+		public void ReadJson2FromResource()
+		{
+			string json = ResourceScripts.Get("json2.js");
+			Out(json);
+		}
     }
 }

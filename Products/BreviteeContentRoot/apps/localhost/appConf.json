@@ -1,0 +1,6 @@
+{
+  "Name": "localhost",
+  "DefaultLayout": "basic",
+  "GenerateDao": true,
+  "CheckDaoHashes": true
+}

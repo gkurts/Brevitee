@@ -44,7 +44,21 @@ namespace CommandLineTests
 
             // the arguments protected member is not available in PreInit() (this method)
             #endregion
-        }
+			AddValidArgument("t", true, "run all tests");
+			DefaultMethod = typeof(TestProgram).GetMethod("Start");
+		}
+
+		public static void Start()
+		{
+			if (Arguments.Contains("t"))
+			{
+				RunAllTests(typeof(TestProgram).Assembly);
+			}
+			else
+			{
+				Interactive();
+			}
+		}
 
         /*
           * Methods addorned with the ConsoleAction attribute can be run
@@ -64,8 +78,8 @@ namespace CommandLineTests
         [ConsoleAction("Long max")]
         public static void LongMax()
         {
-            OutFormat("Int: {0}", Int32.MaxValue);
-            OutFormat("Logn: {0}", Int64.MaxValue);
+            OutLineFormat("Int: {0}", Int32.MaxValue);
+            OutLineFormat("Logn: {0}", Int64.MaxValue);
         }
 
         [UnitTest]
@@ -73,8 +87,8 @@ namespace CommandLineTests
         {
             DustTemplate dc = new DustTemplate("Hello {name}!", "test");
             dc.Compile();
-            Out();
-            Out(dc.CompiledScript, ConsoleColor.Green);
+            OutLine();
+            OutLine(dc.CompiledScript, ConsoleColor.Green);
         }
 
         [UnitTest]
@@ -84,12 +98,12 @@ namespace CommandLineTests
             object value = new { Name = "Guy" };
             string result = dc.Render(value);
             Expect.AreEqual("Hello Guy!", result);
-            Out();
-            Out(result, ConsoleColor.Yellow);
+            OutLine();
+            OutLine(result, ConsoleColor.Yellow);
             value = new { Name = "Dude" };
             result = dc.Render(value);
             Expect.AreEqual("Hello Dude!", result);
-            Out(result, ConsoleColor.Yellow);            
+            OutLine(result, ConsoleColor.Yellow);            
         }
 
         [UnitTest]
@@ -100,12 +114,12 @@ namespace CommandLineTests
             object value = new { Name = "Guy" };
             MvcHtmlString result = Dust.RenderMvcHtmlString("test", value);
             Expect.AreEqual("Hello Guy!", result.ToHtmlString());
-            Out();
-            Out(result.ToString(), ConsoleColor.Yellow);
+            OutLine();
+            OutLine(result.ToString(), ConsoleColor.Yellow);
             value = new { Name = "Dude" };
             result = Dust.RenderMvcHtmlString("test", value);
             Expect.AreEqual("Hello Dude!", result.ToHtmlString());
-            Out(result.ToString(), ConsoleColor.Yellow);
+            OutLine(result.ToString(), ConsoleColor.Yellow);
         }
 
         [UnitTest]
@@ -118,15 +132,15 @@ and another", "test");
 
             object value = new { Name = "Guy" };
             string result = Dust.RenderMvcHtmlString("test", value).ToString();
-            Out(result, ConsoleColor.Yellow);
+            OutLine(result, ConsoleColor.Yellow);
         }
 
         [UnitTest]
         public static void TestUnescape()
         {
             string value = @"\r\n\t";
-            OutFormat("Value: {0}", ConsoleColor.Yellow, value);
-            OutFormat("Unescaped Value: {0}", ConsoleColor.Cyan, Regex.Unescape(value));
+            OutLineFormat("Value: {0}", ConsoleColor.Yellow, value);
+            OutLineFormat("Unescaped Value: {0}", ConsoleColor.Cyan, Regex.Unescape(value));
         }
 
         [UnitTest]

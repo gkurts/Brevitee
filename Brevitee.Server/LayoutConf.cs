@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CsQuery;
+using Brevitee.Management;
 
 namespace Brevitee.Server
 {
@@ -17,11 +18,10 @@ namespace Brevitee.Server
         public LayoutConf(AppConf conf)
         {
             this.IncludeCommon = true;
-            this.LayoutName = conf.DefaultLayout;
-            this.AppConf = conf;
+			SetConf(conf);
         }
 
-        public AppConf AppConf
+        internal AppConf AppConf
         {
             get;
             set;
@@ -31,6 +31,14 @@ namespace Brevitee.Server
 
         public bool IncludeCommon { get; set; }
 
+		public bool RenderBody { get; set; }
+
+		public void SetConf(AppConf appConf)
+		{
+			this.RenderBody = appConf.RenderLayoutBody;
+			this.LayoutName = appConf.DefaultLayout;
+			this.AppConf = appConf;
+		}
 
         public LayoutModel CreateLayoutModel(string[] htmlPathSegments = null)
         {
@@ -40,9 +48,9 @@ namespace Brevitee.Server
             model.LayoutName = LayoutName;
             model.ApplicationDisplayName = AppConf.DisplayName;            
 
-            SetTags(AppConf, model);
+            SetIncludes(AppConf, model);
 
-            if (htmlPathSegments != null) 
+            if (htmlPathSegments != null && RenderBody) 
             {
                 SetBody(model, htmlPathSegments);
             }
@@ -50,17 +58,17 @@ namespace Brevitee.Server
             return model;
         }
 
-        protected internal void SetTags(AppConf conf, LayoutModel layout)
+        protected internal void SetIncludes(AppConf conf, LayoutModel layoutModel)
         {
             Includes includes = AppContentResponder.GetAppIncludes(conf);
             if (IncludeCommon)
             {
-                Includes commonIncludes = ContentResponder.GetCommonIncludesFromIncludeJs(conf.BreviteeConf.ContentRoot, false);
+                Includes commonIncludes = ContentResponder.GetCommonIncludes(conf.BreviteeConf.ContentRoot, false);
                 includes = commonIncludes.Combine(includes);
             }
 
-            layout.ScriptTags = includes.GetScriptTags().ToHtmlString();
-            layout.StyleSheetLinkTags = includes.GetStyleSheetLinkTags().ToHtmlString();
+            layoutModel.ScriptTags = includes.GetScriptTags().ToHtmlString();
+            layoutModel.StyleSheetLinkTags = includes.GetStyleSheetLinkTags().ToHtmlString();
         }
 
         protected internal void SetBody(LayoutModel layout, string[] pathSegments) 
@@ -76,7 +84,7 @@ namespace Brevitee.Server
                     AddLink(headLinks, el);
                 });
 
-                string body = dollarSign["body"].Html().Replace("\r", "").Replace("\n", "");
+                string body = dollarSign["body"].Html().Replace("\r", "").Replace("\n", "").Replace("\t", "");
                 StringBuilder links = new StringBuilder(layout.StyleSheetLinkTags);
                 links.Append(headLinks.ToString());
                 layout.StyleSheetLinkTags = links.ToString();

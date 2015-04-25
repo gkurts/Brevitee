@@ -13,6 +13,8 @@ namespace Brevitee.Data
         {
             this.ColumnName = column;
             this.Operator = oper;
+			this.ColumnNameFormatter = (c) => string.Format("[{0}]", c);
+			this.ParameterPrefix = "@";
             if (value == null)
             {
                 value = DBNull.Value;
@@ -24,6 +26,8 @@ namespace Brevitee.Data
             }
         }
 
+		public Func<string, string> ColumnNameFormatter { get; set; }
+		public string ParameterPrefix { get; set; }
         public string ColumnName { get; set; }
         public object Value { get; set; }
         public int? Number { get; set; }
@@ -36,7 +40,7 @@ namespace Brevitee.Data
 
         public override string ToString()
         {
-            return string.Format("[{0}] {1} {2}", ColumnName, this.Operator, string.Format("@{0}{1}", ColumnName, Number));
+             return string.Format("{0} {1} {2}", ColumnNameFormatter(ColumnName), this.Operator, string.Format("{0}{1}{2}", ParameterPrefix, ColumnName, Number));
         }
     }
 }

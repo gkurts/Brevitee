@@ -9,12 +9,13 @@ using Brevitee.UserAccounts;
 using Brevitee.Data;
 using Brevitee.Logging;
 using Brevitee.ServiceProxy;
+using Brevitee.Management;
 
 namespace Brevitee.Server
 {
     public class AppConf
     {
-		public const string DefaultPageConst = "home";
+		public const string DefaultPageConst = "start";
 		public const string DefaultLayoutConst = "basic";
 
         public AppConf()
@@ -24,9 +25,11 @@ namespace Brevitee.Server
             this._serviceProxyTypeNames.Add(typeof(Echo).AssemblyQualifiedName);
             this._serviceProxyTypeNames.Add(typeof(EncryptedEcho).AssemblyQualifiedName);
 
+			this.RenderLayoutBody = true;
 			this.DefaultLayout = DefaultLayoutConst;
 			this.DefaultPage = DefaultPageConst;
             this.LogNotFoundFilesWithTheseExtensions = new string[] { ".jpg", ".png", ".gif", ".htm", ".html" };
+			this.ServiceProxySearchPatterns = new string[] { "*Services.dll", "*Proxyables.dll" };
         }
 
         public AppConf(string name)
@@ -158,11 +161,19 @@ namespace Brevitee.Server
 
         public bool CheckDaoHashes { get; set; }
 
+		public bool RenderLayoutBody { get; set; }
+
         public string[] LogNotFoundFilesWithTheseExtensions
         {
             get;
             set;
         }
+
+		public string[] ServiceProxySearchPatterns
+		{
+			get;
+			set;
+		}
 
         List<string> _serviceProxyTypeNames;
         public string[] ServiceProxyTypeNames
@@ -190,12 +201,21 @@ namespace Brevitee.Server
             }
         }
 
+		/// <summary>
+		/// The assembly qualified name of an IInitialize
+		/// implementation that will be called on application 
+		/// initialization
+		/// </summary>
         public string AppInitializer
         {
             get;
             set;
         }
 
+		/// <summary>
+		/// The file path to the assembly that contains
+		/// the type specified by AppInitializer
+		/// </summary>
         public string AppInitializerAssemblyPath
         {
             get;

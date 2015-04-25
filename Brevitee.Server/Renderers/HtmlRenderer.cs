@@ -74,7 +74,7 @@ namespace Brevitee.Server.Renderers
             AppContentResponder appContentResponder = ContentResponder.AppContentResponders[AppName];
             AppDustRenderer dustRenderer = appContentResponder.AppDustRenderer;
             string templateName = GetTemplateName(toRender);
-            string templates = dustRenderer.CompiledDustTemplates;            
+            string templates = dustRenderer.CompiledTemplates;            
             string result = DustScript.Render(templates, templateName, toRender);
 
             string layout;
@@ -88,7 +88,7 @@ namespace Brevitee.Server.Renderers
                 layoutModel.LayoutName = layout;
                 layoutModel.PageContent = result;
                 MemoryStream ms = new MemoryStream();
-                appContentResponder.CommonDustRenderer.RenderLayout(layoutModel, ms);
+                appContentResponder.CommonTemplateRenderer.RenderLayout(layoutModel, ms);
                 ms.Seek(0, SeekOrigin.Begin);
                 data = ms.GetBuffer();
             }

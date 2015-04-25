@@ -131,5 +131,13 @@ namespace Brevitee
         {
             Thread.Start();
         }
+
+		public void Abort()
+		{
+			if (Thread != null && Thread.ThreadState == System.Threading.ThreadState.Running)
+			{
+				Thread.Abort();
+			}
+		}
     }
 }

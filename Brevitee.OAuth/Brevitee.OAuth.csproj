@@ -81,11 +81,12 @@
       <Name>Brevitee.ServiceProxy</Name>
     </ProjectReference>
     <ProjectReference Include="..\Brevitee\Brevitee.csproj">
-      <Project>{8794C09D-D72C-420C-812F-BFDA251B64C9}</Project>
+      <Project>{8794c09d-d72c-420c-812f-bfda251b64c9}</Project>
       <Name>Brevitee</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

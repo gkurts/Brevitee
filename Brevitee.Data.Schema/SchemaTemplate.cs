@@ -9,10 +9,10 @@ namespace Brevitee.Data.Schema
     public abstract class SchemaTemplate : DaoRazorTemplate<SchemaDefinition>
     {
 
-        public void WriteContextMethods(Table table)
+        public void WriteContextMethods(Table table, string ns)
         {
             RazorParser<TableTemplate> razorParser = new RazorParser<TableTemplate>();
-            Write(razorParser.ExecuteResource("ContextMethods.tmpl", new { Model = table }));
+            Write(razorParser.ExecuteResource("ContextMethods.tmpl", new { Model = table, Namespace = ns }));
         }
     }
 }

@@ -6,9 +6,10 @@ using Brevitee;
 using Brevitee.Data;
 using Brevitee.Data.Schema;
 using Brevitee.Data.MsSql;
+using Brevitee.Data.Oracle;
+using Brevitee.Data.SQLite;
 using Brevitee.Incubation;
 using Brevitee.CommandLine;
-
 using System.IO;
 using System.CodeDom.Compiler;
 using System.Reflection;
@@ -65,7 +66,7 @@ namespace laotze
                 {
                     if (dbjs.Length > 1)
                     {
-                        OutLine("Multiple database.js files found", ConsoleColor.Red);
+                        OutLine("Multiple *.db.js files found", ConsoleColor.Red);
                         OutLineFormat("{0}", ConsoleColor.Yellow, dbjs.ToDelimited<FileInfo>(f => f.FullName, "\r\n"));
                         string answer = Prompt("Process each? [y N]", ConsoleColor.Yellow);
                         if (!answer.ToLowerInvariant().Equals("y"))
@@ -79,10 +80,7 @@ namespace laotze
                         try
                         {
                             OutLineFormat("Processing {0}...", ConsoleColor.Yellow, file.FullName);
-                            SchemaManager manager = new SchemaManager();
-                            manager.RootDir = rootDirectory.FullName;
-                            manager.PreColumnAugmentations.Add(new AddIdKeyColumnAugmentation());
-                            manager.PreColumnAugmentations.Add(new AddColumnAugmentation { ColumnName = "Uuid", DataType = DataTypes.String, AllowNull = false });                            
+							UuidSchemaManager manager = new UuidSchemaManager();                        
 
                             DirectoryInfo fileParent = file.Directory;
                             DirectoryInfo genToDir = GetTargetDirectory(file);
@@ -91,13 +89,32 @@ namespace laotze
 
                             DirectoryInfo partialsDir = GetPartialsDir(genToDir);
 
-                            bool compile = !keep;
-                            Result result = manager.Generate(file, compile, keep, genToDir.FullName, partialsDir.FullName);
+							Result result = null;
+							if (!Arguments.Contains("dll"))
+							{
+								bool compile = !keep;
+								result = manager.Generate(file, compile, keep, genToDir.FullName, partialsDir.FullName);
+							}
+							else
+							{
+								result = manager.Generate(file, new DirectoryInfo(Arguments["dll"]), keep, genToDir.FullName, partialsDir.FullName);
+							}
+
                             if (!result.Success)
                             {
                                 throw new Exception(result.Message);
                             }
+
+							if (Arguments.Contains("sql"))
+							{
+								WriteSqlFile(result);
+							}
+
                             OutLine(result.Message, ConsoleColor.Green);
+							if (result.DaoAssembly != null)
+							{
+								OutLineFormat("Compiled to: {0}", result.DaoAssembly.FullName, ConsoleColor.Yellow);
+							}
                         }
                         catch (Exception ex)
                         {
@@ -142,14 +159,62 @@ namespace laotze
             AddValidArgument("s", true, "Enable silent mode, limited output");
             AddValidArgument("root", false, "Specifies the root directory to search when generating from *.db.js files");
             AddValidArgument("keep", true, "If not specified when generating from a *.db.js file the code will be compiled to the dll specified by /dll and the source will be deleted");
-            AddValidArgument("?", true, "Usage");
+			AddValidArgument("sql", false, "The name of the sql txt file to output the schema creation script to");
+			AddValidArgument("dialect", false, "The sql dialect to use, one of: SQLite, Ms or Oracle");
+			AddValidArgument("?", true, "Usage");
 
             ParseArgs(args);
         }
 
+		private static void WriteSqlFile(Result result)
+		{
+			if (!Arguments.Contains("dll") || result.DaoAssembly == null)
+			{
+				OutLine("Unable to locate Dao assembly fro sql schema generation, specify dll argument", ConsoleColor.Red);
+			}
+			else
+			{
+				FileInfo sqlFile = new FileInfo(Arguments["sql"]);
+				SqlDialect dialect = SqlDialect.Ms;
+				if (Arguments.Contains("dialect"))
+				{
+					dialect = (SqlDialect)Enum.Parse(typeof(SqlDialect), Arguments["dialect"]);
+				}
+				WriteSqlFile(result.DaoAssembly, sqlFile, dialect);
+				OutLineFormat("Sql script written: {0}", sqlFile.FullName);
+			}
+		}
+
+		private static void WriteSqlFile(FileInfo daoFile, FileInfo sqlFile, SqlDialect dialect)
+		{
+			Assembly daoAssembly = Assembly.LoadFrom(daoFile.FullName);
+			SchemaWriter schemaWriter = SchemaWriters[dialect]();
+			schemaWriter.WriteSchemaScript(daoAssembly);
+			schemaWriter.ToString().SafeWriteToFile(sqlFile.FullName);
+		}
+
+		static Dictionary<SqlDialect, Func<SchemaWriter>> _schemaWriters;
+		static object _schemaWriterLock = new object();
+		private static Dictionary<SqlDialect, Func<SchemaWriter>> SchemaWriters
+		{
+			get
+			{
+				return _schemaWriterLock.DoubleCheckLock(ref _schemaWriters, () =>
+				{
+					Dictionary<SqlDialect, Func<SchemaWriter>> result = new Dictionary<SqlDialect, Func<SchemaWriter>>();
+					result.Add(SqlDialect.Invalid, () => new MsSqlSqlStringBuilder());
+					result.Add(SqlDialect.Ms, () => new MsSqlSqlStringBuilder());
+					result.Add(SqlDialect.Oracle, () => new OracleSqlStringBuilder());
+					result.Add(SqlDialect.SQLite, () => new SQLiteSqlStringBuilder());
+
+					return result;
+				});
+			}
+		}
+
         private static DirectoryInfo GetTargetDirectory(FileInfo file)
         {
-            string genTo = Arguments.Contains("gen") ? Arguments["gen"] : Path.Combine(file.Directory.FullName, "Generated");
+            string genTo = Arguments.Contains("gen") ? Arguments["gen"] : Path.Combine(file.Directory.FullName, "{0}_Generated"._Format(file.Name.Truncate(6)));
             if (Directory.Exists(genTo))
             {
                 Directory.Move(genTo, Path.Combine(genTo, "{0}_{1}"._Format(genTo, DateTime.Now.ToJulianDate().ToString())));
@@ -274,7 +339,7 @@ namespace laotze
 
         private static SchemaDefinition ExtractSchema(string connectionName, string filePath)
         {
-            ISchemaExtractor extractor = Incubator.Default.Get<ISchemaExtractor>(new SqlClientSchemaExtractor(connectionName));
+            ISchemaExtractor extractor = Incubator.Default.Get<ISchemaExtractor>(new MsSqlSchemaExtractor(connectionName));
             SchemaDefinition schema = extractor.Extract();
             schema.Save(filePath);
             return schema;

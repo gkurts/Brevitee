@@ -6,7 +6,7 @@ namespace Brevitee.Schema.Org
 	public class MedicalCondition: MedicalEntity
 	{
 		///<summary>The anatomy of the underlying organ system or structures associated with this entity.</summary>
-		public ThisOrThat<AnatomicalStructure, AnatomicalSystem, SuperficialAnatomy> AssociatedAnatomy {get; set;}
+		public ThisOrThat<AnatomicalSystem , AnatomicalStructure , SuperficialAnatomy> AssociatedAnatomy {get; set;}
 		///<summary>An underlying cause. More specifically, one of the causative agent(s) that are most directly responsible for the pathophysiologic process that eventually results in the occurrence.</summary>
 		public MedicalCause Cause {get; set;}
 		///<summary>One of a set of differential diagnoses for the condition. Specifically, a closely-related or competing diagnosis typically considered later in the cognitive process whereby this medical condition is distinguished from others most likely responsible for a similar collection of signs and symptoms to reach the most parsimonious diagnosis or diagnoses in a patient.</summary>
@@ -29,7 +29,7 @@ namespace Brevitee.Schema.Org
 		public MedicalRiskFactor RiskFactor {get; set;}
 		///<summary>A preventative therapy used to prevent reoccurrence of the medical condition after an initial episode of the condition.</summary>
 		public MedicalTherapy SecondaryPrevention {get; set;}
-		///<summary>A sign or symptom of this condition. Signs are objective or physically observable manifestations of the medical condition while symptoms are the subjective experienceof the medical condition.</summary>
+		///<summary>A sign or symptom of this condition. Signs are objective or physically observable manifestations of the medical condition while symptoms are the subjective experience of the medical condition.</summary>
 		public MedicalSignOrSymptom SignOrSymptom {get; set;}
 		///<summary>The stage of the condition, if applicable.</summary>
 		public MedicalConditionStage Stage {get; set;}

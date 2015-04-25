@@ -13,8 +13,8 @@ GOTO COPY
 
 :COPY
 MD Brevitee.Syndication\lib\%LIB%
-copy /Y .\BuildOutput\%VER%\Brevitee.Syndication.dll Brevitee.Syndication\lib\%LIB%\Brevitee.Syndication.dll
-copy /Y .\BuildOutput\%VER%\Brevitee.Syndication.xml Brevitee.Syndication\lib\%LIB%\Brevitee.Syndication.xml
+copy /Y .\BuildOutput\Release\%VER%\Brevitee.Syndication.dll Brevitee.Syndication\lib\%LIB%\Brevitee.Syndication.dll
+copy /Y .\BuildOutput\Release\%VER%\Brevitee.Syndication.xml Brevitee.Syndication\lib\%LIB%\Brevitee.Syndication.xml
 GOTO %NEXT%
 
 :END

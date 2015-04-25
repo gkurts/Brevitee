@@ -110,8 +110,8 @@ namespace rencopy
 
         private static void CopyFiles()
         {
-            List<string> fileExtensionsToDoTextReplacementsOn = new List<string>(_config.TextReplacementFileExtensions);
-            List<string> fileExtensionsToCopyBare = new List<string>(_config.CopyExtensions);            
+			List<string> fileExtensionsToDoTextReplacementsOn = _config.TextReplacementFileExtensions.Select(s => s.ToLowerInvariant()).ToList();
+			List<string> fileExtensionsToCopyBare = _config.CopyExtensions.Select(s => s.ToLowerInvariant()).ToList();
 
             // get the files from the current dir
             FileInfo[] files = _curDir.GetFiles();
@@ -190,7 +190,7 @@ namespace rencopy
             string newContent = originalContent;
             foreach (TextReplacement replacement in _config.TextReplacements)
             {
-                if (fileExtensions.Contains(file.Extension) && file.IsText())
+                if (fileExtensions.Contains(file.Extension.ToLowerInvariant()) && file.IsText())
                 {
                     writeContent = true;
                     string originalTargetFileName = targetFileName;

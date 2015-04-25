@@ -22,13 +22,13 @@ namespace Brevitee
     {
         internal IpcMessage(string name, Type messageType)
         {
-            AppDomain.CurrentDomain.DomainUnload += (s, e) =>
-            {
-                Delete(name, messageType);
-            };
+			//AppDomain.CurrentDomain.DomainUnload += (s, e) =>
+			//{
+			//	Delete(name, messageType);
+			//};
 
             this.Name = name;           
-            this.LockTimeout = 300;
+            this.LockTimeout = 1500;
             this.MessageType = messageType;
         }
 
@@ -124,7 +124,7 @@ namespace Brevitee
 
         public string Name { get; set; }
 
-        public bool Write<T>(T data)
+        public bool Write(object data)
         {
             if(AcquireLock(LockTimeout))
             {
@@ -188,16 +188,16 @@ namespace Brevitee
             {
                 return _rootDirectoryLock.DoubleCheckLock(ref _rootDirectory, () =>
                 {
-                    return Path.Combine(new object().GetAppDataFolder(), MessageType.Name);
+					return Path.Combine(new object().GetAppDataFolder(), MessageType.Name);
                 });
             }
             set
             {
-                _rootDirectory = Path.Combine(value, MessageType.Name);
+				_rootDirectory = Path.Combine(value, MessageType.Name);
             }
         }
 
-        [Verbosity(LogEventType.Warning, MessageFormat="{Name}:Unable to acquire lock:{LastExceptionMessage}")]
+        [Verbosity(VerbosityLevel.Warning, MessageFormat="{Name}:Unable to acquire lock:{LastExceptionMessage}")]
         public event EventHandler AcquireLockException;
       
         protected void OnAcquireLockException(Exception ex)
@@ -209,7 +209,7 @@ namespace Brevitee
             }
         }
 
-        [Verbosity(LogEventType.Warning, MessageFormat = "PID {CurrentLockerId} has lock on {Name}")]
+		[Verbosity(VerbosityLevel.Warning, MessageFormat = "PID {CurrentLockerId} has lock on {Name}")]
         public event EventHandler WaitingForLock;
 
         protected void OnWaitingForLock()

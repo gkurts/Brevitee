@@ -72,16 +72,26 @@ namespace Brevitee.Server
 
         public void Dispose()
         {
+			IsDisposed = true;
             Stop();
         }
+
+		public bool IsDisposed { get; private set; }
 
         public void Stop()
         {
             _stop.Set();
-            _handlerThread.Join();
+			if (_handlerThread.ThreadState == ThreadState.Running)
+			{
+				_handlerThread.Abort();
+				_handlerThread.Join();
+			}
             foreach (Thread worker in _workers)
             {
-                worker.Join();
+				if (worker != null)
+				{
+					worker.Join();
+				}
             }
             _listener.Stop();
         }

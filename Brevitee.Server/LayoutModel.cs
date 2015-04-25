@@ -19,7 +19,7 @@ namespace Brevitee.Server
             this.StartPage = "home";
             this.PageContent = string.Empty;
         }
-
+		
         public string StartPage { get; set; }
 
         public string LayoutName { get; set; }

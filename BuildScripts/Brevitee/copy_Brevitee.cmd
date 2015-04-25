@@ -13,8 +13,8 @@ GOTO COPY
 
 :COPY
 MD Brevitee\lib\%LIB%\
-copy /Y /D .\BuildOutput\%VER%\Brevitee.dll Brevitee\lib\%LIB%\Brevitee.dll
-copy /Y /D .\BuildOutput\%VER%\Brevitee.xml Brevitee\lib\%LIB%\Brevitee.xml
+copy /Y /D .\BuildOutput\Release\%VER%\Brevitee.dll Brevitee\lib\%LIB%\Brevitee.dll
+copy /Y /D .\BuildOutput\Release\%VER%\Brevitee.xml Brevitee\lib\%LIB%\Brevitee.xml
 GOTO %NEXT%
 
 :END

@@ -34,6 +34,7 @@ using Microsoft.Build.Evaluation;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Logging;
 using Brevitee.Automation.ContinuousIntegration.Loggers;
+using Brevitee.Documentation;
 
 namespace Brevitee.Automation.Tests
 {
@@ -110,7 +111,7 @@ namespace Brevitee.Automation.Tests
                 Directory.Delete(extractTo, true);
             }
             Expect.IsTrue(Assembly.GetExecutingAssembly().UnzipResource(typeof(UnitTests), "Test.zip", extractTo));
-            FileInfo[] files = new DirectoryInfo(".\\UnzipTest").GetFiles();
+            FileInfo[] files = new DirectoryInfo(extractTo).GetFiles();
             Expect.IsTrue(files.Length > 0);
         }
 
@@ -136,28 +137,28 @@ namespace Brevitee.Automation.Tests
         public void ReadXmlDocs()
         {
             doc doc = new FileInfo("./TestDoc.xml").FromXmlFile<doc>();
-            OutFormat("Assembly Name: {0}", doc.assembly.name);
+            OutLineFormat("Assembly Name: {0}", doc.assembly.name);
             if (doc.members == null)
             {
-                Out("doc.members == null", ConsoleColor.Cyan);
+                OutLine("doc.members == null", ConsoleColor.Cyan);
             }
             else if (doc.members.Items == null)
             {
-                Out("doc.members.Items == null", ConsoleColor.Yellow);
+                OutLine("doc.members.Items == null", ConsoleColor.Yellow);
             }
             else
             {                
-                OutFormat("Iterating on {0}", ConsoleColor.Cyan, "doc.members.Items");
+                OutLineFormat("Iterating on {0}", ConsoleColor.Cyan, "doc.members.Items");
                 doc.members.Items.Each(member =>
                 {
-                    OutFormat("member.name={0}", ConsoleColor.Yellow, member.name);
+					OutLineFormat("member.name={0}", ConsoleColor.Yellow, member.name);
                     if (member.Items == null)
                     {
-                        OutFormat("member.Items == null");
+						OutLineFormat("member.Items == null");
                     }
                     else
                     {
-                        OutFormat("Iterating on {0}", ConsoleColor.Cyan, "member.Items");
+						OutLineFormat("Iterating on {0}", ConsoleColor.Cyan, "member.Items");
                         member.Items.Each(item =>
                         {
                             Type itemType = item.GetType();
@@ -175,37 +176,37 @@ namespace Brevitee.Automation.Tests
 
         private void HandleSummary(summary summary)
         {
-            Out("Summary line by line");
+            OutLine("Summary line by line");
             summary.Text.Each(text =>
             {
-                OutFormat("{0}", text);
+                OutLineFormat("{0}", text);
             });
             if (summary.Items != null)
             {
-                Out("Iterating over summary.Items");
+                OutLine("Iterating over summary.Items");
                 summary.Items.Each(o =>
                 {
                     Type itemType = o.GetType();
-                    OutFormat("\tItem type = {0}", ConsoleColor.Yellow, itemType.FullName);
+					OutLineFormat("\tItem type = {0}", ConsoleColor.Yellow, itemType.FullName);
                 });
             }
             else
             {
-                Out("summary.Items was null");
+                OutLine("summary.Items was null");
             }
 
             if (summary.Items1 != null)
             {
-                Out("Iterating over summary.Items1");
+                OutLine("Iterating over summary.Items1");
                 summary.Items1.Each(o =>
                 {
                     Type itemType = o.GetType();
-                    OutFormat("\tItem type = {0}", ConsoleColor.Blue, itemType.FullName);
+					OutLineFormat("\tItem type = {0}", ConsoleColor.Blue, itemType.FullName);
                 });
             }
             else
             {
-                Out("summary.Items1 was null");
+                OutLine("summary.Items1 was null");
             }
         }
 
@@ -336,7 +337,7 @@ an empty string")]
         //[UnitTest]
         //public void TeamProjectFluently()
         //{
-        //    Tfs.Server("http://tfs.klgates.com:8080/tfs")
+        //    Tfs.Server("http://tfs.stickerize.me:8080/tfs")
         //        .TeamProjectCatalogNode("ISDEV", "Brevitee", (catalogNode) =>
         //        {
         //            OutFormat("catalogNode.Resource.DisplayName: {0}", ConsoleColor.Cyan, catalogNode.Resource.DisplayName);
@@ -448,9 +449,10 @@ an empty string")]
             OutLine("It worked!", ConsoleColor.Green);
         }
 
-        [UnitTest(Before="Test")]
+        [UnitTest]
         public void BuildConfShouldSave()
         {
+			Test();
             WorkerConf conf = CreateTestConf();
 
             conf.Save();
@@ -507,7 +509,7 @@ an empty string")]
         public void ShouldBeAbleToCompile()
         {
             FileInfo proj = new FileInfo("../../TestSolution/TestBuildProject.sln");
-            OutFormat("{0}", ConsoleColor.Cyan, proj.FullName);
+			OutLineFormat("{0}", ConsoleColor.Cyan, proj.FullName);
             DirectoryInfo output = new DirectoryInfo(".\\output");
             if (output.Exists)
             {
@@ -528,10 +530,10 @@ an empty string")]
 
             BuildResult result = proj.Compile(output.FullName, logger);
 
-            OutFormat("Overall: {0}", ConsoleColor.Cyan, result.OverallResult.ToString());
+			OutLineFormat("Overall: {0}", ConsoleColor.Cyan, result.OverallResult.ToString());
             if (result.OverallResult == BuildResultCode.Failure)
             {
-                OutFormat("{0}:\r\n", ConsoleColor.Red, result.Exception == null ? "": result.Exception.Message);
+				OutLineFormat("{0}:\r\n", ConsoleColor.Red, result.Exception == null ? "" : result.Exception.Message);
             }
             
             Expect.IsFalse(result.OverallResult == BuildResultCode.Failure);
@@ -551,7 +553,7 @@ an empty string")]
         //[UnitTest]
         //public void ListProjectCollectionsFluently()
         //{
-        //    Tfs.Server("http://tfs.klgates.com:8080/tfs").TeamProjectCollections((tfs, tpcArray) =>
+        //    Tfs.Server("http://tfs.stickerize.me:8080/tfs").TeamProjectCollections((tfs, tpcArray) =>
         //    {
         //        tpcArray.Each(tpc =>
         //        {
@@ -570,7 +572,7 @@ an empty string")]
         //[UnitTest]
         //public void ListProjectCollections()
         //{
-        //    Uri url = new Uri("http://tfs.klgates.com:8080/tfs");
+		//    Uri url = new Uri("http://tfs.stickerize.me:8080/tfs");
         //    TfsConfigurationServer tfs = TfsConfigurationServerFactory.GetConfigurationServer(url);
             
         //    ReadOnlyCollection<CatalogNode> collectionNodes = tfs.CatalogNode.QueryChildren(
@@ -627,18 +629,5 @@ an empty string")]
             File.Delete(file.Path);
         }
 
-        [UnitTest]
-        public void GitCloneTest()
-        {
-            //using (Repository repo = new Repository("git@github.com:BreviteeApellanes/Core.git"))
-            //{
-            //    repo.Branches.Keys.Each(key =>
-            //    {
-            //        Branch branch = repo.Branches[key];
-                    
-            //        OutLineFormat("FullName: {0}", branch);                    
-            //    });
-            //}
-        }
     }
 }

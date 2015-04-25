@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Web;
 //using System.Web.Http;
 using System.Web.Mvc;
-using Brevitee.Analytics.Data;
 using Brevitee.Analytics;
 using Brevitee.Logging;
 using Brevitee;

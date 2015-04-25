@@ -58,7 +58,7 @@ namespace Brevitee.ServiceProxy.Tests
         public void Securesession_ShouldBeAbleToGetSecureSession()
         {
             ConsoleLogger logger = new ConsoleLogger();
-            SecureChannel.EnsureRepository(logger);
+            SecureChannel.InitializeDatabase(logger);
             Cookie cookie = new Cookie(SecureSession.CookieName, "TestSecureSessionId");
             SecureSession session = SecureSession.Get(cookie);
             Expect.IsNotNull(session);
@@ -98,7 +98,7 @@ namespace Brevitee.ServiceProxy.Tests
         public void Securesession_ShouldBeAbleToSetValidationToken()
         {
             ConsoleLogger logger = new ConsoleLogger();
-            SecureChannel.EnsureRepository(logger);
+            SecureChannel.InitializeDatabase(logger);
 
             IRequest request = CreateFakeRequest();
             SecureSession session = SecureSession.Get(request);

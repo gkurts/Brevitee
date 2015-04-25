@@ -37,7 +37,7 @@ namespace Brevitee.Automation
             Validate.RequiredProperties(this);
             
             DirectoryInfo dir = new DirectoryInfo(SourceDirectory);
-            dir.Zip(TargetPath);
+            dir.ZipAndSave(TargetPath);
 
             WorkState workstate = new WorkState(this, "Sucessfully zipped file to {0}"._Format(SourceDirectory));
             return workstate;

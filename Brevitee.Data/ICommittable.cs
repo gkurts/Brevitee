@@ -7,7 +7,7 @@ namespace Brevitee.Data
 {
     public interface ICommittable: IDeleteable
     {
-        void Commit();
-        void WriteCommit(SqlStringBuilder sql);
+        void Commit(Database db = null);
+        void WriteCommit(SqlStringBuilder sql, Database db = null);
     }
 }

@@ -81,6 +81,12 @@
     <Compile Include="TestProgram.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\Brevitee.CommandLine\Brevitee.CommandLine.csproj">
       <Project>{ea9863a9-8e0b-4497-b7fd-abf450a3e468}</Project>
       <Name>Brevitee.CommandLine</Name>
@@ -89,9 +95,9 @@
       <Project>{2a4347ab-3e15-4698-9020-722320307754}</Project>
       <Name>Brevitee.Dust</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Brevitee.ServiceProxy\Brevitee.ServiceProxy.csproj">
-      <Project>{8987d8c8-033b-4993-99f0-8dd5a4d6dd0d}</Project>
-      <Name>Brevitee.ServiceProxy</Name>
+    <ProjectReference Include="..\Brevitee.Html\Brevitee.Html.csproj">
+      <Project>{795d5552-94d6-4373-b4f1-551b1d5bdafb}</Project>
+      <Name>Brevitee.Html</Name>
     </ProjectReference>
     <ProjectReference Include="..\Brevitee.Testing\Brevitee.Testing.csproj">
       <Project>{85212881-c676-4b40-b311-37c2d1706042}</Project>
@@ -101,12 +107,6 @@
       <Project>{8794c09d-d72c-420c-812f-bfda251b64c9}</Project>
       <Name>Brevitee</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />

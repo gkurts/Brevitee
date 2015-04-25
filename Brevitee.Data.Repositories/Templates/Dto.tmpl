@@ -1,0 +1,26 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
+using System.Data;
+using System.Data.Common;
+using System.Linq;
+using Brevitee;
+using Brevitee.Data;
+
+namespace @(Model.Namespace)
+{
+	// gnerated
+	public class @(Model.TypeName)
+	{
+		public @(Model.TypeName)()
+		{
+		}
+
+		@foreach(string property in Model.Properties)
+		{
+			@(property)
+		}
+	}
+	// -- generated
+}																								

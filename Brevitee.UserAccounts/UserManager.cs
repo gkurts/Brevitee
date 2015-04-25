@@ -239,7 +239,7 @@ The {ApplicationName} Team<br />
                 reset.Token = Guid.NewGuid().ToString();
                 reset.DateTime = new Instant();
                 reset.ExpiresInMinutes = PasswordResetTokensExpireInThisManyMinutes;
-                reset.WasReset = false;
+                reset.WasReset = false;				
 
                 user.Save();
 
@@ -503,7 +503,7 @@ The {ApplicationName} Team<br />
             }
         }
 
-        public dynamic Get()
+        public dynamic GetUser()
         {
             bool isAuthenticated = false;
             User user = Session.UserOfUserId;

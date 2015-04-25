@@ -50,6 +50,24 @@ namespace Brevitee.ServiceProxy.Secure
             set;
         }
 
+		Database _database;
+		public Database Database
+		{
+			get
+			{
+				if (_database == null)
+				{
+					_database = Db.For<ApiKey>();
+				}
+
+				return _database;
+			}
+			set
+			{
+				_database = value;
+			}
+		}
+
         public string GetClientId(IApplicationNameProvider nameProvider)
         {
             return GetClientId(nameProvider.GetApplicationName());
@@ -62,20 +80,20 @@ namespace Brevitee.ServiceProxy.Secure
 
         public string GetApplicationApiKey(string applicationClientId, int index)
         {
-            ApiKeyCollection keys = ApiKey.Where(c => c.ClientId == applicationClientId, Order.By<ApiKeyColumns>(c => c.CreatedAt, SortOrder.Descending));
+            ApiKeyCollection keys = ApiKey.Where(c => c.ClientId == applicationClientId, Order.By<ApiKeyColumns>(c => c.CreatedAt, SortOrder.Descending), Database);
             return keys[index].SharedSecret;
         }
         public ApplicationCreateResult CreateApplication(string applicationName)
         {
-            return CreateApplication(HttpContext, UserResolver, applicationName);
+            return CreateApplication(HttpContext, UserResolver, applicationName, Database);
         }
 
-        public static ApplicationCreateResult CreateApplication(IHttpContext context, IUserResolver userResolver, string applicationName)
+        public static ApplicationCreateResult CreateApplication(IHttpContext context, IUserResolver userResolver, string applicationName, Database database = null)
         {
             ApplicationCreateResult result = new ApplicationCreateResult();
             try
             {
-                Application app = Application.OneWhere(c => c.Name == applicationName);
+                Application app = Application.OneWhere(c => c.Name == applicationName, database);
                 if (app != null)
                 {
                     result.Status = ApplicationCreateStatus.NameInUse;
@@ -94,7 +112,7 @@ namespace Brevitee.ServiceProxy.Secure
 
                     app = new Application();
                     app.Name = applicationName;
-                    app.Save();
+                    app.Save(database);
                     AddKey(app, userResolver, context);
 
                     result.Application = app;
@@ -118,15 +136,15 @@ namespace Brevitee.ServiceProxy.Secure
                 throw new ArgumentException("The specified applicationClientId is not valid: {0}"._Format(applicationClientId));
             }
 
-            return Application.OneWhere(c => c.Name == split[0]);
+            return Application.OneWhere(c => c.Name == split[0], Database);
         }
 
         public ApiKey AddKey(string applicationClientId)
         {
-            return AddKey(GetApplication(applicationClientId), UserResolver, HttpContext);
+            return AddKey(GetApplication(applicationClientId), UserResolver, HttpContext, Database);
         }
 
-        public static ApiKey AddKey(Application app, IUserResolver userResolver, IHttpContext context )
+        public static ApiKey AddKey(Application app, IUserResolver userResolver, IHttpContext context, Database database = null)
         {
             ApiKey key = app.ApiKeysByApplicationId.AddNew();
             key.ClientId = GetClientId(app.Name);
@@ -134,7 +152,7 @@ namespace Brevitee.ServiceProxy.Secure
             key.SharedSecret = ServiceProxySystem.GenerateId();
             key.CreatedBy = userResolver.GetUser(context);
             key.CreatedAt = new Instant();
-            key.Save();
+            key.Save(database);
             return key;
         }
     }

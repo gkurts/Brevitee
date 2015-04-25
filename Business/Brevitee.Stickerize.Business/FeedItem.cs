@@ -52,23 +52,11 @@ namespace Brevitee.Stickerize.Business
 
         private void SetItemInfo(Stickerizer er, Stickerizee ee, Stickerizable izable)
         {
-			//this.StickerizerImageSource = "https://en.gravatar.com/userimage/2382491/16301946ee142cbf006292f905fc9055.jpg";
-			//this.StickerizerName = "Er";
-
-			//this.StickerizeeImageSource = "https://en.gravatar.com/userimage/2382491/16301946ee142cbf006292f905fc9055.jpg";
-
-			//this.Stickerizable = "For a monkey";
-
 			this.StickerizerImageSource = er.GetImage().Url;
 			this.StickerizerName = er.Name;
 			this.StickerizeeImageSource = ee.GetImage().Url;
 			this.StickerizeeName = ee.Name;
 			this.Stickerizable = izable.For;
-
-            //this.StickerizeeImageSource = ee.GetImage().Url;
-            //this.StickerizeeName = ee.Name;
-            
-            //this.Stickerizable = izable.Name;
         }
 
         public int Month { get; set; }

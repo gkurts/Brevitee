@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace Brevitee.Data.Schema
 {
@@ -26,5 +27,7 @@ namespace Brevitee.Data.Schema
         public bool Success { get; set; }
         public string Namespace { get; set; }
         public string SchemaName { get; set; }
+
+		public FileInfo DaoAssembly { get; set; }
     }
 }

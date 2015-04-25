@@ -1,1 +1,0 @@
-/f:daologger.jsdb /conn:DaoLogger /gen:E:\Source\GITRepositories\Brevitee\Brevitee.Logging /ns:Brevitee.Logging.Dao

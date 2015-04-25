@@ -56,92 +56,20 @@ namespace Brevitee.CommandLine
 
         public Attribute Attribute { get; set; }
 
-        public object Invoke()
-        {
-            IPreAndPostInvoke preAndPost = Attribute as IPreAndPostInvoke;
-            MethodInfo pre = null;
-            MethodInfo post = null;
-            MethodInfo alwaysPost = null;
-            Exception thrown = null;
-            object result = null;
+		public object Invoke()
+		{
+			object result = null;
+			Exception thrown = null;
+			try
+			{
+				result = Method.Invoke(Provider, Parameters);
+			}
+			catch (Exception ex)
+			{
+				throw ex.GetInnerException();				
+			}
 
-            if (preAndPost != null && Provider != null)
-            {
-                Type providerType = Provider.GetType();
-                if (!string.IsNullOrEmpty(preAndPost.Before))
-                {
-                    pre = providerType.GetMethod(preAndPost.Before);
-                }
-
-                if (!string.IsNullOrEmpty(preAndPost.AfterSuccess))
-                {
-                    post = providerType.GetMethod(preAndPost.AfterSuccess);
-                }
-
-                if (!string.IsNullOrEmpty(preAndPost.AlwaysAfter))
-                {
-                    alwaysPost = providerType.GetMethod(preAndPost.AlwaysAfter);
-                }
-            }
-
-            try
-            {
-
-                if (pre != null)
-                {
-                    pre.Invoke(Provider, null);
-                }
-
-                result = Method.Invoke(Provider, Parameters);
-
-                if (post != null)
-                {
-                    post.Invoke(Provider, null);
-                }
-            }
-            catch (Exception ex)
-            {
-                thrown = ex;
-                if (thrown.InnerException != null)
-                {
-                    thrown = thrown.InnerException;
-                }
-            }
-
-            if (alwaysPost != null)
-            {
-                try
-                {
-                    alwaysPost.Invoke(Provider, null);
-                }
-                catch (Exception ex)
-                {
-                    if (ex.InnerException != null)
-                    {
-                        ex = ex.InnerException;
-                    }
-
-                    StringBuilder message = new StringBuilder();
-                    if (thrown != null)
-                    {
-                        message.AppendLine(thrown.Message);
-                        message.AppendLine();
-                        if (!string.IsNullOrEmpty(thrown.StackTrace))
-                        {
-                            message.AppendLine(thrown.StackTrace);
-                        }
-                    }
-
-                    thrown = new Exception(message.ToString(), ex);
-                }
-            }
-
-            if (thrown != null)
-            {
-                throw thrown;
-            }
-
-            return result;
-        }
+			return result;
+		}
     }
 }

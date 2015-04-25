@@ -7,7 +7,7 @@ using System.IO;
 
 namespace Brevitee.Server.Renderers
 {
-    public class TxtRenderer: RendererBase
+    public class TxtRenderer: Renderer
     {
         public TxtRenderer()
             : base("text/plain", ".txt")

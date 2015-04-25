@@ -4,6 +4,7 @@ call copy_Brevitee.Analytics.cmd
 call copy_Brevitee.Automation.cmd
 call copy_Brevitee.CommandLine.cmd 
 call copy_Brevitee.Data.cmd
+call copy_Brevitee.Data.Repositories.cmd
 call copy_Brevitee.Distributed.cmd
 call copy_Brevitee.Drawing.cmd
 call copy_Brevitee.Dust.cmd

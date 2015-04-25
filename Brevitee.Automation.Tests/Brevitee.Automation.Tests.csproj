@@ -35,7 +35,11 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Ionic.Zip">
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Ionic.Zip, Version=1.9.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\DotNetZip.1.9.2\lib\net20\Ionic.Zip.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Build" />
@@ -57,13 +61,16 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="Winterdom.IO.FileMap">
+    <Reference Include="Tamir.SharpSSH">
+      <HintPath>..\packages\Tamir.SharpSSH.1.1.1.13\lib\Tamir.SharpSSH.dll</HintPath>
+    </Reference>
+    <Reference Include="Winterdom.IO.FileMap, Version=2.0.2.0, Culture=neutral, PublicKeyToken=4982617362e1edb5, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Winterdom.IO.FileMap.2.0.2.0\lib\Winterdom.IO.FileMap.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ConsoleActions.cs" />
-    <Compile Include="ContinuousIntegrationUnitTests.cs" />
     <Compile Include="ForemanUnitTests.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -72,10 +79,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="packages.config" />
     <EmbeddedResource Include="Test.zip">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Brevitee.Analytics\Brevitee.Analytics.csproj">
@@ -105,6 +112,10 @@
     <ProjectReference Include="..\Brevitee.Distributed\Brevitee.Distributed.csproj">
       <Project>{35cfb5c2-8456-4d5b-b421-9d91365f783a}</Project>
       <Name>Brevitee.Distributed</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Brevitee.Documentation\Brevitee.Documentation.csproj">
+      <Project>{8febe7ea-4f1f-44e2-a694-52b9a33c2414}</Project>
+      <Name>Brevitee.Documentation</Name>
     </ProjectReference>
     <ProjectReference Include="..\Brevitee.Html\Brevitee.Html.csproj">
       <Project>{795d5552-94d6-4373-b4f1-551b1d5bdafb}</Project>

@@ -81,7 +81,9 @@ namespace Brevitee.Data.Schema
         {
             get
             {
-                return this._tables.Values.ToArray();
+				List<Table> tables = new List<Table>();
+				tables.AddRange(this._tables.Values);
+				return tables.ToArray();
             }
             set
             {
@@ -92,14 +94,14 @@ namespace Brevitee.Data.Schema
                     {
                         table.ConnectionName = this.Name;
                     }
-                    if (!this._tables.ContainsKey(table.Name))
-                    {
-                        this._tables.Add(table.Name, table);
-                    }
-                    else
-                    {
-                        throw Args.Exception<InvalidOperationException>("Table named {0} defined more than once", table.Name);
-                    }
+					if (!this._tables.ContainsKey(table.Name))
+					{
+						this._tables.Add(table.Name, table);
+					}
+					else
+					{
+						throw Args.Exception<InvalidOperationException>("Table named {0} defined more than once", table.Name);
+					}
                 }
             }
         }
@@ -107,10 +109,10 @@ namespace Brevitee.Data.Schema
         internal Table GetTable(string tableName)
         {
             Table table = null;
-            if (this._tables.ContainsKey(tableName))
-            {
-                table = this._tables[tableName];
-            }
+			if (this._tables.ContainsKey(tableName))
+			{
+				table = this._tables[tableName];
+			}
             return table;
         }
 
@@ -313,13 +315,9 @@ namespace Brevitee.Data.Schema
         {
             SchemaDefinition schema = new SchemaDefinition();
             schema.File = schemaFile;
-            JavaScriptSerializer serializer = new JavaScriptSerializer();
-            if (System.IO.File.Exists(schemaFile))
-            {
-                using (StreamReader sr = new StreamReader(schemaFile))
-                {
-                    schema = serializer.Deserialize<SchemaDefinition>(sr.ReadToEnd());
-                }
+            if (System.IO.File.Exists(schemaFile)) 
+			{
+	            schema = schemaFile.FromJsonFile<SchemaDefinition>();
             }
             else
             {

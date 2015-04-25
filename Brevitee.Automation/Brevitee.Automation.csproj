@@ -40,7 +40,8 @@
     <Reference Include="Microsoft.Build" />
     <Reference Include="Microsoft.Build.Engine" />
     <Reference Include="Microsoft.Build.Framework" />
-    <Reference Include="Microsoft.Web.XmlTransform">
+    <Reference Include="Microsoft.Web.XmlTransform, Version=1.2.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Microsoft.Web.Xdt.1.0.0\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
     </Reference>
     <Reference Include="MSBuild, Version=12.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=AMD64">
@@ -66,11 +67,30 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="YamlSerializer">
+    <Reference Include="YamlSerializer, Version=0.9.0.2, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\YamlSerializer.1.0\lib\Net35\YamlSerializer.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="automation_Generated\AutomationContext.cs" />
+    <Compile Include="automation_Generated\DeferredJob.cs" />
+    <Compile Include="automation_Generated\DeferredJobCollection.cs" />
+    <Compile Include="automation_Generated\DeferredJobColumns.cs" />
+    <Compile Include="automation_Generated\Qi\DeferredJob.cs" />
+    <Compile Include="automation_Generated\Qi\RunningJob.cs" />
+    <Compile Include="automation_Generated\RunningJob.cs" />
+    <Compile Include="automation_Generated\RunningJobCollection.cs" />
+    <Compile Include="automation_Generated\RunningJobColumns.cs" />
+    <Compile Include="ContinuousIntegration\continuousIntegration_Generated\BuildJob.cs" />
+    <Compile Include="ContinuousIntegration\continuousIntegration_Generated\BuildJobCollection.cs" />
+    <Compile Include="ContinuousIntegration\continuousIntegration_Generated\BuildJobColumns.cs" />
+    <Compile Include="ContinuousIntegration\continuousIntegration_Generated\BuildResult.cs" />
+    <Compile Include="ContinuousIntegration\continuousIntegration_Generated\BuildResultCollection.cs" />
+    <Compile Include="ContinuousIntegration\continuousIntegration_Generated\BuildResultColumns.cs" />
+    <Compile Include="ContinuousIntegration\continuousIntegration_Generated\ContinuousIntegrationContext.cs" />
+    <Compile Include="ContinuousIntegration\continuousIntegration_Generated\Qi\BuildJob.cs" />
+    <Compile Include="ContinuousIntegration\continuousIntegration_Generated\Qi\BuildResult.cs" />
     <Compile Include="EmailWorker.cs" />
     <Compile Include="SuspendedJob.cs" />
     <Compile Include="WorkStateEventArgs.cs" />
@@ -86,15 +106,6 @@
     <Compile Include="ContinuousIntegration\ContinuousIntegrationJobConf.cs" />
     <Compile Include="ContinuousIntegration\FtpDeploymentWorker.cs" />
     <Compile Include="ContinuousIntegration\Extensions.cs" />
-    <Compile Include="ContinuousIntegration\Generated\BuildAutomationContext.cs" />
-    <Compile Include="ContinuousIntegration\Generated\BuildJob.cs" />
-    <Compile Include="ContinuousIntegration\Generated\BuildJobCollection.cs" />
-    <Compile Include="ContinuousIntegration\Generated\BuildJobColumns.cs" />
-    <Compile Include="ContinuousIntegration\Generated\BuildResult.cs" />
-    <Compile Include="ContinuousIntegration\Generated\BuildResultCollection.cs" />
-    <Compile Include="ContinuousIntegration\Generated\BuildResultColumns.cs" />
-    <Compile Include="ContinuousIntegration\Generated\Qi\BuildJob.cs" />
-    <Compile Include="ContinuousIntegration\Generated\Qi\BuildResult.cs" />
     <Compile Include="ContinuousIntegration\GetSourceException.cs" />
     <Compile Include="ContinuousIntegration\GetSourceWorker.cs" />
     <Compile Include="ContinuousIntegration\BreviteeContinuousIntegrationJobConf.cs" />
@@ -223,6 +234,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="MyPackage.1.0.0.nuspec" />
     <None Include="nuspec.2010.7.xsd">
       <SubType>Designer</SubType>

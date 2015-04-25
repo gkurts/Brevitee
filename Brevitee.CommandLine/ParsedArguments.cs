@@ -61,10 +61,15 @@ namespace Brevitee.CommandLine
 
                     if (nameValue.Length == 1 && validArguments[name] != null)
                     {
-                        if (validArguments[name].AllowNullValue)
-                            parsedArguments.Add(name, "");
-                        else
-                            Message = "No value specified for " + name;
+						if (validArguments[name].AllowNullValue)
+						{
+							parsedArguments.Add(name, "");
+						}
+						else
+						{
+							Message = "No value specified for " + name;
+							Status = ArgumentParseStatus.Error;
+						}
                     }
 
                     if (nameValue.Length == 2)
@@ -89,6 +94,17 @@ namespace Brevitee.CommandLine
             if (Status != ArgumentParseStatus.Error)
                 Status = ArgumentParseStatus.Success;
         }
+
+		public void EnsureArgumentValue(string argument, string message = "Required argument value not specified")
+		{
+			EnsureArgument(argument);
+			Args.ThrowIf(string.IsNullOrEmpty(this[argument]), message);
+		}
+
+		public void EnsureArgument(string argument, string message = "Required argument not specified")
+		{
+			Args.ThrowIf(!Contains(argument), message);
+		}
 
         public bool Contains(string argumentToLookFor)
         {

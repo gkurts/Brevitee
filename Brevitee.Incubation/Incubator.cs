@@ -336,6 +336,29 @@ namespace Brevitee.Incubation
             }
         }
 
+		public bool TryGet<T>(out T value)
+		{
+			Exception ignore;
+			return TryGet<T>(out value, out ignore);
+		}
+
+		public bool TryGet<T>(out T value, out Exception ex)
+		{
+			ex = null;
+			value = default(T);
+			bool result = false;
+			try
+			{
+				value = Get<T>();
+				result = true;
+			}
+			catch (Exception e)
+			{
+				ex = e;
+			}
+			return result;
+		}
+
         /// <summary>
         /// Gets an object of type T if it has been instantiated otherwise
         /// calls Construct and returns the result.

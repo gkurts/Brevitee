@@ -1,0 +1,19 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Data;
+using System.Data.Common;
+using Brevitee.Data;
+
+namespace Brevitee.Logging.Data
+{
+    public class SignatureCollection: DaoCollection<SignatureColumns, Signature>
+    { 
+		public SignatureCollection(){}
+		public SignatureCollection(Database db, DataTable table, Dao dao = null, string rc = null) : base(db, table, dao, rc) { }
+		public SignatureCollection(DataTable table, Dao dao = null, string rc = null) : base(table, dao, rc) { }
+		public SignatureCollection(Query<SignatureColumns, Signature> q, Dao dao = null, string rc = null) : base(q, dao, rc) { }
+		public SignatureCollection(Database db, Query<SignatureColumns, Signature> q, bool load) : base(db, q, load) { }
+		public SignatureCollection(Query<SignatureColumns, Signature> q, bool load) : base(q, load) { }
+    }
+}

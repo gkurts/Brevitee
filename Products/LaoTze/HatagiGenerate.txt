@@ -1,3 +1,0 @@
-/gen:E:\Source\GITRepositories\Brevitee.Hatagi\Brevitee.Hatagi.Data\Generated /ns:Brevitee.Hatagi.Data
-
-/gen:C:\Storage\Source\Brevitee.Hatagi\Brevitee.Hatagi.Data\Generated /ns:Brevitee.Hatagi.Data

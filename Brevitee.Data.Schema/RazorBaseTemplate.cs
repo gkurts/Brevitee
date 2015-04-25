@@ -22,6 +22,10 @@ namespace Brevitee.Data.Schema
         }
 
         static Action<string> _defaultInspector = (s) => { Console.WriteLine(s); };
+	    /// <summary>
+	    /// The default Action that will be given razor parse results; primarily for
+		/// debugging
+	    /// </summary>
         public static Action<string> DefaultInspector
         {
             get

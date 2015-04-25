@@ -33,7 +33,7 @@ namespace Brevitee.Server
                     // get the types that need templates
                     //  from DaoResponder
                     //      Common
-                    CommonDustTemplateRenderer commonRenderer = new CommonDustTemplateRenderer(Server.ContentResponder);
+                    CommonTemplateRenderer commonRenderer = new CommonTemplateRenderer(Server.ContentResponder);
 
                     Server.DaoResponder.CommonDaoProxyRegistrations.Values.Each((daoProxyReg) =>
                     {
@@ -46,15 +46,18 @@ namespace Brevitee.Server
                     //      App
                     Server.DaoResponder.AppDaoProxyRegistrations.Keys.Each((appName) =>
                     {
-                        AppDustTemplateRenderer appRenderer = new AppDustTemplateRenderer(Server.ContentResponder.AppContentResponders[appName]);
-                        Server.DaoResponder.AppDaoProxyRegistrations[appName].Each((daoProxyReg) =>
-                        {
-                            OnInitializingAppDaoTemplates(appName, daoProxyReg);
+						if (Server.ContentResponder.AppContentResponders.ContainsKey(appName))
+						{
+							AppTemplateRenderer appRenderer = new AppTemplateRenderer(Server.ContentResponder.AppContentResponders[appName]);
+							Server.DaoResponder.AppDaoProxyRegistrations[appName].Each((daoProxyReg) =>
+							{
+								OnInitializingAppDaoTemplates(appName, daoProxyReg);
 
-                            RenderEachTable(appRenderer, daoProxyReg);
+								RenderEachTable(appRenderer, daoProxyReg);
 
-                            OnInitializedAppDaoTemplates(appName, daoProxyReg);
-                        });
+								OnInitializedAppDaoTemplates(appName, daoProxyReg);
+							});
+						}
                     });
                 }
                 catch (Exception ex)

@@ -10,7 +10,7 @@ using Brevitee.Data;
 
 namespace Brevitee.Distributed
 {
-    public class ComputeRing: Ring<ComputeNode>, IRepositoryProvider
+    public class ComputeRing: Ring<ComputeNode>, IDistributedRepository
     {
         public ComputeRing()
             : base()
@@ -37,10 +37,10 @@ namespace Brevitee.Distributed
         protected Slot FindSlot(object value)
         {
             int key = GetRepositoryKey(value);
-            return FindSlot(key);
+			return FindSlotByKey(key);
         }
 
-        protected override Slot FindSlot(int key)
+        protected override Slot FindSlotByKey(int key)
         {
             double slotIndex = Math.Floor((double)(key / SlotSize));
             Slot result = null;
@@ -54,43 +54,54 @@ namespace Brevitee.Distributed
 
         #region IRepositoryProvider Members
 
-        public void Create(object value)
+        public void Create(CreateOperation value)
         {
-            IRepositoryProvider provider = GetRepositoryProvider(value);
+            IDistributedRepository provider = GetRepositoryProvider(value);
             provider.Create(value);
         }
 
-        public T Retrieve<T>(object keyOwner)
+        public T Retrieve<T>(RetrieveOperation value)
         {
-            IRepositoryProvider provider = GetRepositoryProvider(keyOwner);
-            return provider.Retrieve<T>(keyOwner);
+            IDistributedRepository provider = GetRepositoryProvider(value);
+            return provider.Retrieve<T>(value);
         }
 
-        public void Update(object value)
+        public void Update(UpdateOperation value)
         {
-            IRepositoryProvider provider = GetRepositoryProvider(value);
+            IDistributedRepository provider = GetRepositoryProvider(value);
             provider.Update(value);
         }
 
-        public void Delete(object value)
+        public void Delete(DeleteOperation value)
         {
-            IRepositoryProvider provider = GetRepositoryProvider(value);
+            IDistributedRepository provider = GetRepositoryProvider(value);
             provider.Delete(value);
         }
 
-        public IEnumerable<T> Search<T>(object query)
+        public IEnumerable<T> Query<T>(QueryOperation query)
         {
             List<T> results = new List<T>();
             Parallel.ForEach<Slot>(Slots, (s) =>
             {
-                IRepositoryProvider provider = s.GetProvider<ComputeNode>();
-                results.AddRange(provider.Search<T>(query));
+                IDistributedRepository provider = s.GetProvider<ComputeNode>();
+                results.AddRange(provider.Query<T>(query));
             });
 
             return results.ToArray();
         }
 
+		public ReplicationResult RecieveReplica(Operation operation)
+		{
+			throw new NotImplementedException();
+		}
+
         #endregion
+
+		public HubNode HubNode
+		{
+			get;
+			protected set;
+		}
 
         public override string GetHashString(object value)
         {
@@ -150,10 +161,10 @@ namespace Brevitee.Distributed
             return stringToHash;
         }
 
-        private IRepositoryProvider GetRepositoryProvider(object value)
+        private IDistributedRepository GetRepositoryProvider(object value)
         {
             Slot slot = FindSlot(value);
-            IRepositoryProvider provider = slot.GetProvider<ComputeNode>();
+            IDistributedRepository provider = slot.GetProvider<ComputeNode>();
             return provider;
         }
     }

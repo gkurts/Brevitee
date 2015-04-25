@@ -9,7 +9,7 @@ using System.IO;
 namespace Brevitee.Server
 {
     /// <summary>
-    /// Data Access Object DataBase JavaScript Hash
+    /// Hash of file content
     /// </summary>
     public class FileContentHash
     {

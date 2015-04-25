@@ -43,13 +43,13 @@ namespace Brevitee.ServiceProxy.Tests
     public partial class Program
     {
         [UnitTest]
-        public void GetProxyiedMethodsShouldHaveResults()
+        public void GetProxiedMethodsShouldHaveResults()
         {
             MethodInfo[] methods = ServiceProxySystem.GetProxiedMethods(typeof(EncryptedEcho));
             Expect.IsGreaterThan(methods.Length, 0, "expected more than zero methods");
         }
 
-        [UnitTest(AlwaysAfter = "StopServers")]
+        [UnitTest]
         public void ShouldBeAbleToDownloadAndCompileCSharpProxy()
         {
             BreviteeServer server;
@@ -121,19 +121,22 @@ namespace Brevitee.ServiceProxy.Tests
             ApiKeyManager.Default.UserResolver = new TestUserResolver();
         }
 
-        [UnitTest(Before = "ClientTestSetup", AlwaysAfter = "ClearApps")] // RegisterDb is defined in Program.cs
+        [UnitTest] // RegisterDb is defined in Program.cs
         public void ApiKey_ShouldCreateToken()
         {
+			ClientTestSetup();
             string methodName = MethodBase.GetCurrentMethod().Name;
             ApiKeyResolver resolver = new ApiKeyResolver(new LocalApiKeyProvider(), new TestApplicationNameProvider(methodName));
             string data = "some random data";
             string token = resolver.CreateToken(data);
             Expect.IsNotNullOrEmpty(token, "Token was null or empty");
+			ClearApps();
         }
 
-        [UnitTest(Before = "ClientTestSetup", AlwaysAfter = "ClearApps")] // RegisterDb is defined in Program.cs
+        [UnitTest] // RegisterDb is defined in Program.cs
         public void ApiKey_ShouldSetToken()
         {
+			ClientTestSetup();
             string testName = MethodBase.GetCurrentMethod().Name;
             NameValueCollection nvc = new NameValueCollection();
             string data = "Some random data";
@@ -143,11 +146,13 @@ namespace Brevitee.ServiceProxy.Tests
             resolver.SetToken(nvc, data);
 
             Expect.IsNotNullOrEmpty(nvc[ApiKeyResolver.KeyTokenName], "Key token was not set");
+			ClearApps();
         }
 
-        [UnitTest(Before = "ClientTestSetup", AlwaysAfter = "ClearApps")] // RegisterDb is defined in Program.cs
+        [UnitTest] // RegisterDb is defined in Program.cs
         public void ApiKey_ShouldSetValidToken()
         {
+			ClientTestSetup();
             string testName = MethodBase.GetCurrentMethod().Name;
             NameValueCollection nvc = new NameValueCollection();
             string data = "Some random data";
@@ -160,6 +165,7 @@ namespace Brevitee.ServiceProxy.Tests
             string token = nvc[ApiKeyResolver.KeyTokenName];
             bool isValid = resolver.IsValidToken(data, token);
             Expect.IsTrue(isValid, "token was not valid");
+			ClearApps();
         }
     }
 }

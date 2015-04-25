@@ -8,13 +8,14 @@ using System.Data;
 using System.Data.Common;
 using System.Data.Sql;
 using System.Data.SqlClient;
-//using Naizari.Testing;
+using Brevitee.Web;
 using System.IO;
 using Brevitee.CommandLine;
 using Brevitee;
 using Brevitee.Testing;
 using System.Threading;
 using System.Web.Mvc;
+using CsQuery;
 
 namespace Brevitee.Html.Tests
 {
@@ -43,7 +44,21 @@ namespace Brevitee.Html.Tests
 
             // the arguments protected member is not available in PreInit() (this method)
             #endregion
-        }
+			AddValidArgument("t", true, "run all tests");
+			DefaultMethod = typeof(TestProgram).GetMethod("Start");
+		}
+
+		public static void Start()
+		{
+			if (Arguments.Contains("t"))
+			{
+				RunAllTests(typeof(TestProgram).Assembly);
+			}
+			else
+			{
+				Interactive();
+			}
+		}
 
         /*
           * Methods addorned with the ConsoleAction attribute can be run
@@ -57,41 +72,6 @@ namespace Brevitee.Html.Tests
           * or an exception will be thrown.
           * 
           */
-
-        // To run ConsoleAction methods use the command line argument /i.        
-        [ConsoleAction("This is a main menu option")]
-        public static void ExampleMainMenuOption(string parameter)
-        {
-            Out(parameter, ConsoleColor.Green);
-        }
-
-        [ConsoleAction("write icon struct vals")]
-        public static void WriteIconStructVals()
-        {
-            string[] names = File.ReadAllLines("c:\\src\\tmp\\iconnames.txt");
-            foreach (string name in names)
-            {
-                string iconname = name.Trim();
-                if (!string.IsNullOrEmpty(iconname))
-                {
-                    string.Format("\"{0}\",\r\n", iconname).SafeAppendToFile("c:\\src\\tmp\\commas.txt");
-                }
-            }
-        }
-
-        [ConsoleAction("write enum")]
-        public static void WriteEnum()
-        {
-            string[] names = File.ReadAllLines("c:\\src\\tmp\\iconnames.txt");
-            foreach (string name in names)
-            {
-                string iconname = name.Trim().Replace("icon-", "").PascalCase(true, "-");
-                if (!string.IsNullOrEmpty(iconname))
-                {
-                    string.Format("{0},\r\n", iconname).SafeAppendToFile("c:\\src\\tmp\\enumvals.txt");
-                }
-            }
-        }
 
         [UnitTest]
         public void TestPathUtility()
@@ -124,16 +104,16 @@ namespace Brevitee.Html.Tests
             Expect.AreEqual(0, runCount, "runcount mismatch");
 
             string initial = view.Render().ToHtmlString();
-            OutFormat("Should be initial: \r\n{0}", initial);
+            OutLineFormat("Should be initial: \r\n{0}", initial);
             FileInfo compareToFile = new FileInfo(string.Format(".\\{0}_initial.txt", MethodBase.GetCurrentMethod().Name));
             Compare(view.Content, compareToFile);
 
-            Out("waiting 2 seconds");
+            OutLine("waiting 2 seconds");
             Thread.Sleep(2000);
             Expect.AreEqual(1, runCount, "runcount mismatch");
 
             string doneHtml = view.Render().ToHtmlString();
-            OutFormat("Should be done: \r\n{0}", doneHtml);
+            OutLineFormat("Should be done: \r\n{0}", doneHtml);
             compareToFile = new FileInfo(string.Format(".\\{0}_done.txt", MethodBase.GetCurrentMethod().Name));
             Compare(view.Content, compareToFile);
 
@@ -149,7 +129,7 @@ namespace Brevitee.Html.Tests
             string compare = "";
             if (!compareToFile.Exists)
             {
-                Out("The comparison file was not found, using result as comparison", ConsoleColor.Yellow);
+                OutLine("The comparison file was not found, using result as comparison", ConsoleColor.Yellow);
                 using (StreamWriter sw = new StreamWriter(compareToFile.FullName))
                 {
                     sw.Write(tag.ToHtmlString());
@@ -163,7 +143,7 @@ namespace Brevitee.Html.Tests
 
             Expect.IsNotNullOrEmpty(compare);
             Expect.AreEqual(compare, tag.ToHtmlString().ToString());
-            Out(compare, ConsoleColor.Cyan);
+            OutLine(compare, ConsoleColor.Cyan);
         }
 
         #region do not modify

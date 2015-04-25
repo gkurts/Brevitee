@@ -1,0 +1,17 @@
+{
+  "GenerateDao": true,
+  "InitializeFileSystemFrom": "Resource",
+  "ZipPath": "C:/Users/bryan/AppData/Roaming/BreviteeDaemon/bkg/content.root",
+  "InitializeTemplates": true,
+  "UseCache": false,
+  "DaoSearchPattern": "*.dll",
+  "ContentRoot": "C:/BreviteeContentRoot/",
+  "ProxyAliases": [],
+  "LoggerPaths": [
+    "."
+  ],
+  "LoggerSearchPattern": "*Logging.dll",
+  "LoggerName": "ConsoleLogger",
+  "Port": 8080,
+  "MaxThreads": 25
+}

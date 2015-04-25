@@ -14,6 +14,24 @@ namespace Brevitee
             
         }
 
+		static int _recursionLimit;
+		public static int RecursionLimit
+		{
+			get
+			{
+				if (_recursionLimit <= 0)
+				{
+					_recursionLimit = 5;
+				}
+
+				return _recursionLimit;
+			}
+			set
+			{
+				_recursionLimit = value;
+			}
+		}
+
         public Type DynamicType
         {
             get;

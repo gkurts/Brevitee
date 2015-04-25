@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace Brevitee
 {
-    public class ExceptionHelper
+    public static class ExceptionHelper
     {
         public static void ThrowIfNull(object objectToCheck, string paramName)
         {
@@ -44,5 +44,17 @@ namespace Brevitee
         {
             throw new InvalidOperationException(string.Format(messageFormat, args));
         }
+
+		public static Exception GetInnerException(this Exception exception)
+		{
+			if (exception.InnerException == null)
+			{
+				return exception;
+			}
+			else
+			{
+				return GetInnerException(exception.InnerException);
+			}
+		}
     }
 }

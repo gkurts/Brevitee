@@ -7,12 +7,11 @@ using Brevitee.Server;
 using Brevitee.CommandLine;
 using Brevitee.Configuration;
 using Brevitee;
+using Brevitee.Management;
 using Brevitee.Testing;
 using Brevitee.Encryption;
 using Brevitee.Data;
-using Brevitee.Analytics.Crawlers;
-using Brevitee.Analytics.Data;
-using Brevitee.Analytics.Classification;
+using Brevitee.Analytics;
 
 namespace Brevitee.Management.Tests
 {

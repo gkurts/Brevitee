@@ -10,6 +10,7 @@ using Microsoft.CSharp;
 using System.Reflection;
 using System.IO;
 using System.CodeDom.Compiler;
+using Brevitee;
 using Brevitee.ServiceProxy;
 using Brevitee.ServiceProxy.Js;
 
@@ -113,28 +114,25 @@ namespace Brevitee.Data.Schema
             Type currentType = this.GetType();
             string namespacePath = string.Format("{0}.Templates.", currentType.Namespace);
             Assembly assembly = currentType.Assembly;
-            string resourcePath = string.Empty;
-            foreach (string fullPath in assembly.GetManifestResourceNames())
-            {
-                string resourceTemplateName = fullPath.Substring(namespacePath.Length, fullPath.Length - namespacePath.Length);
-                if (resourceTemplateName.Equals(templateName))
-                {
-                    resourcePath = fullPath;
-                }
-            }
+			return ExecuteResource(templateName, namespacePath, assembly, options);
+        }
 
-            if (string.IsNullOrEmpty(resourcePath))
-            {
-                throw new InvalidOperationException(string.Format("The specified resource template was not found: {0}", templateName));
-            }
+		public string ExecuteResource(string templateName, string namespacePath, Assembly resourceContainer, object options = null, params Assembly[] assembliesToReference)
+		{
+			string resourcePath = resourceContainer.GetManifestResourceNames().FirstOrDefault(fullPath => fullPath.Substring(namespacePath.Length, fullPath.Length - namespacePath.Length).Equals(templateName));
+			
+			if (string.IsNullOrEmpty(resourcePath))
+			{
+				throw new InvalidOperationException(string.Format("The specified resource template was not found: {0}", templateName));
+			}
 
-            using (StreamReader resourceTemplate = new StreamReader(assembly.GetManifestResourceStream(resourcePath)))
-            {
+			using (StreamReader resourceTemplate = new StreamReader(resourceContainer.GetManifestResourceStream(resourcePath)))
+			{
 				string hashKey = resourceTemplate.ReadToEnd().Md5();
 				resourceTemplate.BaseStream.Position = 0;
-                return Execute(resourceTemplate, hashKey, options, ResultInspector);
-            }
-        }
+				return Execute(resourceTemplate, hashKey, options, ResultInspector, assembliesToReference);
+			}
+		}
 
 		public string Execute(TextReader input, object options = null, Action<string> inspector = null)
 		{
@@ -148,7 +146,7 @@ namespace Brevitee.Data.Schema
         /// <param name="options">Arguments to pass to the template engine including the Model</param>
         /// <param name="inspector"></param>
         /// <returns></returns>
-		public string Execute(TextReader input, string hashKey = null, object options = null, Action<string> inspector = null)
+		public string Execute(TextReader input, string hashKey = null, object options = null, Action<string> inspector = null, params Assembly[] assembliesToReference)
 		{
 			Assembly templateAssembly;
 			if (!string.IsNullOrEmpty(hashKey) && CompiledTemplates.ContainsKey(hashKey))
@@ -157,27 +155,36 @@ namespace Brevitee.Data.Schema
 			}
 			else
 			{
+				if(assembliesToReference == null || assembliesToReference.Length == 0)
+				{
+					assembliesToReference = GetDefaultAssembliesToReference();
+				}
 				GeneratorResults results = null;
 				CSharpCodeProvider codeProvider = null;
-				templateAssembly = GetTemplateAssembly(input, hashKey, out codeProvider, out results);
+				templateAssembly = GetTemplateAssembly(input, hashKey, assembliesToReference, out codeProvider, out results);
 				OptionallyOutputToInspector(inspector, codeProvider, results);
 			}
 			
 			return GetRazorTemplateResult(options, templateAssembly);
 		}
 
-		private Assembly GetTemplateAssembly(TextReader input, string hashKey, out CSharpCodeProvider codeProvider, out GeneratorResults results)
+		public static Assembly[] GetDefaultAssembliesToReference()
+		{
+			Assembly[] assembliesToReference = new Assembly[]{typeof(TBaseTemplate).Assembly, 
+					typeof(DaoGenerator).Assembly,
+					typeof(ServiceProxyController).Assembly, 
+					typeof(Providers).Assembly};
+			return assembliesToReference;
+		}
+
+
+		private Assembly GetTemplateAssembly(TextReader input, string hashKey, Assembly[] assembliesToReference, out CSharpCodeProvider codeProvider, out GeneratorResults results)
 		{
 			Assembly templateAssembly;
 			codeProvider = new CSharpCodeProvider();
 			results = _engine.GenerateCode(input);
 			CompilerResults compilerResults = codeProvider.CompileAssemblyFromDom(
-				new CompilerParameters(new string[] {
-                    typeof(TBaseTemplate).Assembly.CodeBase.Replace("file:///", "").Replace("/", "\\"),
-                    typeof(ServiceProxyController).Assembly.CodeBase.Replace("file:///", "").Replace("/", "\\"),
-                    typeof(Providers).Assembly.CodeBase.Replace("file:///", "").Replace("/", "\\")
-                }),
-				results.GeneratedCode);
+				GetCompilerParameters(assembliesToReference), results.GeneratedCode);
 
 			if (compilerResults.Errors.HasErrors)
 			{
@@ -189,6 +196,12 @@ namespace Brevitee.Data.Schema
 				CompiledTemplates[hashKey] = templateAssembly;
 			}
 			return templateAssembly;
+		}
+
+		private CompilerParameters GetCompilerParameters(params Assembly[] assembliesToReference)
+		{
+			string[] referencePaths = assembliesToReference.Select(a => a.GetFilePath()).ToArray();//.Select(a => a.CodeBase.Replace("file:///", "").Replace("/", "\\")).ToArray();
+			return new CompilerParameters(referencePaths);
 		}
 
 		private static void OptionallyOutputToInspector(Action<string> inspector, CSharpCodeProvider codeProvider, GeneratorResults results)
